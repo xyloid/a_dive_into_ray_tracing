@@ -3,8 +3,8 @@
 int main()
 {
     // Imgae
-    const int image_width = 2560;
-    const int image_height = 2560;
+    const int image_width = 256;
+    const int image_height = 256;
 
     // Render
     std::cout << "P3\n"
