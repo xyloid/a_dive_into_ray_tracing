@@ -20,7 +20,7 @@ int main()
 
             int ir = static_cast<int>(255.999 * r);
             int ig = static_cast<int>(255.999 * g);
-            int ib = static_cast<int>(255.999 * r);
+            int ib = static_cast<int>(255.999 * b);
 
             std::cout << ir << ' ' << ig << ' ' << ib << '\n';
         }
