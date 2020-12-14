@@ -3,8 +3,8 @@
 int main()
 {
     // Imgae
-    const int image_width = 256;
-    const int image_height = 256;
+    const int image_width = 2560;
+    const int image_height = 2560;
 
     // Render
     std::cout << "P3\n"
@@ -12,6 +12,7 @@ int main()
 
     for (int j = image_height - 1; j >= 0; --j)
     {
+        std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
         for (int i = 0; i < image_width; ++i)
         {
             auto r = double(i) / (image_width - 1);
@@ -25,4 +26,6 @@ int main()
             std::cout << ir << ' ' << ig << ' ' << ib << '\n';
         }
     }
+
+    std::cerr<<"\nDone.\n";
 }
