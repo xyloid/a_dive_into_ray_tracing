@@ -55,7 +55,8 @@ color ray_color(const ray &r, const hittable &world, int depth) {
 
   hit_record rec;
 
-  if (world.hit(r, 0, infinity, rec)) {
+    // 0.001 to solve shadow acne problem, it seems lighter after this operation, and performance improved
+  if (world.hit(r, 0.001, infinity, rec)) {
     // return 0.5 * (rec.normal + color(1, 1, 1));
     point3 target = rec.p + rec.normal + random_in_unit_sphere();
     // ray goes into next direction. when will it stop the recursive call?
@@ -69,7 +70,7 @@ color ray_color(const ray &r, const hittable &world, int depth) {
 int main() {
   // Image
   const auto aspect_ratio = 16.0 / 9.0;
-  const int image_width = 400;
+  const int image_width = 800;
   const int image_height = static_cast<int>(image_width / aspect_ratio);
   const int samples_per_pixel = 100;
   const int max_depth = 50;
