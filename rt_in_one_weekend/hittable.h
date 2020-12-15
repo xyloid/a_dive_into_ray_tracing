@@ -1,6 +1,7 @@
 #ifndef HITTABLE_H
 #define HITTABLE_H
 
+#include "rtweekend.h"
 #include "ray.h"
 
 #include <memory>
@@ -9,9 +10,12 @@
 using std::make_shared;
 using std::shared_ptr;
 
+class material;
+
 struct hit_record {
   point3 p;
   vec3 normal;
+  shared_ptr<material> mat_ptr;
   double t;
   bool front_face;
 
