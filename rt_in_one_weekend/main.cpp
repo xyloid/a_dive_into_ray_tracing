@@ -58,7 +58,9 @@ color ray_color(const ray &r, const hittable &world, int depth) {
     // 0.001 to solve shadow acne problem, it seems lighter after this operation, and performance improved
   if (world.hit(r, 0.001, infinity, rec)) {
     // return 0.5 * (rec.normal + color(1, 1, 1));
-    point3 target = rec.p + rec.normal + random_in_unit_sphere();
+    // point3 target = rec.p + rec.normal + random_in_unit_sphere();
+    // True Lambertian Reflection
+    point3 target = rec.p + rec.normal + random_unit_vector();
     // ray goes into next direction. when will it stop the recursive call?
     return 0.5 * ray_color(ray(rec.p, target - rec.p), world, depth - 1);
   }
