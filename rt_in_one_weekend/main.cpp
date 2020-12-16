@@ -7,6 +7,8 @@
 #include "sphere.h"
 
 #include <iostream>
+#include <thread>
+using std::thread;
 
 // bool hit_sphere(const point3 &center, double radius, const ray &r)
 // {
@@ -258,7 +260,36 @@ void learn() {
   std::cerr << "\nDone.\n";
 }
 
+void worker(int start, int end, color img[]) {}
+
+void parallel_render() {
+  // Image
+  const auto aspect_ratio = 3.0 / 2.0;
+  const int image_width = 800; // 1200
+  const int image_height = static_cast<int>(image_width / aspect_ratio);
+  const int samples_per_pixel = 50; // 500
+  const int max_depth = 50;
+
+  int size = image_height * image_width;
+
+  std::cout << "total size:" << size << std::endl;
+  // color img[size];
+  std::vector<color> img(size);
+  int concurrency = 15;
+
+  int batch_size = ceil(size / (double)concurrency);
+  int last_batch = size % concurrency == 0 ? 0 : size % concurrency;
+
+  std::vector<thread> tasks;
+  for (int i = 0; i < concurrency; i++) {
+    int start = batch_size * i;
+    int end = std::min(batch_size * (i + 1), size);
+    std::cout << start << "-" << end << std::endl;
+  }
+}
+
 int main() {
   // learn();
-  final_scene();
+  // final_scene();
+  parallel_render();
 }
