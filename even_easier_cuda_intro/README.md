@@ -100,3 +100,8 @@ Device "GeForce RTX 2060 with Max-Q Design (0)"
       12         -         -         -           -  2.766326ms  Gpu page fault groups
 Total CPU Page faults: 36
 ```
+
+
+## Question
+
+Why RTX2060 MAX-Q is slow in grid approach?
