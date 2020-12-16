@@ -87,7 +87,7 @@ int main() {
   const int max_depth = 50;
 
   // World
-  auto R = cos(pi/4);
+  auto R = cos(pi / 4);
   hittable_list world;
   //   world.add(make_shared<sphere>(point3(0, 0, -1), 0.5));
   //   // any reason for this 100.5 ?
@@ -106,7 +106,8 @@ int main() {
   world.add(make_shared<sphere>(point3(-1.0, 0.0, -1.0), -0.4, material_left));
   world.add(make_shared<sphere>(point3(1.0, 0, -1.0), 0.5, material_right));
   // Camera
-  camera cam(120.0, aspect_ratio);
+  camera cam(point3(-2, 2, 1), point3(0, 0, -1), vec3(0, 1, 0), 35.0,
+             aspect_ratio);
 
   /**
    auto viewport_height = 2.0;
