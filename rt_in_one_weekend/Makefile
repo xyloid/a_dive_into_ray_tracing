@@ -1,7 +1,7 @@
 CC = g++
 
 
-LINKERFLAG = -lm
+LINKERFLAG = -lm -pthread
 
 inOneWeek:
 	${CC} ${LINKERFLAG} main.cpp -o inOneWeek

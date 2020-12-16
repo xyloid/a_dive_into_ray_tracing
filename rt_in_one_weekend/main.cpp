@@ -8,7 +8,7 @@
 
 #include <iostream>
 #include <thread>
-using std::thread;
+// using std::thread;
 
 // bool hit_sphere(const point3 &center, double radius, const ray &r)
 // {
@@ -260,32 +260,85 @@ void learn() {
   std::cerr << "\nDone.\n";
 }
 
-void worker(int start, int end, color img[]) {}
+void worker(int start, int end, std::vector<color> img, int image_width,
+            int image_height, hittable_list world, camera cam,
+            int samples_per_pixel, int max_depth) {
+  std::cerr << start << "-" << end << std::endl;
+  // [start, end)
+  for (int index = start; index < end; index++) {
+    int j = index / image_width;
+    int i = index % image_width;
+    color pixel_color(0, 0, 0);
+    for (int s = 0; s < samples_per_pixel; s++) {
+      auto u = (i + random_double()) / (image_width - 1);
+      auto v = (j + random_double()) / (image_height - 1);
+      ray r = cam.get_ray(u, v);
+      pixel_color += ray_color(r, world, max_depth);
+      // std::cerr << pixel_color << std::endl;
+    }
+    img.at(index) = pixel_color;
+  }
+}
 
 void parallel_render() {
   // Image
   const auto aspect_ratio = 3.0 / 2.0;
-  const int image_width = 800; // 1200
+  const int image_width = 160; // 1200
   const int image_height = static_cast<int>(image_width / aspect_ratio);
   const int samples_per_pixel = 50; // 500
   const int max_depth = 50;
 
+  // World
+  auto world = random_scene();
+
+  // Camera
+  point3 lookfrom(13, 2, 3);
+  point3 lookat(0, 0, 0);
+  vec3 vup(0, 1, 0);
+  auto dist_to_focus = 10.0;
+  auto aperture = 0.1;
+
+  // Camera
+  camera cam(lookfrom, lookat, vup, 20, aspect_ratio, aperture, dist_to_focus);
+
   int size = image_height * image_width;
 
-  std::cout << "total size:" << size << std::endl;
+  std::cerr << "total size:" << size << std::endl;
   // color img[size];
   std::vector<color> img(size);
-  int concurrency = 15;
+  int concurrency = 16;
 
   int batch_size = ceil(size / (double)concurrency);
   int last_batch = size % concurrency == 0 ? 0 : size % concurrency;
 
-  std::vector<thread> tasks;
+  std::vector<shared_ptr<std::thread>> tasks;
   for (int i = 0; i < concurrency; i++) {
     int start = batch_size * i;
     int end = std::min(batch_size * (i + 1), size);
-    std::cout << start << "-" << end << std::endl;
+
+    // std::thread thr(worker, start, end, img);
+    tasks.push_back(make_shared<std::thread>(
+        worker, start, end, img, image_width, image_height, world, cam,
+        samples_per_pixel, max_depth));
   }
+
+  for (const auto t : tasks) {
+    t->join();
+  }
+
+  std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
+
+  for (int j = image_height - 1; j >= 0; --j) {
+    std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
+    for (int i = 0; i < image_width; ++i) {
+      std::cerr << img[j * image_width + i] << std::endl;
+      write_color(std::cout, img[j * image_width + i], samples_per_pixel);
+    }
+  }
+
+  std::cerr << "\nDone.\n";
+
+  std::cerr << "finished" << std::endl;
 }
 
 int main() {
