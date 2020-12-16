@@ -260,7 +260,10 @@ void learn() {
   std::cerr << "\nDone.\n";
 }
 
-void worker(int start, int end, std::vector<shared_ptr<color>> img,
+// https://stackoverflow.com/questions/61985888/why-the-compiler-complains-that-stdthread-arguments-must-be-invocable-after-co
+
+void worker(int start, int end,
+            std::reference_wrapper<std::vector<shared_ptr<color>>> img,
             int image_width, int image_height, hittable_list world, camera cam,
             int samples_per_pixel, int max_depth) {
   std::cerr << start << "-" << end << std::endl;
@@ -276,17 +279,19 @@ void worker(int start, int end, std::vector<shared_ptr<color>> img,
       pixel_color += ray_color(r, world, max_depth);
       // std::cerr << pixel_color << std::endl;
     }
-    img.at(index) =
+    img.get().at(index) =
         make_shared<color>(pixel_color.x(), pixel_color.y(), pixel_color.z());
+    // img.at(index) =
+    //     make_shared<color>(pixel_color.x(), pixel_color.y(), pixel_color.z());
   }
 }
 
 void parallel_render() {
   // Image
   const auto aspect_ratio = 3.0 / 2.0;
-  const int image_width = 160; // 1200
+  const int image_width = 1200; // 1200
   const int image_height = static_cast<int>(image_width / aspect_ratio);
-  const int samples_per_pixel = 50; // 500
+  const int samples_per_pixel = 500; // 500
   const int max_depth = 50;
 
   // World
@@ -319,8 +324,8 @@ void parallel_render() {
 
     // std::thread thr(worker, start, end, img);
     tasks.push_back(make_shared<std::thread>(
-        worker, start, end, img, image_width, image_height, world, cam,
-        samples_per_pixel, max_depth));
+        worker, start, end, std::ref(img), image_width, image_height, world,
+        cam, samples_per_pixel, max_depth));
   }
 
   for (const auto t : tasks) {
@@ -332,7 +337,7 @@ void parallel_render() {
   for (int j = image_height - 1; j >= 0; --j) {
     std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
     for (int i = 0; i < image_width; ++i) {
-      std::cerr << img[j * image_width + i].get() << std::endl;
+      // std::cerr << img[j * image_width + i].get(). << std::endl;
       color pixel_color(img[j * image_width + i].get()->x(),
                         img[j * image_width + i].get()->y(),
                         img[j * image_width + i].get()->z());
