@@ -1,10 +1,10 @@
 CC = g++
 
 
-LINKERFLAG = -lm
+LINKERFLAG = -lm -pthread
 
 inOneWeek:
-	${CC} ${LINKERFLAG} main.cpp -o inOneWeek
+	${CC} ${LINKERFLAG}  -ggdb main.cpp -o inOneWeek
 
 clean:
 	rm inOneWeek
