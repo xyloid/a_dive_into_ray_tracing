@@ -260,8 +260,8 @@ void learn() {
   std::cerr << "\nDone.\n";
 }
 
-void worker(int start, int end, std::vector<color> img, int image_width,
-            int image_height, hittable_list world, camera cam,
+void worker(int start, int end, std::vector<shared_ptr<color>> img,
+            int image_width, int image_height, hittable_list world, camera cam,
             int samples_per_pixel, int max_depth) {
   std::cerr << start << "-" << end << std::endl;
   // [start, end)
@@ -276,7 +276,8 @@ void worker(int start, int end, std::vector<color> img, int image_width,
       pixel_color += ray_color(r, world, max_depth);
       // std::cerr << pixel_color << std::endl;
     }
-    img.at(index) = pixel_color;
+    img.at(index) =
+        make_shared<color>(pixel_color.x(), pixel_color.y(), pixel_color.z());
   }
 }
 
@@ -305,7 +306,7 @@ void parallel_render() {
 
   std::cerr << "total size:" << size << std::endl;
   // color img[size];
-  std::vector<color> img(size);
+  std::vector<shared_ptr<color>> img(size);
   int concurrency = 16;
 
   int batch_size = ceil(size / (double)concurrency);
@@ -331,8 +332,11 @@ void parallel_render() {
   for (int j = image_height - 1; j >= 0; --j) {
     std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
     for (int i = 0; i < image_width; ++i) {
-      std::cerr << img[j * image_width + i] << std::endl;
-      write_color(std::cout, img[j * image_width + i], samples_per_pixel);
+      std::cerr << img[j * image_width + i].get() << std::endl;
+      color pixel_color(img[j * image_width + i].get()->x(),
+                        img[j * image_width + i].get()->y(),
+                        img[j * image_width + i].get()->z());
+      write_color(std::cout, pixel_color, samples_per_pixel);
     }
   }
 
