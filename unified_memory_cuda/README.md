@@ -186,3 +186,22 @@ Device "GeForce RTX 2060 with Max-Q Design (0)"
       24  170.67KB  4.0000KB  0.9961MB  4.000000MB  664.0680us  Device To Host
 Total CPU Page faults: 36
 ```
+
+## The Benefits of Unified Memory on Pascal and Later GPUs
+
+Unified Memory functionality is significiantly improved with **49-bit virtual addressing** and **on-demand page migration**.
+
+- 49-bit virtual addressing
+    - accessing entire system memory + GPU memory
+- on-demand page migration
+    - effecient processing, kind of a "lazy" strategy
+- system-wide automic memory operations
+- demand paging can be particularly benificial to applications that access data with a sparse pattern.
+
+The problem with the pre-Pascal GPU is that all the data will be loaded to the GPU memory, which is very ineffecient. And for multiple GPU system, application may need to copy the entire data from one GPU to another GPU. 
+
+Having page fault on GPU is a good thing.
+
+## Readings
+
+[Beyond GPU Memory Limits with Unified Memory on Pascal](https://developer.nvidia.com/blog/beyond-gpu-memory-limits-unified-memory-pascal/)
