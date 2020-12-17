@@ -96,6 +96,36 @@ Total CPU Page faults: 12
 
 ### Run Many Times
 
+100 times
+
+```
+==12089== NVPROF is profiling process 12089, command: ./add_grid_many
+Max error: 0
+==12089== Profiling application: ./add_grid_many
+==12089== Profiling result:
+            Type  Time(%)      Time     Calls       Avg       Min       Max  Name
+ GPU activities:  100.00%  8.1625ms       100  81.624us  53.344us  2.8587ms  add(int, float*, float*)
+      API calls:   94.62%  161.19ms         2  80.595ms  66.728us  161.12ms  cudaMallocManaged
+                    4.66%  7.9457ms         1  7.9457ms  7.9457ms  7.9457ms  cudaDeviceSynchronize
+                    0.26%  440.02us         2  220.01us  200.50us  239.52us  cudaFree
+                    0.19%  320.29us       100  3.2020us  2.7370us  27.657us  cudaLaunchKernel
+                    0.13%  228.25us         1  228.25us  228.25us  228.25us  cuDeviceTotalMem
+                    0.09%  154.72us       101  1.5310us     135ns  67.467us  cuDeviceGetAttribute
+                    0.04%  72.467us         1  72.467us  72.467us  72.467us  cuDeviceGetName
+                    0.01%  9.0580us         1  9.0580us  9.0580us  9.0580us  cuDeviceGetPCIBusId
+                    0.00%  1.3890us         3     463ns     170ns     991ns  cuDeviceGetCount
+                    0.00%     846ns         2     423ns     146ns     700ns  cuDeviceGet
+                    0.00%     284ns         1     284ns     284ns     284ns  cuDeviceGetUuid
+
+==12089== Unified Memory profiling result:
+Device "GeForce RTX 2060 with Max-Q Design (0)"
+   Count  Avg Size  Min Size  Max Size  Total Size  Total Time  Name
+     110  74.473KB  4.0000KB  984.00KB  8.000000MB  1.575782ms  Host To Device
+      24  170.67KB  4.0000KB  0.9961MB  4.000000MB  662.9460us  Device To Host
+      12         -         -         -           -  2.819880ms  Gpu page fault groups
+Total CPU Page faults: 36
+```
+
 200 times
 
 ```
@@ -126,5 +156,33 @@ Device "GeForce RTX 2060 with Max-Q Design (0)"
 Total CPU Page faults: 36
 ```
 
-
 ### Prefetch
+
+```
+==13567== NVPROF is profiling process 13567, command: ./add_grid_prefetch
+Max error: 0
+==13567== Profiling application: ./add_grid_prefetch
+==13567== Profiling result:
+            Type  Time(%)      Time     Calls       Avg       Min       Max  Name
+ GPU activities:  100.00%  48.640us         1  48.640us  48.640us  48.640us  add(int, float*, float*)
+      API calls:   97.91%  145.14ms         2  72.569ms  50.737us  145.09ms  cudaMallocManaged
+                    0.97%  1.4306ms         1  1.4306ms  1.4306ms  1.4306ms  cudaDeviceSynchronize
+                    0.46%  675.58us         2  337.79us  137.11us  538.47us  cudaMemPrefetchAsync
+                    0.37%  547.76us         2  273.88us  243.75us  304.01us  cudaFree
+                    0.15%  219.84us         1  219.84us  219.84us  219.84us  cuDeviceTotalMem
+                    0.10%  140.99us       101  1.3950us     141ns  62.059us  cuDeviceGetAttribute
+                    0.03%  45.035us         1  45.035us  45.035us  45.035us  cuDeviceGetName
+                    0.02%  29.895us         1  29.895us  29.895us  29.895us  cudaLaunchKernel
+                    0.00%  7.3250us         1  7.3250us  7.3250us  7.3250us  cuDeviceGetPCIBusId
+                    0.00%  3.5720us         1  3.5720us  3.5720us  3.5720us  cudaGetDevice
+                    0.00%  1.4440us         3     481ns     173ns  1.0860us  cuDeviceGetCount
+                    0.00%     704ns         2     352ns     170ns     534ns  cuDeviceGet
+                    0.00%     253ns         1     253ns     253ns     253ns  cuDeviceGetUuid
+
+==13567== Unified Memory profiling result:
+Device "GeForce RTX 2060 with Max-Q Design (0)"
+   Count  Avg Size  Min Size  Max Size  Total Size  Total Time  Name
+       4  2.0000MB  2.0000MB  2.0000MB  8.000000MB  1.317314ms  Host To Device
+      24  170.67KB  4.0000KB  0.9961MB  4.000000MB  664.0680us  Device To Host
+Total CPU Page faults: 36
+```
