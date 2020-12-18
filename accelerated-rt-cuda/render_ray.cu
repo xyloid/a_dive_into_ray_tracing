@@ -5,8 +5,9 @@
 #include "cuda_utils.h"
 #include <iostream>
 
-__device__ vec3 get_color(ray r) {
+__device__ vec3 ray_color(ray r) {
   vec3 unit_direction = unit_vector(r.direction());
+  // force float instead of double during computation
   float t = 0.5f * (unit_direction.y() + 1.0f);
   return (1.0f - t) * vec3(1.0, 1.0, 1.0) + t * vec3(0.5, 0.7, 1.0);
 }
@@ -22,7 +23,7 @@ __global__ void render(vec3 *fb, int max_x, int max_y, vec3 lower_left_corner,
   float u = float(i) / float(max_x);
   float v = float(j) / float(max_y);
   ray r(origin, lower_left_corner + u * horizontal + v * vertical);
-  fb[pixel_index] = get_color(r);
+  fb[pixel_index] = ray_color(r);
 }
 
 int main(void) {
