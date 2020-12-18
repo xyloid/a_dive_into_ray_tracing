@@ -4,8 +4,14 @@
 ## Sections
 
 1. First Image
+    - move computation to devcie
 2. Adding Vectors
+    - create class used in both host and device
 3. Classing Up the GPU
+    - use class in device
+4. Hit the Sphere
+    - add function in device
+5. Manage Your Memory
 
 ## reference
 - [Unified Memory for CUDA Beginners](https://developer.nvidia.com/blog/unified-memory-cuda-beginners/)
