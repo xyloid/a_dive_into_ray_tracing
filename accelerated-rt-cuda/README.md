@@ -12,6 +12,9 @@
 4. Hit the Sphere
     - add function in device
 5. Manage Your Memory
+    - no `shared_ptr` or `make_shared` here, just plain cpp. 
+    - But, there is something interesting: [C++11 smart pointers and CUDA](https://ernestyalumni.wordpress.com/2017/09/28/bringing-cuda-into-the-year-2011-c11-smart-pointers-with-cuda-cub-nccl-streams-and-cuda-unified-memory-management-with-cub-and-cublas/)
+    - `__device__` can be applied to `virtual` functions.
 
 ## reference
 - [Unified Memory for CUDA Beginners](https://developer.nvidia.com/blog/unified-memory-cuda-beginners/)
