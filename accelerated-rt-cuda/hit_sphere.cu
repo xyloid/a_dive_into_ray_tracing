@@ -11,7 +11,7 @@ __device__ bool hit_sphere(const point3 &center, double radius, const ray &r) {
   auto b = 2.0f * dot(oc, r.direction());
   auto c = dot(oc, oc) - radius * radius;
   auto discriminant = b * b - 4f * a * c;
-  return (discriminant > 0);
+  return (discriminant > 0.0f);
 }
 
 __device__ vec3 ray_color(ray r) {
