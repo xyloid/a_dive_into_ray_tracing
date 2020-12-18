@@ -1,37 +1,50 @@
 #include "color.h"
-#include "ray.h"
-#include "vec3.h"
-
 #include "cuda_utils.h"
+#include "hittable_list.h"
+#include "ray.h"
+#include "sphere.h"
+#include "vec3.h"
+#include <float.h> // for FLT_MAX
 #include <iostream>
 
-__device__ float hit_sphere(const point3 &center, float radius, const ray &r) {
-  vec3 oc = r.origin() - center;
-  auto a = dot(r.direction(), r.direction());
-  auto b = 2.0f * dot(oc, r.direction());
-  auto c = dot(oc, oc) - radius * radius;
-  auto discriminant = b * b - 4.0f * a * c;
-  if (discriminant < 0.0f) {
-    return -1.0f;
-  } else {
-    return (-b - sqrt(discriminant)) / (2.0f * a);
-  }
-}
+// __device__ float hit_sphere(const point3 &center, float radius, const ray &r)
+// {
+//   vec3 oc = r.origin() - center;
+//   auto a = dot(r.direction(), r.direction());
+//   auto b = 2.0f * dot(oc, r.direction());
+//   auto c = dot(oc, oc) - radius * radius;
+//   auto discriminant = b * b - 4.0f * a * c;
+//   if (discriminant < 0.0f) {
+//     return -1.0f;
+//   } else {
+//     return (-b - sqrt(discriminant)) / (2.0f * a);
+//   }
+// }
 
-__device__ vec3 ray_color(ray r) {
-  float t = hit_sphere(point3(0, 0, -1), 0.5f, r);
-  if (t > 0.0f) {
-    vec3 N = unit_vector(r.at(t) - vec3(0, 0, -1));
-    return 0.5f * color(N.x() + 1, N.y() + 1, N.z() + 1);
+__device__ vec3 ray_color(ray r, hittable **world) {
+  //   float t = hit_sphere(point3(0, 0, -1), 0.5f, r);
+  //   if (t > 0.0f) {
+  //     vec3 N = unit_vector(r.at(t) - vec3(0, 0, -1));
+  //     return 0.5f * color(N.x() + 1, N.y() + 1, N.z() + 1);
+  //   }
+  //   vec3 unit_direction = unit_vector(r.direction());
+  //   // force float instead of double during computation
+  //   t = 0.5f * (unit_direction.y() + 1.0f);
+  //   return (1.0f - t) * vec3(1.0, 1.0, 1.0) + t * vec3(0.5, 0.7, 1.0);
+  hit_record rec;
+  if ((*world)->hit(r, 0.0, FLT_MAX, rec)) {
+    return 0.5f * vec3(rec.normal.x() + 1.0f, rec.normal.y() + 1.0f,
+                       rec.normal.z() + 1.0f);
+  } else {
+    vec3 unit_direction = unit_vector(r.direction());
+    float t = 0.5f * (unit_direction.y() + 1.0f);
+    return (1.0f - t) * vec3(1.0, 1.0, 1.0) + t * vec3(0.5, 0.7, 1.0);
   }
-  vec3 unit_direction = unit_vector(r.direction());
-  // force float instead of double during computation
-  t = 0.5f * (unit_direction.y() + 1.0f);
-  return (1.0f - t) * vec3(1.0, 1.0, 1.0) + t * vec3(0.5, 0.7, 1.0);
 }
 
 __global__ void render(vec3 *fb, int max_x, int max_y, vec3 lower_left_corner,
-                       vec3 horizontal, vec3 vertical, vec3 origin) {
+                       vec3 horizontal, vec3 vertical, vec3 origin,
+                       hittable **world) {
   int i = threadIdx.x + blockIdx.x * blockDim.x;
   int j = threadIdx.y + blockIdx.y * blockDim.y;
   if ((i >= max_x) || (j >= max_y))
@@ -41,7 +54,22 @@ __global__ void render(vec3 *fb, int max_x, int max_y, vec3 lower_left_corner,
   float u = float(i) / float(max_x);
   float v = float(j) / float(max_y);
   ray r(origin, lower_left_corner + u * horizontal + v * vertical);
-  fb[pixel_index] = ray_color(r);
+  fb[pixel_index] = ray_color(r, world);
+}
+
+__global__ void create_world(hittable **d_list, hittable **d_world) {
+  // make sure only create this object once
+  if (threadIdx.x == 0 && blockIdx.x == 0) {
+    *(d_list) = new sphere(vec3(0.0f, 0.0f, -1.0f), 0.5f);
+    *(d_list + 1) = new sphere(vec3(0, -100.5, -1), 100);
+    *d_world = new hittable_list(d_list, 2);
+  }
+}
+
+__global__ void free_world(hittable **d_list, hittable **d_world) {
+  delete *(d_list);
+  delete *(d_list + 1);
+  delete *d_world;
 }
 
 int main(void) {
@@ -64,6 +92,16 @@ int main(void) {
   auto lower_left_corner =
       origin - horizontal / 2 - vertical / 2 - vec3(0, 0, focal_length);
 
+  // a list of 2 hittable objects
+  hittable **d_list;
+  checkCudaErrors(cudaMalloc((void **)&d_list, 2 * sizeof(hittable *)));
+
+  hittable **d_world;
+  checkCudaErrors((cudaMalloc((void **)&d_world, sizeof(hittable *))));
+  create_world<<<1, 1>>>(d_list, d_world);
+  checkCudaErrors(cudaGetLastError());
+  checkCudaErrors(cudaDeviceSynchronize());
+
   // allocate FB, no initialization in CPU memory here.
   vec3 *fb;
   checkCudaErrors(cudaMallocManaged((void **)&fb, fb_size));
@@ -75,8 +113,12 @@ int main(void) {
   // Render our buffer
   dim3 blocks(nx / tx + 1, ny / ty + 1);
   dim3 threads(tx, ty);
-  render<<<blocks, threads>>>(fb, nx, ny, lower_left_corner, horizontal,
-                              vertical, origin);
+  //   render<<<blocks, threads>>>(fb, nx, ny, lower_left_corner, horizontal,
+  //                               vertical, origin, d_world);
+  render<<<blocks, threads>>>(fb, nx, ny, vec3(-2.0, -1.0, -1.0),
+                              vec3(4.0, 0.0, 0.0), vec3(0.0, 2.0, 0.0),
+                              vec3(0.0, 0.0, 0.0), d_world);
+
   checkCudaErrors(cudaGetLastError());
   checkCudaErrors(cudaDeviceSynchronize());
 
@@ -97,6 +139,11 @@ int main(void) {
       write_color(std::cout, pixel_color);
     }
   }
+  checkCudaErrors(cudaDeviceSynchronize());
+  free_world<<<1, 1>>>(d_list, d_world);
+  checkCudaErrors(cudaGetLastError());
+  checkCudaErrors(cudaFree(d_list));
+  checkCudaErrors(cudaFree(d_world));
   checkCudaErrors(cudaFree(fb));
 
   return 0;

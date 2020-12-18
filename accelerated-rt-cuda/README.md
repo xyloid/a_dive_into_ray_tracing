@@ -15,6 +15,13 @@
     - no `shared_ptr` or `make_shared` here, just plain cpp. 
     - But, there is something interesting: [C++11 smart pointers and CUDA](https://ernestyalumni.wordpress.com/2017/09/28/bringing-cuda-into-the-year-2011-c11-smart-pointers-with-cuda-cub-nccl-streams-and-cuda-unified-memory-management-with-cub-and-cublas/)
     - `__device__` can be applied to `virtual` functions.
+    - a strange warning during the compiliation
+    ```
+     accelerated-rt-cuda git:(acc_cuda) ✗ nvcc hit_sphere.cu  -o obj    
+        ptxas warning : Stack size for entry function '_Z12create_worldPP8hittableS1_' cannot be statically determined
+        ptxas warning : Stack size for entry function '_Z6renderP4vec3iiS_S_S_S_PP8hittable' cannot be statically determined
+    ```
+    - in the render funciton, what happens where we directly initialize some parameters in the function call? We know if we pre-initialize them by cpu, then they must be in CPU memory. 
 
 ## reference
 - [Unified Memory for CUDA Beginners](https://developer.nvidia.com/blog/unified-memory-cuda-beginners/)
