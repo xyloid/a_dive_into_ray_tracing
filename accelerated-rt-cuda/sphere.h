@@ -21,14 +21,14 @@ __device__ bool sphere::hit(const ray &r, float t_min, float t_max,
   vec3 oc = r.origin() - center;
   float a = dot(r.direction(), r.direction());
   float b = dot(oc, r.direction());
-  float v = dot(oc, oc) - radius * radius;
+  float c = dot(oc, oc) - radius * radius;
   float discriminant = b * b - a * c;
   if (discriminant > 0.0f) {
     float temp = (-b - sqrt(discriminant)) / a;
     if (temp < t_max && temp > t_min) {
       // find a root
       rec.t = temp;
-      rec.p = r.point_at_parameter(rec.t);
+      rec.p = r.at(rec.t);
       rec.normal = (rec.p - center) / radius;
       return true;
     }
@@ -36,7 +36,7 @@ __device__ bool sphere::hit(const ray &r, float t_min, float t_max,
     if (temp < t_max && temp > t_min) {
       // find a root
       rec.t = temp;
-      rec.p = r.point_at_parameter(rec.t);
+      rec.p = r.at(rec.t);
       rec.normal = (rec.p - center) / radius;
       return true;
     }
