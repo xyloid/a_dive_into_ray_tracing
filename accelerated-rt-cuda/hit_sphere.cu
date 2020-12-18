@@ -10,7 +10,7 @@ __device__ bool hit_sphere(const point3 &center, double radius, const ray &r) {
   auto a = dot(r.direction(), r.direction());
   auto b = 2.0f * dot(oc, r.direction());
   auto c = dot(oc, oc) - radius * radius;
-  auto discriminant = b * b - 4f * a * c;
+  auto discriminant = b * b - 4.0f * a * c;
   return (discriminant > 0.0f);
 }
 
@@ -39,8 +39,8 @@ __global__ void render(vec3 *fb, int max_x, int max_y, vec3 lower_left_corner,
 
 int main(void) {
   // Image
-  const auto aspect_ratio = 3.0 / 2.0;
-  int nx = 400;
+  const auto aspect_ratio = 16.0 / 9.0;
+  int nx = 1200;
   int ny = static_cast<int>(nx / aspect_ratio);
   int num_pixels = nx * ny;
   int fb_size = num_pixels * sizeof(vec3);
