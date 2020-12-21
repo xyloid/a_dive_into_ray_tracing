@@ -61,8 +61,33 @@ This project is inspired by Peter Shirley's Ray Tracing series.
 
 
 - [Ray Tracing Essentials Part 5: Ray Tracing Effects](https://www.youtube.com/watch?v=Rk5nD8tt_W4&list=PL5B692fm6--sgm8Uiava0IIvUojjFOCSR&index=5)
+  - Hard shadows: shooting one ray from a point light
+  - Soft shadows: shooting a bunch of rays from an area light
+  - light bouncing around: Interreflection / Indirect lighting / Color bleeding / Global illumination
+  - Glossy reflections
+  - Ambient occlusion
+    - It has been used with rasterization for a long time.
+    - With ray tracing, we can get a better answer.
+  - Depth of field.
+  - Motion blur
+  - Ray marching (an atmospheric effect)
+  - Caustics
+    - light effect with water or other transparent media
 
+- [Ray Tracing Essentials Part 6: The Rendering Equation](https://www.youtube.com/watch?v=AODo_RjJoUA&list=PL5B692fm6--sgm8Uiava0IIvUojjFOCSR&index=6)
+  - It sums up **how lights get into the eye**
+  - How to sample the rays on one point in the scene
+    - Random sampling uniformaly over a unit sphere
+    - Add BSDF
+    - Add ligithing
 
+- [Ray Tracing Essentials Part 7: Denoising for Ray Tracing](https://www.youtube.com/watch?v=6O2B9BZiZjQ&list=PL5B692fm6--sgm8Uiava0IIvUojjFOCSR&index=7)
+  - using denoise will improve the performance.
+    - less samples per pixel
+  - start with a noisy result and reconstruct
+  - many different approaches
+    - denoising by effect
+    - deep learning for image denoising
 
 - [Ray Tracing Gems](http://www.realtimerendering.com/raytracinggems/)
 
