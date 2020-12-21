@@ -97,6 +97,10 @@ This project is inspired by Peter Shirley's Ray Tracing series.
 
 - [Ray Tracing Resource Page](http://www.realtimerendering.com/raytracing.html)
 
+- [UCD: Depth Buffers and Ray Tracing](https://www.youtube.com/watch?v=Xks1v4GNUiY)
+- [UCD: Ray Tracing](https://www.youtube.com/watch?v=Ahp6LDQnK4Y)
+
+- [Introduction to Computer Graphics (fall 2018), Lecture 12: Accelerating Ray Tracing](https://www.youtube.com/watch?v=FbLCMy-M2ls)
 
 ### Coding
 
