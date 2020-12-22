@@ -32,19 +32,42 @@ __device__ vec3 ray_color(ray r, hittable **world) {
   }
 }
 
-__global__ void render(vec3 *fb, int max_x, int max_y, vec3 lower_left_corner,
-                       vec3 horizontal, vec3 vertical, vec3 origin,
-                       hittable **world) {
+// __global__ void render(vec3 *fb, int max_x, int max_y, vec3
+// lower_left_corner,
+//                        vec3 horizontal, vec3 vertical, vec3 origin,
+//                        hittable **world) {
+//   int i = threadIdx.x + blockIdx.x * blockDim.x;
+//   int j = threadIdx.y + blockIdx.y * blockDim.y;
+//   if ((i >= max_x) || (j >= max_y))
+//     return;
+//   //   int pixel_index = j*max_x*3 + i*3;
+//   int pixel_index = j * max_x + i;
+//   float u = float(i) / float(max_x);
+//   float v = float(j) / float(max_y);
+//   ray r(origin, lower_left_corner + u * horizontal + v * vertical);
+//   fb[pixel_index] = ray_color(r, world);
+// }
+
+__global__ void render(vec3 *fb, int max_x, int max_y, int ns,
+                       vec3 lower_left_corner, vec3 horizontal, vec3 vertical,
+                       vec3 origin, hittable **world, curandState *rand_state) {
   int i = threadIdx.x + blockIdx.x * blockDim.x;
   int j = threadIdx.y + blockIdx.y * blockDim.y;
   if ((i >= max_x) || (j >= max_y))
     return;
   //   int pixel_index = j*max_x*3 + i*3;
   int pixel_index = j * max_x + i;
-  float u = float(i) / float(max_x);
-  float v = float(j) / float(max_y);
-  ray r(origin, lower_left_corner + u * horizontal + v * vertical);
-  fb[pixel_index] = ray_color(r, world);
+  curandState local_rand_state = rand_state[pixel_index];
+  vec3 col(0, 0, 0);
+
+  for (int s = 0; s < ns; s++) {
+    float u = float(i + curand_uniform(&local_rand_state)) / float(max_x);
+    float v = float(j + curand_uniform(&local_rand_state)) / float(max_y);
+    ray r(origin, lower_left_corner + u * horizontal + v * vertical);
+    col += ray_color(r, world);
+  }
+
+  fb[pixel_index] = col / float(ns);
 }
 
 __global__ void create_world(hittable **d_list, hittable **d_world) {
@@ -69,6 +92,7 @@ int main(void) {
   int ny = static_cast<int>(nx / aspect_ratio);
   int num_pixels = nx * ny;
   int fb_size = num_pixels * sizeof(vec3);
+  int ns = 100;
 
   // Camera
 
@@ -113,9 +137,9 @@ int main(void) {
 
   //   render<<<blocks, threads>>>(fb, nx, ny, lower_left_corner, horizontal,
   //                               vertical, origin, d_world);
-  render<<<blocks, threads>>>(fb, nx, ny, vec3(-2.0, -1.0, -1.0),
+  render<<<blocks, threads>>>(fb, nx, ny, ns, vec3(-2.0, -1.0, -1.0),
                               vec3(4.0, 0.0, 0.0), vec3(0.0, 2.0, 0.0),
-                              vec3(0.0, 0.0, 0.0), d_world);
+                              vec3(0.0, 0.0, 0.0), d_world, d_rand_state);
 
   checkCudaErrors(cudaGetLastError());
   checkCudaErrors(cudaDeviceSynchronize());
