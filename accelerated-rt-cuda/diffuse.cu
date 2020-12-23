@@ -57,15 +57,15 @@ __device__ vec3 ray_color(ray r, hittable **world,
   for (int i = 0; i < 50; i++) {
     hit_record rec;
     if ((*world)->hit(cur_ray, 0.001f, FLT_MAX, rec)) {
-        // hit, bounce into a random point in the unit sphere 
+      // hit, bounce into a random point in the unit sphere
       vec3 target =
           rec.p + rec.normal + random_in_unit_sphere(local_rand_state);
-        // intensity reduced after the hit -> change of direction
+      // intensity reduced after the hit -> change of direction
       cur_attenuation *= 0.5f;
       // current hit point and new direction.
       cur_ray = ray(rec.p, target - rec.p);
     } else {
-        // shoot into the sky
+      // shoot into the sky
       vec3 unit_direction = unit_vector(cur_ray.direction());
       float t = 0.5f * (unit_direction.y() + 1.0f);
       vec3 c = (1.0f - t) * vec3(1.0, 1.0, 1.0) + t * vec3(0.5, 0.7, 1.0);
@@ -90,10 +90,17 @@ __global__ void render(vec3 *fb, int max_x, int max_y, int ns, camera **cam,
     float u = float(i + curand_uniform(&local_rand_state)) / float(max_x);
     float v = float(j + curand_uniform(&local_rand_state)) / float(max_y);
     ray r = (*cam)->get_ray(u, v);
+    // sample ns times, each has a random direction
     col += ray_color(r, world, &local_rand_state);
   }
 
-  fb[pixel_index] = col / float(ns);
+  rand_state[pixel_index] = local_rand_state;
+
+  col /= float(ns);
+//   col[0] = sqrt(col[0]);
+//   col[1] = sqrt(col[1]);
+//   col[2] = sqrt(col[2]);
+  fb[pixel_index] = col;
 }
 
 __global__ void create_world(hittable **d_list, hittable **d_world) {
