@@ -5,6 +5,7 @@ struct hit_record;
 
 #include "hittable.h"
 #include "ray.h"
+#include <curand_kernel.h>
 
 #define RANDVEC3                                                               \
   vec3(curand_uniform(local_rand_state), curand_uniform(local_rand_state),     \
@@ -58,7 +59,11 @@ public:
                                   vec3 &attenuation, ray &scattered,
                                   curandState *local_rand_state) const {
     // glossy surface
-    vec3 reflected = reflect(unit_vector(r_in.direction()),rec.normal));
+    // reflect the light
+    vec3 reflected = reflect(unit_vector(r_in.direction()),rec.normal);
+
+    // the glossy surface will produce a few lights within certain range. this
+    // range is determined by fuzz.
     scattered =
         ray(rec.p, reflected + fuzz * random_in_unit_sphere(local_rand_state));
     attenuation = albedo;
