@@ -14,13 +14,13 @@ using std::sqrt;
 
 // Constants
 
-const double infinity = std::numeric_limits<double>::infinity();
-const double pi = 3.1415926535897932385;
+const float infinity = std::numeric_limits<double>::infinity();
+const float pi = 3.1415926535897932385;
 
 // Utility Functions
 
-__device__ inline double degrees_to_radians(double degrees) {
-    return degrees * pi / 180.0;
+__device__ inline float degrees_to_radians(float degrees) {
+    return degrees * pi / 180.0f;
 }
 
 // Common Headers
