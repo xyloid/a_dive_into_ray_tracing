@@ -58,17 +58,19 @@ __device__ vec3 ray_color(ray r, hittable **world,
     hit_record rec;
     if ((*world)->hit(cur_ray, 0.001f, FLT_MAX, rec)) {
       // hit, bounce into a random point in the unit sphere
+      // apply unit_vector to get true lambertian reflection 
       vec3 target =
-          rec.p + rec.normal + random_in_unit_sphere(local_rand_state);
+          rec.p + rec.normal + unit_vector(random_in_unit_sphere(local_rand_state));
       // intensity reduced after the hit -> change of direction
       cur_attenuation *= 0.5f;
       // current hit point and new direction.
       cur_ray = ray(rec.p, target - rec.p);
     } else {
-      // shoot into the sky
+      // shoot into the sky, a light source
       vec3 unit_direction = unit_vector(cur_ray.direction());
       float t = 0.5f * (unit_direction.y() + 1.0f);
       vec3 c = (1.0f - t) * vec3(1.0, 1.0, 1.0) + t * vec3(0.5, 0.7, 1.0);
+      // modify the intensity
       return cur_attenuation * c;
     }
   }
@@ -97,9 +99,9 @@ __global__ void render(vec3 *fb, int max_x, int max_y, int ns, camera **cam,
   rand_state[pixel_index] = local_rand_state;
 
   col /= float(ns);
-//   col[0] = sqrt(col[0]);
-//   col[1] = sqrt(col[1]);
-//   col[2] = sqrt(col[2]);
+  col[0] = sqrt(col[0]);
+  col[1] = sqrt(col[1]);
+  col[2] = sqrt(col[2]);
   fb[pixel_index] = col;
 }
 
