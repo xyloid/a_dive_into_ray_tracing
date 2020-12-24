@@ -84,7 +84,7 @@ __device__ float schlick(float cosine, float ref_idx) {
 __device__ bool refract(const vec3 &v, const vec3 &n, float ni_over_nt,
                         vec3 &refracted) {
   vec3 uv = unit_vector(v);
-  float dt = dot(u, v);
+  float dt = dot(uv, n);
   float discriminant = 1.0f - ni_over_nt * ni_over_nt * (1 - dt * dt);
   if (discriminant > 0.0) {
     refracted = ni_over_nt * (uv - n * dt) - n * sqrt(discriminant);
@@ -97,9 +97,9 @@ __device__ bool refract(const vec3 &v, const vec3 &n, float ni_over_nt,
 class dielectric : public material {
 public:
   __device__ dielectric(float ri) : ref_idx(ri) {}
-  __deivce__ virtual bool scatter(const ray &r_in, const hit_record &rec,
+  __device__ virtual bool scatter(const ray &r_in, const hit_record &rec,
                                   vec3 &attenuation, ray &scattered,
-                                  curandState *local_state_state) const {
+                                  curandState *local_rand_state) const {
     vec3 outward_normal;
     vec3 reflected = reflect(r_in.direction(), rec.normal);
     float ni_over_nt;
