@@ -46,48 +46,46 @@ This project is inspired by Peter Shirley's Ray Tracing series.
       - model's triangles are divided by multiple boxes, so the ray only will check a subset of all triangles.
 
     - Rasterization and Ray Tracing can work together.
--  [Ray Tracing Essentials Part 3: Ray Tracing Hardware](https://www.youtube.com/watch?v=EoQfX1q-VNE&list=PL5B692fm6--sgm8Uiava0IIvUojjFOCSR&index=3)
+  -  [Ray Tracing Essentials Part 3: Ray Tracing Hardware](https://www.youtube.com/watch?v=EoQfX1q-VNE&list=PL5B692fm6--sgm8Uiava0IIvUojjFOCSR&index=3)
 
-- [Ray Tracing Essentials Part 4: The Ray Tracing Pipeline](https://www.youtube.com/watch?v=LoKUmbvbcRY&list=PL5B692fm6--sgm8Uiava0IIvUojjFOCSR&index=4)
-  - Ray Tracing pipeline has 5 shaders:
-    - Control other shaders:
-      - Ray generation shader
-    - Define object shapes:
-      - Intersection shader(s)
-    - Control per-ray behavior (often many types)
-      - Miss shader(s)
-      - Closest-hit shader(s)
-      - Any-hit shader(s)
+  - [Ray Tracing Essentials Part 4: The Ray Tracing Pipeline](https://www.youtube.com/watch?v=LoKUmbvbcRY&list=PL5B692fm6--sgm8Uiava0IIvUojjFOCSR&index=4)
+    - Ray Tracing pipeline has 5 shaders:
+      - Control other shaders:
+        - Ray generation shader
+      - Define object shapes:
+        - Intersection shader(s)
+      - Control per-ray behavior (often many types)
+        - Miss shader(s)
+        - Closest-hit shader(s)
+        - Any-hit shader(s)
+  - [Ray Tracing Essentials Part 5: Ray Tracing Effects](https://www.youtube.com/watch?v=Rk5nD8tt_W4&list=PL5B692fm6--sgm8Uiava0IIvUojjFOCSR&index=5)
+    - Hard shadows: shooting one ray from a point light
+    - Soft shadows: shooting a bunch of rays from an area light
+    - light bouncing around: Interreflection / Indirect lighting / Color bleeding / Global illumination
+    - Glossy reflections
+    - Ambient occlusion
+      - It has been used with rasterization for a long time.
+      - With ray tracing, we can get a better answer.
+    - Depth of field.
+    - Motion blur
+    - Ray marching (an atmospheric effect)
+    - Caustics
+      - light effect with water or other transparent media
 
+  - [Ray Tracing Essentials Part 6: The Rendering Equation](https://www.youtube.com/watch?v=AODo_RjJoUA&list=PL5B692fm6--sgm8Uiava0IIvUojjFOCSR&index=6)
+    - It sums up **how lights get into the eye**
+    - How to sample the rays on one point in the scene
+      - Random sampling uniformaly over a unit sphere
+      - Add BSDF
+      - Add ligithing
 
-- [Ray Tracing Essentials Part 5: Ray Tracing Effects](https://www.youtube.com/watch?v=Rk5nD8tt_W4&list=PL5B692fm6--sgm8Uiava0IIvUojjFOCSR&index=5)
-  - Hard shadows: shooting one ray from a point light
-  - Soft shadows: shooting a bunch of rays from an area light
-  - light bouncing around: Interreflection / Indirect lighting / Color bleeding / Global illumination
-  - Glossy reflections
-  - Ambient occlusion
-    - It has been used with rasterization for a long time.
-    - With ray tracing, we can get a better answer.
-  - Depth of field.
-  - Motion blur
-  - Ray marching (an atmospheric effect)
-  - Caustics
-    - light effect with water or other transparent media
-
-- [Ray Tracing Essentials Part 6: The Rendering Equation](https://www.youtube.com/watch?v=AODo_RjJoUA&list=PL5B692fm6--sgm8Uiava0IIvUojjFOCSR&index=6)
-  - It sums up **how lights get into the eye**
-  - How to sample the rays on one point in the scene
-    - Random sampling uniformaly over a unit sphere
-    - Add BSDF
-    - Add ligithing
-
-- [Ray Tracing Essentials Part 7: Denoising for Ray Tracing](https://www.youtube.com/watch?v=6O2B9BZiZjQ&list=PL5B692fm6--sgm8Uiava0IIvUojjFOCSR&index=7)
-  - using denoise will improve the performance.
-    - less samples per pixel
-  - start with a noisy result and reconstruct
-  - many different approaches
-    - denoising by effect
-    - deep learning for image denoising
+  - [Ray Tracing Essentials Part 7: Denoising for Ray Tracing](https://www.youtube.com/watch?v=6O2B9BZiZjQ&list=PL5B692fm6--sgm8Uiava0IIvUojjFOCSR&index=7)
+    - using denoise will improve the performance.
+      - less samples per pixel
+    - start with a noisy result and reconstruct
+    - many different approaches
+      - denoising by effect
+      - deep learning for image denoising
 
 - [Ray Tracing Gems](http://www.realtimerendering.com/raytracinggems/)
 
@@ -101,6 +99,15 @@ This project is inspired by Peter Shirley's Ray Tracing series.
 - [UCD: Ray Tracing](https://www.youtube.com/watch?v=Ahp6LDQnK4Y)
 
 - [Introduction to Computer Graphics (fall 2018), Lecture 12: Accelerating Ray Tracing](https://www.youtube.com/watch?v=FbLCMy-M2ls)
+
+
+### Camera and Lens
+
+- [UCB CS184/284A](https://cs184.eecs.berkeley.edu/uploads/lectures/)
+  - [Cameras & Lenses I](https://cs184.eecs.berkeley.edu/uploads/lectures/20_cameras-1/20_cameras-1_slides.pdf)
+  - [Cameras & Lenses II](https://cs184.eecs.berkeley.edu/uploads/lectures/21_camera-2/21_camera-2_slides.pdf)
+  - [Cameras & Lenses III](https://cs184.eecs.berkeley.edu/uploads/lectures/22_camera-3/22_camera-3_slides.pdf)
+- [UW Thin Lenses](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&ved=2ahUKEwi5yvnE1-ntAhUBqlkKHfOPDcUQFjANegQIMBAC&url=https%3A%2F%2Fcanvas.uw.edu%2Ffiles%2F44759652%2Fdownload%3Fdownload_frd%3D1&usg=AOvVaw38WeHxWsNTNzU474RkSlGU)
 
 ### Coding
 
