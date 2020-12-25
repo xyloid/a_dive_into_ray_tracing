@@ -103,11 +103,15 @@ This project is inspired by Peter Shirley's Ray Tracing series.
 
 ### Camera and Lens
 
+- [Pixar in a Box: Virtual Cameras](https://www.khanacademy.org/computing/pixar/virtual-cameras)
+
 - [UCB CS184/284A](https://cs184.eecs.berkeley.edu/uploads/lectures/)
   - [Cameras & Lenses I](https://cs184.eecs.berkeley.edu/uploads/lectures/20_cameras-1/20_cameras-1_slides.pdf)
   - [Cameras & Lenses II](https://cs184.eecs.berkeley.edu/uploads/lectures/21_camera-2/21_camera-2_slides.pdf)
   - [Cameras & Lenses III](https://cs184.eecs.berkeley.edu/uploads/lectures/22_camera-3/22_camera-3_slides.pdf)
 - [UW Thin Lenses](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&ved=2ahUKEwi5yvnE1-ntAhUBqlkKHfOPDcUQFjANegQIMBAC&url=https%3A%2F%2Fcanvas.uw.edu%2Ffiles%2F44759652%2Fdownload%3Fdownload_frd%3D1&usg=AOvVaw38WeHxWsNTNzU474RkSlGU)
+
+- [Depth of Field in Path Tracing](https://medium.com/@elope139/depth-of-field-in-path-tracing-e61180417027)
 
 ### Coding
 

@@ -32,6 +32,11 @@ public:
     // lower_left_corner = origin - horizontal / 2 - vertical / 2 - w;
 
     origin = lookfrom;
+    // calculate focal plane, which contains focal points.
+    // A hit in the focal plane will be the focal point that overlaps 
+    // an point on the object model.
+    // A hit out of focal plane will be spread out to several focal points
+    // on the focal plane, which causes the defocus blur.
     horizontal = focus_dist * viewport_width * u;
     vertical = focus_dist * viewport_height * v;
     lower_left_corner = origin - horizontal / 2 - vertical / 2 - focus_dist * w;
