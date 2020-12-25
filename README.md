@@ -109,3 +109,12 @@ This project is inspired by Peter Shirley's Ray Tracing series.
   - [Accelerated Ray Tracing in One Weekend in CUDA](https://developer.nvidia.com/blog/accelerated-ray-tracing-cuda/)
 - [Ray Tracing: The Next Week](https://raytracing.github.io/books/RayTracingTheNextWeek.html) 
 - [Ray Tracing: The Rest of Your Life](https://raytracing.github.io/books/RayTracingTheRestOfYourLife.html)
+
+### A Note on Nsight Eclipse Plugin for CUDA 11
+
+`com.spotify.docker.client` is no longer maintained, I have to download 2 jars manually and copy them to `$ECLISPE/dropins/plugins`. 
+Then start eclipse with `eclipse -clean`, so the eclipse will clean the cache and load plugins.
+
+- Dependencies
+  - `com.fasterxml.jackson.datatype.jackson-datatype-guava_2.9.9.v20190906-1522.jar`
+  - `com.spotify.docker.client_8.11.7.v20180731-1413.jar`
