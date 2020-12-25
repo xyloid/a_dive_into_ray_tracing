@@ -134,8 +134,10 @@ __global__ void free_world(hittable **d_list, hittable **d_world,
 int main(void) {
   // Image
   const auto aspect_ratio = 16.0 / 9.0;
-  int nx = 1200;
+  // nx = 1200 will cause an error in image viewer "pnm loader expected to find an integer"
+  int nx = 1600;
   int ny = static_cast<int>(nx / aspect_ratio);
+  // ny = 500;
   int num_pixels = nx * ny;
   int fb_size = num_pixels * sizeof(vec3);
   int ns = 100;
