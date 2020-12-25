@@ -81,7 +81,7 @@ __global__ void render(vec3 *fb, int max_x, int max_y, int ns, camera **cam,
   for (int s = 0; s < ns; s++) {
     float u = float(i + curand_uniform(&local_rand_state)) / float(max_x);
     float v = float(j + curand_uniform(&local_rand_state)) / float(max_y);
-    ray r = (*cam)->get_ray(u, v);
+    ray r = (*cam)->get_ray(u, v, &local_rand_state);
     // sample ns times, each has a random direction
     col += ray_color(r, world, &local_rand_state);
   }
@@ -109,8 +109,14 @@ __global__ void create_world(hittable **d_list, hittable **d_world,
     d_list[4] = new sphere(vec3(-1, 0, -1), -0.45, new dielectric(1.5));
     *d_world = new hittable_list(d_list, 5);
     // *(cam) = new camera();
-    *cam = new camera(vec3(-2, 2, 1), vec3(0, 0, -1), vec3(0, 1, 0), 20.0,
-                           float(nx) / float(ny));
+    // *cam = new camera(vec3(-2, 2, 1), vec3(0, 0, -1), vec3(0, 1, 0), 20.0,
+    //                   float(nx) / float(ny));
+    vec3 lookfrom(3, 3, 2);
+    vec3 lookat(0, 0, -1);
+    float dist_to_focus = (lookfrom - lookat).length();
+    float aperture = 2.0;
+    *cam = new camera(lookfrom, lookat, vec3(0, 1, 0), 20.0f,
+                      float(nx) / float(ny), aperture, dist_to_focus);
   }
 }
 
