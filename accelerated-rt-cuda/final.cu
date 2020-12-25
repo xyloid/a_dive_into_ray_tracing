@@ -164,6 +164,7 @@ int main() {
   int nx = 1200;
   int ny = static_cast<int>(nx / aspect_ratio);
   int ns = 500;
+  //   int ns = 10;
   int tx = 8;
   int ty = 8;
 
