@@ -152,3 +152,8 @@ Then start eclipse with `eclipse -clean`, so the eclipse will clean the cache an
 - Dependencies
   - `com.fasterxml.jackson.datatype.jackson-datatype-guava_2.9.9.v20190906-1522.jar`
   - `com.spotify.docker.client_8.11.7.v20180731-1413.jar`
+
+
+### A Note on Vulkan 1.2 on Ubuntu 20.04 with Optimus
+
+After installation, `vkcube` is a black window. I have to remove `intel_icd.*` and `radeon_icd.*` from `/usr/share/vulkan/icd.d/` in order to pass `vkvia`
