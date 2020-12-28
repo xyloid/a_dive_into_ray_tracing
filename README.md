@@ -19,6 +19,29 @@ This project is inspired by Peter Shirley's Ray Tracing series.
 ./inOneWeek > image_parallel.ppm  49831.04s user 333.87s system 1242% cpu 1:07:16.10 total
 ```
 
+## Accelerated Ray Tracing with CUDA
+
+```
+prime-select nvidia
+
+time ./obj > final.ppm
+Rendering a 1200x800 image with 500 samples per pixel in 8x8 blocks.
+took 146.189 seconds.
+./obj > final.ppm  146.42s user 0.14s system 99% cpu 2:26.65 total
+
+Rendering a 1200x800 image with 500 samples per pixel in 8x8 blocks.
+took 129.241 seconds.
+./obj > final.ppm  129.46s user 0.15s system 99% cpu 2:09.67 total
+
+
+prime-select intel
+
+Rendering a 1200x800 image with 500 samples per pixel in 8x8 blocks.
+took 130.967 seconds.
+./obj > final.ppm  131.20s user 0.14s system 99% cpu 2:11.39 total
+
+```
+
 ## References
 
 
