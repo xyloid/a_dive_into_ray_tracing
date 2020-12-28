@@ -10,6 +10,8 @@
 #include <thread>
 // using std::thread;
 
+#include <time.h>
+
 // bool hit_sphere(const point3 &center, double radius, const ray &r)
 // {
 //     vec3 ac = r.origin() - center;
@@ -282,7 +284,8 @@ void worker(int start, int end,
     img.get().at(index) =
         make_shared<color>(pixel_color.x(), pixel_color.y(), pixel_color.z());
     // img.at(index) =
-    //     make_shared<color>(pixel_color.x(), pixel_color.y(), pixel_color.z());
+    //     make_shared<color>(pixel_color.x(), pixel_color.y(),
+    //     pixel_color.z());
   }
 }
 
@@ -317,6 +320,8 @@ void parallel_render() {
   int batch_size = ceil(size / (double)concurrency);
   int last_batch = size % concurrency == 0 ? 0 : size % concurrency;
 
+  clock_t start, stop;
+  start = clock();
   std::vector<shared_ptr<std::thread>> tasks;
   for (int i = 0; i < concurrency; i++) {
     int start = batch_size * i;
@@ -331,6 +336,10 @@ void parallel_render() {
   for (const auto t : tasks) {
     t->join();
   }
+
+  stop = clock();
+  double timer_seconds = ((double)(stop - start)) / CLOCKS_PER_SEC;
+  std::cerr << "took " << timer_seconds << " seconds.\n";
 
   std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
 
