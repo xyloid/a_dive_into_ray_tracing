@@ -76,3 +76,26 @@ if(hits purple)
         return True and info of closer hit
 return False
 ```
+
+### Axis-Aligned Bounding Boxes (AABBs)
+
+Question: What are octree and k-d tree ?
+
+[ref 1](https://www.gamedev.net/forums/topic/289728-octrees-vs-kd-trees/)
+
+Factors of design bounding volume
+
+- ray boundding volume intersection should be fast
+- bounding volume should be compact
+- What we want to know 
+    - whether or not it's a hit ?
+- What we dont want to know
+    - hit points
+    - hit normals
+- AABB: axis-aligned bounding rectangular parallelepiped axis-aligned bounding box
+- n-dimensional AABB: the intersection of n axis-aligned intervals, often called "slabs"
+
+
+
+
+
