@@ -38,3 +38,41 @@ cudaFree 700 error solved, the reason it casting moving_sphere to sphere in the 
 
 ## 2. Bounding Volume Hierarchies
 
+- main bottle neck: calculation of ray-object intersection.
+    - run time: O(# obj)
+    - repeated search on the same model (what about animation ?)
+    - should be able to use divide and conquer to archieve sub-linear search
+- common approaches
+    - divide the space
+    - divide the objects (much easier to code up)
+
+### Key Idea
+
+**bounding volume** a volume that fully encloses (bounds) all the objects
+
+```python
+if (ray hits bounding object)
+    return whether ray hits bounded objects 
+else
+    return False
+```
+
+- we are dividing objects into subsets.
+- we are not dividing screen or the volume
+- any object is in just one bounding volume
+- bounding volumes can overlap
+
+### Hierarchies of Bounding Volumes
+
+- it is a tree
+- the tree has no order
+- subtrees can overlap, in the overlap volume, each object belongs to exactly one of the two bounding volumes
+
+```python
+if(hits purple)
+    hit0 = hits blue enclosed objects
+    hit1 = hits red enclosed objects
+    if (hit0 or hit1)
+        return True and info of closer hit
+return False
+```
