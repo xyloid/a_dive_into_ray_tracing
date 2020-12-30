@@ -15,10 +15,16 @@ __device__ vec3 random_in_unit_disk(curandState *local_rand_state) {
   return p;
 }
 
+__device__ float random_float(float min, float max,
+                              curandState *local_rand_state) {
+  return curand_uniform(local_rand_state) * (max - min) + min;
+}
+
 class camera {
 public:
   __device__ camera(vec3 lookfrom, vec3 lookat, vec3 vup, float vfov,
-                    float aspect, float aperture, float focal_dist) {
+                    float aspect, float aperture, float focal_dist,
+                    float _time0 = 0.0, float _time1 = 0.0) {
     // float aspect_ratio = 16.0 / 9.0;
     // float viewport_height = 2.0;
     // float viewport_width = aspect_ratio * viewport_height;
@@ -50,14 +56,19 @@ public:
         origin - horizontal / 2.0f - vertical / 2.0f - focal_dist * w;
 
     lens_radius = aperture / 2.0f;
+
+    time0 = _time0;
+    time1 = _time1;
   }
 
   __device__ ray get_ray(float s, float t,
                          curandState *local_rand_state) const {
     vec3 rd = lens_radius * random_in_unit_disk(local_rand_state);
     vec3 offset = u * rd.x() + v * rd.y();
-    return ray(origin + offset, lower_left_corner + s * horizontal +
-                                    t * vertical - origin - offset);
+    return ray(origin + offset,
+               lower_left_corner + s * horizontal + t * vertical - origin -
+                   offset,
+               random_float(time0, time1, local_rand_state));
   }
 
 private:
@@ -67,5 +78,6 @@ private:
   vec3 vertical;
   vec3 u, v, w;
   float lens_radius;
+  float time0, time1; // shutter open/close time
 };
 #endif

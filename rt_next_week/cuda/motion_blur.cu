@@ -1,6 +1,7 @@
 #include "camera.h"
 #include "hittable_list.h"
 #include "material.h"
+#include "moving_sphere.h"
 #include "ray.h"
 #include "sphere.h"
 #include "vec3.h"
@@ -110,9 +111,16 @@ __global__ void create_world(hittable **d_list, hittable **d_world,
         float choose_mat = RND;
         vec3 center(a + RND, 0.2, b + RND);
         if (choose_mat < 0.8f) {
-          d_list[i++] =
-              new sphere(center, 0.2,
-                         new lambertian(vec3(RND * RND, RND * RND, RND * RND)));
+
+          vec3 center2 = center + vec3(0, RND * 0.5f, 0);
+          // d_list[i++] =
+          //     new sphere(center, 0.2,
+          //                new lambertian(vec3(RND * RND, RND * RND, RND *
+          //                RND)));
+          d_list[i++] = new moving_sphere(
+              center, center2, 0, 1.0, 0.2,
+              new lambertian(vec3(RND * RND, RND * RND, RND * RND)));
+
         } else if (choose_mat < 0.95f) {
           d_list[i++] = new sphere(
               center, 0.2,
@@ -137,8 +145,9 @@ __global__ void create_world(hittable **d_list, hittable **d_world,
     float dist_to_focus = 10.0;
     (lookfrom - lookat).length();
     float aperture = 0.1;
-    *d_camera = new camera(lookfrom, lookat, vec3(0, 1, 0), 30.0,
-                           float(nx) / float(ny), aperture, dist_to_focus);
+    *d_camera =
+        new camera(lookfrom, lookat, vec3(0, 1, 0), 30.0, float(nx) / float(ny),
+                   aperture, dist_to_focus, 0.0, 1.0);
   }
 }
 
