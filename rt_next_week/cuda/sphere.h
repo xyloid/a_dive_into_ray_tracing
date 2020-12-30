@@ -6,10 +6,13 @@
 class sphere : public hittable {
 public:
   __device__ sphere() {}
-  __device__ sphere(vec3 cen, float r, material *m) : center(cen), radius(r), mat_ptr(m) {}
+  __device__ sphere(vec3 cen, float r, material *m)
+      : center(cen), radius(r), mat_ptr(m) {}
 
   __device__ virtual bool hit(const ray &r, float t_min, float t_max,
-                              hit_record &rec) const;
+                              hit_record &rec) const override;
+  __device__ virtual bool bounding_box(float time0, float time1,
+                                       aabb &output_box) const override;
 
 public:
   vec3 center;
@@ -46,6 +49,13 @@ __device__ bool sphere::hit(const ray &r, float t_min, float t_max,
   }
 
   return false;
+}
+
+__device__ bool sphere::bounding_box(float time0, float time1,
+                                     aabb &output_box) {
+  output_box = aabb(center - vec3(radius, radius, radius),
+                    center + vec3(radius, radius, radius));
+  return true;
 }
 
 #endif

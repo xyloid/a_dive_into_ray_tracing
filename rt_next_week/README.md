@@ -95,6 +95,15 @@ Factors of design bounding volume
 - AABB: axis-aligned bounding rectangular parallelepiped axis-aligned bounding box
 - n-dimensional AABB: the intersection of n axis-aligned intervals, often called "slabs"
 
+### Constructing Bounding Boxes for Hittables
+
+- compute the bounding boxes of all the hittables
+- make a hierarchy of boxes over all the primitives, and the individual primitives (like the sphere will live at the leaves)
+
+### The BVH Node Class
+
+
+
 
 
 

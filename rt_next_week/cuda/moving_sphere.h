@@ -15,6 +15,10 @@ public:
         time1(_time1){};
   __device__ virtual bool hit(const ray &r, float t_min, float t_max,
                               hit_record &rec) const override;
+
+  __device__ virtual bool bounding_box(float _time0, float _time1,
+                                       aabb &output_box) const override;
+
   __device__ point3 center(float time) const;
 
 public:
@@ -54,6 +58,16 @@ __device__ bool moving_sphere::hit(const ray &r, float t_min, float t_max,
   rec.normal = outward_normal;
   rec.mat_ptr = mat_ptr;
 
+  return true;
+}
+
+__device__ bool moving_sphere::bounding_box(float _time0, float _time1,
+                                            aabb &output_box) const {
+
+  vec3 rad(radius, radius, radius);
+  aabb box0(center(_time0) - rad, center(_time0) + rad);
+  aabb box1(center(_time1) - rad, center(_time1) + rad);
+  output_box = surrounding_box(box0, box1);
   return true;
 }
 
