@@ -78,6 +78,7 @@ private:
   vec3 vertical;
   vec3 u, v, w;
   float lens_radius;
-  float time0, time1; // shutter open/close time
+  float time0;
+  float time1; // shutter open/close time
 };
 #endif

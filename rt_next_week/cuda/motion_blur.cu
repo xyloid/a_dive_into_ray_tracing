@@ -154,6 +154,9 @@ __global__ void create_world(hittable **d_list, hittable **d_world,
 __global__ void free_world(hittable **d_list, hittable **d_world,
                            camera **d_camera) {
   for (int i = 0; i < 22 * 22 + 1 + 3; i++) {
+    // the bug is located here, we have sphere and moving_sphere, but we only use
+    // sphere here, a workaround is define moving_sphere as a sub class of sphere.
+    // then we can get ride of cudaFree 700 error.
     delete ((sphere *)d_list[i])->mat_ptr;
     delete d_list[i];
   }
@@ -172,7 +175,7 @@ int main() {
   const auto aspect_ratio = 3.0 / 2.0;
   int nx = 1200;
   int ny = static_cast<int>(nx / aspect_ratio);
-  int ns = 500;
+  int ns = 50;
   //   int ns = 10;
   int tx = 8;
   int ty = 8;

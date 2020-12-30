@@ -3,15 +3,16 @@
 
 #include "hittable.h"
 #include "rtweekend.h"
+#include "sphere.h"
 #include "vec3.h"
 
-class moving_sphere : public hittable {
+class moving_sphere : public sphere {
 public:
   __device__ moving_sphere();
   __device__ moving_sphere(point3 cen0, point3 cen1, float _time0, float _time1,
                            float r, material *m)
-      : center0(cen0), center1(cen1), time0(_time0), time1(_time1), radius(r),
-        mat_ptr(m){};
+      : sphere(cen0, r, m), center0(cen0), center1(cen1), time0(_time0),
+        time1(_time1){};
   __device__ virtual bool hit(const ray &r, float t_min, float t_max,
                               hit_record &rec) const override;
   __device__ point3 center(float time) const;
@@ -19,8 +20,8 @@ public:
 public:
   point3 center0, center1;
   float time0, time1;
-  float radius;
-  material *mat_ptr;
+  //   float radius;
+  //   material *mat_ptr;
 };
 
 __device__ point3 moving_sphere::center(float time) const {
