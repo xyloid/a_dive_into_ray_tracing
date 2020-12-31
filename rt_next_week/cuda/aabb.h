@@ -6,6 +6,10 @@
 class aabb {
 public:
   __device__ aabb() {}
+  __device__ aabb(const point3 &a, const point3 &b) {
+    minimum = a;
+    maximum = b;
+  }
 
   __device__ point3 min() const { return minimum; }
   __device__ point3 max() const { return maximum; }
