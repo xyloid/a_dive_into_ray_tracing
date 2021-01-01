@@ -6,10 +6,10 @@
 class sphere : public hittable {
 public:
   __device__ sphere() {}
-  // __device__ sphere(vec3 cen, float r, material *m)
-  //     : center(cen), radius(r), mat_ptr(m) {}
-  __device__ sphere(vec3 cen, double r, shared_ptr<material> m)
+  __device__ sphere(vec3 cen, float r, material *m)
       : center(cen), radius(r), mat_ptr(m) {}
+  // __device__ sphere(vec3 cen, double r, shared_ptr<material> m)
+  //     : center(cen), radius(r), mat_ptr(m) {}
 
   __device__ virtual bool hit(const ray &r, float t_min, float t_max,
                               hit_record &rec) const override;
@@ -19,8 +19,8 @@ public:
 public:
   vec3 center;
   float radius;
-  // material *mat_ptr;
-  shared_ptr<material> mat_ptr;
+  material *mat_ptr;
+  // shared_ptr<material> mat_ptr;
 };
 
 __device__ bool sphere::hit(const ray &r, float t_min, float t_max,
