@@ -8,6 +8,7 @@
 #include <curand_kernel.h>
 #include <float.h>
 #include <iostream>
+#include <thrust/device_vector.h>
 #include <time.h>
 
 // limited version of checkCudaErrors from helper_cuda.h in CUDA examples
@@ -98,6 +99,7 @@ __global__ void render(vec3 *fb, int max_x, int max_y, int ns, camera **cam,
 
 #define RND (curand_uniform(&local_rand_state))
 
+
 __global__ void create_world(hittable **d_list, hittable **d_world,
                              camera **d_camera, int nx, int ny,
                              curandState *rand_state) {
@@ -117,28 +119,28 @@ __global__ void create_world(hittable **d_list, hittable **d_world,
           vec3 center2 = center + vec3(0, RND * 0.5f, 0);
           d_list[i++] =
               new sphere(center, 0.2,
-                         new lambertian(vec3(RND * RND, RND * RND, RND *
-                         RND)));
+                         new lambertian(vec3(RND * RND, RND * RND, RND * RND)));
           // d_list[i++] = new moving_sphere(
           //     center, center2, 0, 1.0, 0.2,
-          //     make_shared<lambertian>(vec3(RND * RND, RND * RND, RND * RND)));
+          //     make_shared<lambertian>(vec3(RND * RND, RND * RND, RND *
+          //     RND)));
 
         } else if (choose_mat < 0.95f) {
           d_list[i++] = new sphere(
               center, 0.2,
               new metal(vec3(0.5f * (1.0f + RND), 0.5f * (1.0f + RND),
-                                      0.5f * (1.0f + RND)),
-                                 0.5f * RND));
+                             0.5f * (1.0f + RND)),
+                        0.5f * RND));
         } else {
           d_list[i++] = new sphere(center, 0.2, new dielectric(1.5));
         }
       }
     }
     d_list[i++] = new sphere(vec3(0, 1, 0), 1.0, new dielectric(1.5));
-    d_list[i++] = new sphere(vec3(-4, 1, 0), 1.0,
-                             new lambertian(vec3(0.4, 0.2, 0.1)));
-    d_list[i++] = new sphere(vec3(4, 1, 0), 1.0,
-                             new metal(vec3(0.7, 0.6, 0.5), 0.0));
+    d_list[i++] =
+        new sphere(vec3(-4, 1, 0), 1.0, new lambertian(vec3(0.4, 0.2, 0.1)));
+    d_list[i++] =
+        new sphere(vec3(4, 1, 0), 1.0, new metal(vec3(0.7, 0.6, 0.5), 0.0));
     *rand_state = local_rand_state;
     *d_world = new hittable_list(d_list, 22 * 22 + 1 + 3);
 
@@ -208,6 +210,7 @@ int main() {
   // make our world of hitables & the camera
   hittable **d_list;
   int num_hitables = 22 * 22 + 1 + 3;
+
   checkCudaErrors(
       cudaMalloc((void **)&d_list, num_hitables * sizeof(hittable *)));
   hittable **d_world;

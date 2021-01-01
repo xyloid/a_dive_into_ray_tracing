@@ -3,6 +3,7 @@
 
 #include "aabb.h"
 #include "hittable.h"
+#include <thrust/device_vector.h>
 
 class hittable_list : public hittable {
 public:
@@ -12,6 +13,13 @@ public:
     list_size = n;
   }
 
+  // __device__ hittable_list(thrust::device_vector<hittable *> objs) {
+  //   objects.resize(objs.size());
+  //   for (auto obj : objs) {
+  //     objects.push_back(obj);
+  //   }
+  // }
+
   __device__ virtual bool hit(const ray &r, float t_min, float t_max,
                               hit_record &rec) const;
 
@@ -20,6 +28,7 @@ public:
 
 public:
   hittable **list;
+  // thrust::device_vector<hittable *> objects;
   int list_size;
 };
 
@@ -51,7 +60,8 @@ __device__ bool hittable_list::bounding_box(float time0, float time1,
     // if next object in the list can not be bounded, return false
     if (!list[i]->bounding_box(time0, time1, temp_box))
       return false;
-    // in each iteration, the box could be equal or larger. but it can not be smaller. 
+    // in each iteration, the box could be equal or larger. but it can not be
+    // smaller.
     output_box = first_box ? temp_box : surrounding_box(output_box, temp_box);
     first_box = false;
   }
