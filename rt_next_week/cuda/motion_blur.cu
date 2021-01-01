@@ -103,8 +103,10 @@ __global__ void create_world(hittable **d_list, hittable **d_world,
                              curandState *rand_state) {
   if (threadIdx.x == 0 && blockIdx.x == 0) {
     curandState local_rand_state = *rand_state;
-    d_list[0] = new sphere(vec3(0, -1000.0, -1), 1000,
-                           new lambertian(vec3(0.5, 0.5, 0.5)));
+    // d_list[0] = new sphere(vec3(0, -1000.0, -1), 1000,
+    //                        new lambertian(vec3(0.5, 0.5, 0.5)));
+        d_list[0] = new sphere(vec3(0, -1000.0, -1), 1000,
+                           make_shared<lambertian>(vec3(0.5, 0.5, 0.5)));
     int i = 1;
     for (int a = -11; a < 11; a++) {
       for (int b = -11; b < 11; b++) {
@@ -119,24 +121,24 @@ __global__ void create_world(hittable **d_list, hittable **d_world,
           //                RND)));
           d_list[i++] = new moving_sphere(
               center, center2, 0, 1.0, 0.2,
-              new lambertian(vec3(RND * RND, RND * RND, RND * RND)));
+              make_shared<lambertian>(vec3(RND * RND, RND * RND, RND * RND)));
 
         } else if (choose_mat < 0.95f) {
           d_list[i++] = new sphere(
               center, 0.2,
-              new metal(vec3(0.5f * (1.0f + RND), 0.5f * (1.0f + RND),
+              make_shared<metal>(vec3(0.5f * (1.0f + RND), 0.5f * (1.0f + RND),
                              0.5f * (1.0f + RND)),
                         0.5f * RND));
         } else {
-          d_list[i++] = new sphere(center, 0.2, new dielectric(1.5));
+          d_list[i++] = new sphere(center, 0.2, make_shared<dielectric>(1.5));
         }
       }
     }
-    d_list[i++] = new sphere(vec3(0, 1, 0), 1.0, new dielectric(1.5));
+    d_list[i++] = new sphere(vec3(0, 1, 0), 1.0, make_shared<dielectric>(1.5));
     d_list[i++] =
-        new sphere(vec3(-4, 1, 0), 1.0, new lambertian(vec3(0.4, 0.2, 0.1)));
+        new sphere(vec3(-4, 1, 0), 1.0, make_shared<lambertian>(vec3(0.4, 0.2, 0.1)));
     d_list[i++] =
-        new sphere(vec3(4, 1, 0), 1.0, new metal(vec3(0.7, 0.6, 0.5), 0.0));
+        new sphere(vec3(4, 1, 0), 1.0, make_shared<metal>(vec3(0.7, 0.6, 0.5), 0.0));
     *rand_state = local_rand_state;
     *d_world = new hittable_list(d_list, 22 * 22 + 1 + 3);
 
@@ -157,7 +159,7 @@ __global__ void free_world(hittable **d_list, hittable **d_world,
     // the bug is located here, we have sphere and moving_sphere, but we only use
     // sphere here, a workaround is define moving_sphere as a sub class of sphere.
     // then we can get ride of cudaFree 700 error.
-    delete ((sphere *)d_list[i])->mat_ptr;
+    // delete ((sphere *)d_list[i])->mat_ptr;
     delete d_list[i];
   }
   delete *d_world;

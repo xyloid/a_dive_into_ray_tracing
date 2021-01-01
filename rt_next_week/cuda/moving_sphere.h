@@ -9,10 +9,17 @@
 class moving_sphere : public sphere {
 public:
   __device__ moving_sphere();
+  // __device__ moving_sphere(point3 cen0, point3 cen1, float _time0, float
+  // _time1,
+  //                          float r, material *m)
+  //     : sphere(cen0, r, m), center0(cen0), center1(cen1), time0(_time0),
+  //       time1(_time1){};
+
   __device__ moving_sphere(point3 cen0, point3 cen1, float _time0, float _time1,
-                           float r, material *m)
+                           float r, shared_ptr<material> m)
       : sphere(cen0, r, m), center0(cen0), center1(cen1), time0(_time0),
         time1(_time1){};
+
   __device__ virtual bool hit(const ray &r, float t_min, float t_max,
                               hit_record &rec) const override;
 
