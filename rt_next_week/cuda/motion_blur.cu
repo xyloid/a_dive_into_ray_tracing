@@ -150,11 +150,10 @@ __global__ void create_world(hittable **d_list, hittable **d_world,
         new bvh_node(d_list, 0, 22 * 22 + 1 + 3, 0.0f, 1.0f, &local_rand_state);
 
     *rand_state = local_rand_state;
-    
+
     vec3 lookfrom(13, 2, 3);
     vec3 lookat(0, 0, 0);
-    float dist_to_focus = 10.0;
-    (lookfrom - lookat).length();
+    float dist_to_focus = (lookfrom - lookat).length();
     float aperture = 0.1;
     *d_camera =
         new camera(lookfrom, lookat, vec3(0, 1, 0), 30.0, float(nx) / float(ny),
@@ -186,7 +185,7 @@ int main() {
   const auto aspect_ratio = 3.0 / 2.0;
   int nx = 1200;
   int ny = static_cast<int>(nx / aspect_ratio);
-  int ns = 50;
+  int ns = 10;
   //   int ns = 500;
   int tx = 8;
   int ty = 8;
@@ -221,7 +220,8 @@ int main() {
   checkCudaErrors(
       cudaMalloc((void **)&d_list, num_hitables * sizeof(hittable *)));
   hittable **d_world;
-  checkCudaErrors(cudaMalloc((void **)&d_world, sizeof(hittable *)));
+  // checkCudaErrors(cudaMalloc((void **)&d_world, sizeof(hittable *)));
+  checkCudaErrors(cudaMalloc((void **)&d_world, sizeof(bvh_node *)));
   camera **d_camera;
   checkCudaErrors(cudaMalloc((void **)&d_camera, sizeof(camera *)));
   create_world<<<1, 1>>>(d_list, d_world, d_camera, nx, ny, d_rand_state2);

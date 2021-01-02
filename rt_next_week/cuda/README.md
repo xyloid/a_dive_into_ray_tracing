@@ -16,3 +16,10 @@ RAII pattern for CUDA [cuda smart pointer](https://stackoverflow.com/questions/1
 An implementation of cuda shared_ptr [link](https://github.com/roostaiyan/CudaSharedPtr)
 
 An old implementation of cpp std lib in cuda [ECUDA](https://baderlab.github.io/ecuda/)
+
+
+## A Very Interesting "Bug"
+
+When using `-G` option, BVH actually works and improved the speed.
+
+But when I remove `-G`, there will be an cudaError 700 bug. 
