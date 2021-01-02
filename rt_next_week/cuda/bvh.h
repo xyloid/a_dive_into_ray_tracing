@@ -6,9 +6,10 @@
 #include "rtweekend.h"
 #include <curand_kernel.h>
 #include <stdio.h>
-// #include <thrust/device_vector.h>
+#include <thrust/device_vector.h>
 #include <thrust/execution_policy.h>
 #include <thrust/sort.h>
+#include <algorithm>
 
 __device__ inline bool box_compare(const hittable *a, const hittable *b,
                                    int axis) {
@@ -101,6 +102,7 @@ __device__ bvh_node::bvh_node(hittable **l, size_t start, size_t end,
   } else {
     printf("%lu %lu\n", start, end);
     thrust::sort(thrust::device, l + start, l + end, comparator);
+    // thrust::sort(l + start, l + end, comparator);
 
     size_t mid = start + object_span / 2;
     // size_t mid = object_span / 2;

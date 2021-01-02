@@ -1,8 +1,8 @@
 obj:
-	nvcc -lineinfo -g motion_blur.cu  -o obj 
+	nvcc  -Xptxas --dont-merge-basicblocks,-v motion_blur.cu  -o obj -v 
 
 dobj:
-	nvcc -G -lineinfo motion_blur.cu  -o obj 
+	nvcc -G -v -lineinfo motion_blur.cu  -o obj 
 
 clean:
 	rm ./obj
