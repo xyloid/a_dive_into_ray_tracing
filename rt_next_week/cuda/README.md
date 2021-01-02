@@ -53,3 +53,31 @@ ptxas warning : Stack size for entry function '_Z6renderP4vec3iiiPP6cameraPP8hit
 
 
 [this warning means a memory leak](https://forums.developer.nvidia.com/t/is-it-important-to-fix-this-warning-message-ptxas-warning/79055)
+
+### Temporary Solution
+
+Since increasing the stack size solve the problem, I think the cause of the problem is the recursive call inside constructor of the bvh_node.
+
+```
+  cudaDeviceSetLimit(cudaLimitStackSize, 32768ULL);
+```
+
+### Performance for Motion Blur Rendering
+
+This version of bvh must have something wrong.
+
+With BVH
+
+```
+Rendering a 1200x800 image with 500 samples per pixel in 8x8 blocks.
+took 575.416 seconds.
+```
+
+Without BVH
+
+```
+Rendering a 1200x800 image with 500 samples per pixel in 8x8 blocks.
+took 123.074 seconds.
+```
+
+

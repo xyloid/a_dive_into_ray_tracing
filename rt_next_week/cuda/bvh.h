@@ -85,9 +85,9 @@ __device__ bvh_node::bvh_node(hittable **l, size_t start, size_t end,
 
   size_t object_span = end - start;
 
-  // printf("%lu %lu %d\n", start, end, axis);
-  if (object_span == 0)
-    return;
+  // // printf("%lu %lu %d\n", start, end, axis);
+  // if (object_span == 0)
+  //   return;
 
   if (object_span == 1) {
     left = right = l[start];
@@ -101,6 +101,7 @@ __device__ bvh_node::bvh_node(hittable **l, size_t start, size_t end,
     }
   } else {
     // printf("%lu %lu\n", start, end);
+    // inside kernel, using seq
     thrust::sort(thrust::seq, l + start, l + end, comparator);
     // thrust::sort(l + start, l + end, comparator);
 
