@@ -9,8 +9,10 @@
 #include <float.h>
 #include <iostream>
 #include <thrust/device_vector.h>
+#include <thrust/execution_policy.h>
+#include <thrust/sort.h>
 #include <time.h>
-
+#include "bvh.h"
 // limited version of checkCudaErrors from helper_cuda.h in CUDA examples
 #define checkCudaErrors(val) check_cuda((val), #val, __FILE__, __LINE__)
 
@@ -99,11 +101,14 @@ __global__ void render(vec3 *fb, int max_x, int max_y, int ns, camera **cam,
 
 #define RND (curand_uniform(&local_rand_state))
 
-
 __global__ void create_world(hittable **d_list, hittable **d_world,
                              camera **d_camera, int nx, int ny,
                              curandState *rand_state) {
   if (threadIdx.x == 0 && blockIdx.x == 0) {
+
+    // float x[4] = {1.0, 2.0, 3.0, 4.0};
+    // thrust::sort(thrust::device, x, x + 4);
+
     curandState local_rand_state = *rand_state;
     d_list[0] = new sphere(vec3(0, -1000.0, -1), 1000,
                            new lambertian(vec3(0.5, 0.5, 0.5)));
@@ -142,6 +147,7 @@ __global__ void create_world(hittable **d_list, hittable **d_world,
     d_list[i++] =
         new sphere(vec3(4, 1, 0), 1.0, new metal(vec3(0.7, 0.6, 0.5), 0.0));
     *rand_state = local_rand_state;
+
     *d_world = new hittable_list(d_list, 22 * 22 + 1 + 3);
 
     vec3 lookfrom(13, 2, 3);
@@ -180,7 +186,7 @@ int main() {
   int nx = 1200;
   int ny = static_cast<int>(nx / aspect_ratio);
   int ns = 50;
-  //   int ns = 10;
+  //   int ns = 500;
   int tx = 8;
   int ty = 8;
 

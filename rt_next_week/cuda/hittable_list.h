@@ -13,13 +13,6 @@ public:
     list_size = n;
   }
 
-  // __device__ hittable_list(thrust::device_vector<hittable *> objs) {
-  //   objects.resize(objs.size());
-  //   for (auto obj : objs) {
-  //     objects.push_back(obj);
-  //   }
-  // }
-
   __device__ virtual bool hit(const ray &r, float t_min, float t_max,
                               hit_record &rec) const;
 
@@ -28,7 +21,6 @@ public:
 
 public:
   hittable **list;
-  // thrust::device_vector<hittable *> objects;
   int list_size;
 };
 
