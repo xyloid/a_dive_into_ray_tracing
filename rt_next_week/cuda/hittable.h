@@ -4,10 +4,6 @@
 #include "aabb.h"
 #include "ray.h"
 
-#include <memory>
-
-using std::make_shared;
-using std::shared_ptr;
 
 class material;
 

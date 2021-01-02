@@ -2,6 +2,7 @@
 #define SPHERE_H
 
 #include "hittable.h"
+#include "aabb.h"
 
 class sphere : public hittable {
 public:
