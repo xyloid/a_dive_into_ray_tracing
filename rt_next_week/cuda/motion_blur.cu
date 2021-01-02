@@ -175,6 +175,7 @@ __global__ void free_world(hittable **d_list, hittable **d_world,
 }
 
 int main() {
+  cudaDeviceSetLimit(cudaLimitStackSize, 32768ULL);
 
   //   const auto aspect_ratio = 3.0 / 2.0;
   //   const int image_width = 1200; // 1200
@@ -183,7 +184,7 @@ int main() {
   //   const int max_depth = 50;
 
   const auto aspect_ratio = 3.0 / 2.0;
-  int nx = 1200/3;
+  int nx = 1200;
   int ny = static_cast<int>(nx / aspect_ratio);
   int ns = 10;
   //   int ns = 500;

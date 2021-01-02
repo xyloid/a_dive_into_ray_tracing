@@ -77,7 +77,7 @@ __device__ bool bvh_node::hit(const ray &r, float t_min, float t_max,
 __device__ bvh_node::bvh_node(hittable **l, size_t start, size_t end,
                               float time0, float time1,
                               curandState *local_rand_state) {
-  printf("%lu %lu enter\n", start, end);
+  // printf("%lu %lu enter\n", start, end);
   int axis = curand_uniform(local_rand_state) * 3;
 
   auto comparator =
@@ -85,7 +85,7 @@ __device__ bvh_node::bvh_node(hittable **l, size_t start, size_t end,
 
   size_t object_span = end - start;
 
-  printf("%lu %lu %d\n", start, end, axis);
+  // printf("%lu %lu %d\n", start, end, axis);
   if (object_span == 0)
     return;
 
@@ -100,17 +100,17 @@ __device__ bvh_node::bvh_node(hittable **l, size_t start, size_t end,
       right = l[start];
     }
   } else {
-    printf("%lu %lu\n", start, end);
-    thrust::sort(thrust::device, l + start, l + end, comparator);
+    // printf("%lu %lu\n", start, end);
+    thrust::sort(thrust::seq, l + start, l + end, comparator);
     // thrust::sort(l + start, l + end, comparator);
 
     size_t mid = start + object_span / 2;
     // size_t mid = object_span / 2;
 
-    printf("%lu %lu %lu\n", start, mid, end);
+    // printf("%lu %lu %lu\n", start, mid, end);
 
     left = new bvh_node(l, start, mid, time0, time1, local_rand_state);
-    printf("%lu %lu\n", start, end);
+    // printf("%lu %lu\n", start, end);
     right = new bvh_node(l, mid, end, time0, time1, local_rand_state);
     // left = new bvh_node(l + start, 0, mid, time0, time1, local_rand_state);
     // right = new bvh_node(l + mid, 0, object_span - mid, time0, time1,
