@@ -224,6 +224,10 @@ int main() {
   checkCudaErrors(cudaMalloc((void **)&d_world, sizeof(bvh_node *)));
   camera **d_camera;
   checkCudaErrors(cudaMalloc((void **)&d_camera, sizeof(camera *)));
+
+  checkCudaErrors(cudaGetLastError());
+  checkCudaErrors(cudaDeviceSynchronize());
+
   create_world<<<1, 1>>>(d_list, d_world, d_camera, nx, ny, d_rand_state2);
   checkCudaErrors(cudaGetLastError());
   checkCudaErrors(cudaDeviceSynchronize());
