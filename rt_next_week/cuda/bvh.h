@@ -95,14 +95,17 @@ __device__ bvh_node::bvh_node(hittable **l, int start, int end, float time0,
   } else {
     thrust::sort(thrust::device, l + start, l + end, comparator);
 
-    int mid = start + object_span / 2;
+    // int mid = start + object_span / 2;
+    int mid = object_span / 2;
 
     // printf("%d %d %d\n", start, mid, end);
 
-    left = new bvh_node(l, start, mid, time0, time1, local_rand_state);
-    right = new bvh_node(l, mid, end, time0, time1, local_rand_state);
-    // left = new bvh_node(l, start, start+1, time0, time1, local_rand_state);
-    // right = new bvh_node(l, mid, mid+1, time0, time1, local_rand_state);
+    // left = new bvh_node(l, start, mid, time0, time1, local_rand_state);
+    // right = new bvh_node(l, mid, end, time0, time1, local_rand_state);
+    left = new bvh_node(l + start, 0, mid, time0, time1, local_rand_state);
+    right = new bvh_node(l + mid, 0, object_span - mid, time0, time1,
+                         local_rand_state);
+ 
   }
 
   aabb box_left, box_right;
