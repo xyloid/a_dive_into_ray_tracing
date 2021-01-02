@@ -1,3 +1,4 @@
+#include "bvh.h"
 #include "camera.h"
 #include "hittable_list.h"
 #include "material.h"
@@ -8,11 +9,7 @@
 #include <curand_kernel.h>
 #include <float.h>
 #include <iostream>
-#include <thrust/device_vector.h>
-#include <thrust/execution_policy.h>
-#include <thrust/sort.h>
 #include <time.h>
-#include "bvh.h"
 // limited version of checkCudaErrors from helper_cuda.h in CUDA examples
 #define checkCudaErrors(val) check_cuda((val), #val, __FILE__, __LINE__)
 
@@ -146,10 +143,14 @@ __global__ void create_world(hittable **d_list, hittable **d_world,
         new sphere(vec3(-4, 1, 0), 1.0, new lambertian(vec3(0.4, 0.2, 0.1)));
     d_list[i++] =
         new sphere(vec3(4, 1, 0), 1.0, new metal(vec3(0.7, 0.6, 0.5), 0.0));
+    // *rand_state = local_rand_state;
+
+    // *d_world = new hittable_list(d_list, 22 * 22 + 1 + 3);
+    *d_world =
+        new bvh_node(d_list, 0, 22 * 22 + 1 + 3, 0.0f, 1.0f, &local_rand_state);
+
     *rand_state = local_rand_state;
-
-    *d_world = new hittable_list(d_list, 22 * 22 + 1 + 3);
-
+    
     vec3 lookfrom(13, 2, 3);
     vec3 lookat(0, 0, 0);
     float dist_to_focus = 10.0;
