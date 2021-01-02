@@ -25,3 +25,4 @@ When using `-G` option, BVH actually works and improved the speed.
 But when I remove `-G`, there will be an cudaError 700 bug. 
 
 [might be useful](https://forums.developer.nvidia.com/t/different-results-when-using-gpu-debug-option-g/30063/3)
+[opposite example](https://stackoverflow.com/questions/14903063/what-is-the-granularity-of-the-cuda-memory-checker)

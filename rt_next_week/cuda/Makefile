@@ -1,5 +1,5 @@
 obj:
-	nvcc -Xptxas -O3 motion_blur.cu  -o obj 
+	nvcc -lineinfo -g motion_blur.cu  -o obj 
 
 dobj:
 	nvcc -G -lineinfo motion_blur.cu  -o obj 

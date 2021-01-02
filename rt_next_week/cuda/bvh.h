@@ -41,7 +41,7 @@ public:
   //                       curandState *local_rand_state)
   //       : bvh_node(l.list, 0, l.list_size, time0, time1, local_rand_state){};
 
-  __device__ bvh_node(hittable **l, int start, int end, float time0,
+  __device__ bvh_node(hittable **l, size_t start, size_t end, float time0,
                       float time1, curandState *local_rand_state);
 
   __device__ virtual bool hit(const ray &r, float t_min, float t_max,
@@ -73,14 +73,20 @@ __device__ bool bvh_node::hit(const ray &r, float t_min, float t_max,
   return hit_left || hit_right;
 }
 
-__device__ bvh_node::bvh_node(hittable **l, int start, int end, float time0,
-                              float time1, curandState *local_rand_state) {
+__device__ bvh_node::bvh_node(hittable **l, size_t start, size_t end,
+                              float time0, float time1,
+                              curandState *local_rand_state) {
+  printf("%lu %lu enter\n", start, end);
   int axis = curand_uniform(local_rand_state) * 3;
 
   auto comparator =
       (axis == 0) ? box_x_compare : (axis == 1) ? box_y_compare : box_z_compare;
 
   size_t object_span = end - start;
+
+  printf("%lu %lu %d\n", start, end, axis);
+  if (object_span == 0)
+    return;
 
   if (object_span == 1) {
     left = right = l[start];
@@ -93,22 +99,24 @@ __device__ bvh_node::bvh_node(hittable **l, int start, int end, float time0,
       right = l[start];
     }
   } else {
+    printf("%lu %lu\n", start, end);
     thrust::sort(thrust::device, l + start, l + end, comparator);
 
-    // int mid = start + object_span / 2;
-    int mid = object_span / 2;
+    size_t mid = start + object_span / 2;
+    // size_t mid = object_span / 2;
 
-    // printf("%d %d %d\n", start, mid, end);
+    printf("%lu %lu %lu\n", start, mid, end);
 
-    // left = new bvh_node(l, start, mid, time0, time1, local_rand_state);
-    // right = new bvh_node(l, mid, end, time0, time1, local_rand_state);
-    left = new bvh_node(l + start, 0, mid, time0, time1, local_rand_state);
-    right = new bvh_node(l + mid, 0, object_span - mid, time0, time1,
-                         local_rand_state);
- 
+    left = new bvh_node(l, start, mid, time0, time1, local_rand_state);
+    printf("%lu %lu\n", start, end);
+    right = new bvh_node(l, mid, end, time0, time1, local_rand_state);
+    // left = new bvh_node(l + start, 0, mid, time0, time1, local_rand_state);
+    // right = new bvh_node(l + mid, 0, object_span - mid, time0, time1,
+    //                      local_rand_state);
   }
 
-  aabb box_left, box_right;
+  aabb box_left;
+  aabb box_right;
 
   if (!left->bounding_box(time0, time1, box_left) ||
       !right->bounding_box(time0, time1, box_right)) {
