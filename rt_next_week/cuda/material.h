@@ -59,6 +59,13 @@ public:
     else
       fuzz = 1;
   }
+
+  __device__ metal(abstract_texture *a, float f) : albedo(a) {
+    if (f < 1)
+      fuzz = f;
+    else
+      fuzz = 1;
+  }
   __device__ virtual bool scatter(const ray &r_in, const hit_record &rec,
                                   vec3 &attenuation, ray &scattered,
                                   curandState *local_rand_state) const {
