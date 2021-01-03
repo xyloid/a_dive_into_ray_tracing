@@ -107,8 +107,14 @@ __global__ void create_world(hittable **d_list, hittable **d_world,
     // thrust::sort(thrust::device, x, x + 4);
 
     curandState local_rand_state = *rand_state;
+
+    auto checker =
+        new checker_texture(color(0.2, 0.3, 0.1), color(0.9, 0.9, 0.9));
+
     d_list[0] = new sphere(vec3(0, -1000.0, -1), 1000,
-                           new lambertian(vec3(0.5, 0.5, 0.5)));
+                           new lambertian(checker));
+    // d_list[0] = new sphere(vec3(0, -1000.0, -1), 1000,
+    //                        new lambertian(vec3(0.5, 0.5, 0.5)));
     // d_list[0] = new sphere(vec3(0, -1000.0, -1), 1000,
     //                    make_shared<lambertian>(vec3(0.5, 0.5, 0.5)));
     int i = 1;
@@ -121,11 +127,11 @@ __global__ void create_world(hittable **d_list, hittable **d_world,
           vec3 center2 = center + vec3(0, RND * 0.5f, 0);
           // d_list[i++] =
           //     new sphere(center, 0.2,
-          //                new lambertian(vec3(RND * RND, RND * RND, RND * RND)));
+          //                new lambertian(vec3(RND * RND, RND * RND, RND *
+          //                RND)));
           d_list[i++] = new moving_sphere(
               center, center2, 0.0, 1.0, 0.2,
-              new lambertian(vec3(RND * RND, RND * RND, RND *
-              RND)));
+              new lambertian(vec3(RND * RND, RND * RND, RND * RND)));
 
         } else if (choose_mat < 0.95f) {
           d_list[i++] = new sphere(
@@ -154,7 +160,7 @@ __global__ void create_world(hittable **d_list, hittable **d_world,
     vec3 lookfrom(13, 2, 3);
     vec3 lookat(0, 0, 0);
     float dist_to_focus = (lookfrom - lookat).length();
-    float aperture = 0.1;
+    float aperture = 0.05;
     *d_camera =
         new camera(lookfrom, lookat, vec3(0, 1, 0), 30.0, float(nx) / float(ny),
                    aperture, dist_to_focus, 0.0, 1.0);

@@ -34,6 +34,7 @@ public:
 class lambertian : public material {
 public:
   __device__ lambertian(const vec3 &a) : albedo(new solid_color(a)) {}
+  __device__ lambertian(abstract_texture *a) : albedo(a) {}
   __device__ virtual bool scatter(const ray &r_in, const hit_record &rec,
                                   vec3 &attenuation, ray &scattered,
                                   curandState *local_rand_state) const {
