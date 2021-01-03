@@ -102,6 +102,18 @@ Factors of design bounding volume
 
 ### The BVH Node Class
 
+Its `hit` can be done in recursive way or iterative way. It turns out CUDA prefers iteration.
+
+## Solid Textures
+
+### What is a texture in graphics ?
+
+- a function that makes colors on a surface procedural.
+    - The procedure can be
+        - color synthesis code 
+        - image lookup
+- The author prefers to make color as texture although most programs keeps constant rgb colors and textures in different classes.
+
 
 
 
