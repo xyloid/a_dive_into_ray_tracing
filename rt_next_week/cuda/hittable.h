@@ -4,7 +4,6 @@
 #include "aabb.h"
 #include "ray.h"
 
-
 class material;
 
 struct hit_record {
@@ -17,6 +16,7 @@ struct hit_record {
 
 class hittable {
 public:
+  __device__ hittable() : is_leaf(false){};
   __device__ virtual bool hit(const ray &r, float t_min, float t_max,
                               hit_record &rec) const = 0;
 
@@ -24,6 +24,9 @@ public:
   // to indicate that.
   __device__ virtual bool bounding_box(float time0, float time1,
                                        aabb &output_box) const = 0;
+
+public:
+  bool is_leaf;
 };
 
 #endif

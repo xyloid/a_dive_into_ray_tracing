@@ -157,3 +157,7 @@ Device "GeForce RTX 2060 with Max-Q Design (0)"
 Total CPU Page faults: 35
 
 ```
+
+### BVH Recursion to Iteration
+
+[Thinking Parallel, Part II: Tree Traversal on the GPU](https://developer.nvidia.com/blog/thinking-parallel-part-ii-tree-traversal-gpu/)

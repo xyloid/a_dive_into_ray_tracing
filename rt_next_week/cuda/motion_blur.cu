@@ -119,13 +119,13 @@ __global__ void create_world(hittable **d_list, hittable **d_world,
         if (choose_mat < 0.8f) {
 
           vec3 center2 = center + vec3(0, RND * 0.5f, 0);
-          d_list[i++] =
-              new sphere(center, 0.2,
-                         new lambertian(vec3(RND * RND, RND * RND, RND * RND)));
-          // d_list[i++] = new moving_sphere(
-          //     center, center2, 0, 1.0, 0.2,
-          //     make_shared<lambertian>(vec3(RND * RND, RND * RND, RND *
-          //     RND)));
+          // d_list[i++] =
+          //     new sphere(center, 0.2,
+          //                new lambertian(vec3(RND * RND, RND * RND, RND * RND)));
+          d_list[i++] = new moving_sphere(
+              center, center2, 0.0, 1.0, 0.2,
+              new lambertian(vec3(RND * RND, RND * RND, RND *
+              RND)));
 
         } else if (choose_mat < 0.95f) {
           d_list[i++] = new sphere(

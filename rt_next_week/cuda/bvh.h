@@ -4,12 +4,12 @@
 #include "hittable.h"
 #include "hittable_list.h"
 #include "rtweekend.h"
+#include <algorithm>
 #include <curand_kernel.h>
 #include <stdio.h>
 #include <thrust/device_vector.h>
 #include <thrust/execution_policy.h>
 #include <thrust/sort.h>
-#include <algorithm>
 
 __device__ inline bool box_compare(const hittable *a, const hittable *b,
                                    int axis) {
@@ -63,15 +63,50 @@ __device__ bool bvh_node::bounding_box(float time0, float time1,
   return true;
 }
 
+// __device__ bool bvh_node::hit(const ray &r, float t_min, float t_max,
+//                               hit_record &rec) const {
+//   if (!box.hit(r, t_min, t_max)) {
+//     return false;
+//   }
+//   bool hit_left = left->hit(r, t_min, t_max, rec);
+//   bool hit_right = right->hit(r, t_min, hit_left ? rec.t : t_max, rec);
+
+//   return hit_left || hit_right;
+// }
+
 __device__ bool bvh_node::hit(const ray &r, float t_min, float t_max,
                               hit_record &rec) const {
   if (!box.hit(r, t_min, t_max)) {
     return false;
   }
-  bool hit_left = left->hit(r, t_min, t_max, rec);
-  bool hit_right = right->hit(r, t_min, hit_left ? rec.t : t_max, rec);
 
-  return hit_left || hit_right;
+  hittable *stack[64];
+  hittable **stack_ptr = stack;
+  *stack_ptr++ = NULL;
+
+  bvh_node *node = (bvh_node *)this;
+
+  do {
+    hittable *l_child = node->left;
+    hittable *r_child = node->right;
+
+    // TODO: working on recursion to iteration
+
+    if (l_child->is_leaf || r_child->is_leaf) {
+      // must hit one of them
+      bool hit_left = l_child->hit(r, t_min, t_max, rec);
+      bool hit_right = r_child->hit(r, t_min, hit_left ? rec.t : t_max, rec);
+      return hit_left || hit_right;
+    }
+    // else , we need forward to next level of the tree
+
+    bool hit_left = ((bvh_node *)l_child)->box.hit(r, t_min, t_max);
+
+    bool hit_right = ((bvh_node *)r_child)->box.hit(r, t_min, t_max);
+
+  } while (node != NULL);
+
+  return false;
 }
 
 __device__ bvh_node::bvh_node(hittable **l, size_t start, size_t end,
@@ -91,6 +126,8 @@ __device__ bvh_node::bvh_node(hittable **l, size_t start, size_t end,
 
   if (object_span == 1) {
     left = right = l[start];
+    left->is_leaf = true;
+    right->is_leaf = true;
   } else if (object_span == 2) {
     if (comparator(l[start], l[start + 1])) {
       left = l[start];
@@ -99,6 +136,8 @@ __device__ bvh_node::bvh_node(hittable **l, size_t start, size_t end,
       left = l[start + 1];
       right = l[start];
     }
+    left->is_leaf = true;
+    right->is_leaf = true;
   } else {
     // printf("%lu %lu\n", start, end);
     // inside kernel, using seq
