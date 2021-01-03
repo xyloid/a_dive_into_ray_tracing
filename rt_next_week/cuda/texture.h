@@ -3,12 +3,12 @@
 
 #include "rtweekend.h"
 
-class texture {
+class abstract_texture {
 public:
   __device__ virtual color value(float u, float v, const point3 &p) const = 0;
 };
 
-class solid_color : public texture {
+class solid_color : public abstract_texture {
 public:
   __device__ solid_color() {}
   __device__ solid_color(color c) : color_value(c) {}

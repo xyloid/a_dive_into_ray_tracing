@@ -5,6 +5,7 @@ struct hit_record;
 
 #include "hittable.h"
 #include "ray.h"
+#include "texture.h"
 #include <curand_kernel.h>
 
 #define RANDVEC3                                                               \
@@ -39,6 +40,7 @@ public:
     // generate a random point for diffuse
     vec3 target = rec.p + rec.normal + random_in_unit_sphere(local_rand_state);
     scattered = ray(rec.p, target - rec.p, r_in.time());
+    // attenuation = albedo.value(rec.u, rec.v, rec.p);
     attenuation = albedo;
     return true;
   }
