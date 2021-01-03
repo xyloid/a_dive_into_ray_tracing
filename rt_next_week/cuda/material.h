@@ -33,25 +33,26 @@ public:
 
 class lambertian : public material {
 public:
-  __device__ lambertian(const vec3 &a) : albedo(a) {}
+  __device__ lambertian(const vec3 &a) : albedo(new solid_color(a)) {}
   __device__ virtual bool scatter(const ray &r_in, const hit_record &rec,
                                   vec3 &attenuation, ray &scattered,
                                   curandState *local_rand_state) const {
     // generate a random point for diffuse
     vec3 target = rec.p + rec.normal + random_in_unit_sphere(local_rand_state);
     scattered = ray(rec.p, target - rec.p, r_in.time());
-    // attenuation = albedo.value(rec.u, rec.v, rec.p);
-    attenuation = albedo;
+    attenuation = albedo->value(rec.u, rec.v, rec.p);
+    // attenuation = albedo;
     return true;
   }
 
 public:
-  vec3 albedo;
+  // vec3 albedo;
+  abstract_texture *albedo;
 };
 
 class metal : public material {
 public:
-  __device__ metal(const vec3 &a, float f) : albedo(a) {
+  __device__ metal(const vec3 &a, float f) : albedo(new solid_color(a)) {
     if (f < 1)
       fuzz = f;
     else
@@ -69,12 +70,14 @@ public:
     scattered =
         ray(rec.p, reflected + fuzz * random_in_unit_sphere(local_rand_state),
             r_in.time());
-    attenuation = albedo;
+    // attenuation = albedo;
+    attenuation = albedo->value(rec.u, rec.v, rec.p);
     return (dot(scattered.direction(), rec.normal) > 0.0f);
   }
 
 public:
-  vec3 albedo;
+  // vec3 albedo;
+  abstract_texture *albedo;
   float fuzz;
 };
 
