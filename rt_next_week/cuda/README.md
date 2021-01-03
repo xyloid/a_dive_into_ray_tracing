@@ -172,3 +172,10 @@ Total CPU Page faults: 35
 Rendering a 1200x800 image with 500 samples per pixel in 8x8 blocks.
 took 37.8792 seconds.
 ```
+
+### Unplugged Laptop
+
+Last night I finished the BVH part and it works fine on my laptop, the performance is as expected. 
+However, this morning, when I run the BVH Iteration version, the runtime is `200 sec` not `39 sec`. I am
+ surprised and suspect that my GPU might not working in high performance mode, the fan noise was mush less than 
+ last night. Suddenly, I realized that my laptop was not plugged correctly, so it was using the battery and automatically switched to power-saving mode.

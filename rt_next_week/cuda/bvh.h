@@ -106,21 +106,25 @@ __device__ bool bvh_node::hit(const ray &r, float t_min, float t_max,
       t_max = hit_left ? rec.t : t_max;
       bool hit_right = r_child->hit(r, t_min, hit_left ? rec.t : t_max, rec);
       t_max = hit_right ? rec.t : t_max;
+
+      node = (bvh_node *)*--stack_ptr;
+
       if (hit_left || hit_right)
         is_hit = true;
-    }
-    // else , we need forward to next level of the tree
-
-    bool hit_left = ((bvh_node *)l_child)->box.hit(r, t_min, t_max);
-
-    bool hit_right = ((bvh_node *)r_child)->box.hit(r, t_min, t_max);
-
-    if (!hit_left && !hit_right) {
-      node = (bvh_node *)*--stack_ptr;
     } else {
-      node = hit_left ? (bvh_node *)l_child : (bvh_node *)r_child;
-      if (hit_left && hit_right) {
-        *stack_ptr++ = r_child;
+      // else , we need forward to next level of the tree
+
+      bool hit_left = ((bvh_node *)l_child)->box.hit(r, t_min, t_max);
+
+      bool hit_right = ((bvh_node *)r_child)->box.hit(r, t_min, t_max);
+
+      if (!hit_left && !hit_right) {
+        node = (bvh_node *)*--stack_ptr;
+      } else {
+        node = hit_left ? (bvh_node *)l_child : (bvh_node *)r_child;
+        if (hit_left && hit_right) {
+          *stack_ptr++ = r_child;
+        }
       }
     }
 
