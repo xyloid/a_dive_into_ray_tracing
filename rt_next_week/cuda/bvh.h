@@ -86,17 +86,28 @@ __device__ bool bvh_node::hit(const ray &r, float t_min, float t_max,
 
   bvh_node *node = (bvh_node *)this;
 
+  bool is_hit = false;
+
   do {
     hittable *l_child = node->left;
     hittable *r_child = node->right;
 
     // TODO: working on recursion to iteration
 
+    // no bounding box on leaf, not bvh_node
     if (l_child->is_leaf || r_child->is_leaf) {
+
+      aabb l_box, r_box;
+      l_child->bounding_box(t_min, t_max, l_box);
+      r_child->bounding_box(t_min, t_max, r_box);
+
       // must hit one of them
       bool hit_left = l_child->hit(r, t_min, t_max, rec);
+      t_max = hit_left ? rec.t : t_max;
       bool hit_right = r_child->hit(r, t_min, hit_left ? rec.t : t_max, rec);
-      return hit_left || hit_right;
+      t_max = hit_right ? rec.t : t_max;
+      if (hit_left || hit_right)
+        is_hit = true;
     }
     // else , we need forward to next level of the tree
 
@@ -104,9 +115,18 @@ __device__ bool bvh_node::hit(const ray &r, float t_min, float t_max,
 
     bool hit_right = ((bvh_node *)r_child)->box.hit(r, t_min, t_max);
 
+    if (!hit_left && !hit_right) {
+      node = (bvh_node *)*--stack_ptr;
+    } else {
+      node = hit_left ? (bvh_node *)l_child : (bvh_node *)r_child;
+      if (hit_left && hit_right) {
+        *stack_ptr++ = r_child;
+      }
+    }
+
   } while (node != NULL);
 
-  return false;
+  return is_hit;
 }
 
 __device__ bvh_node::bvh_node(hittable **l, size_t start, size_t end,

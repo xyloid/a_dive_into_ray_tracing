@@ -80,6 +80,12 @@ Rendering a 1200x800 image with 500 samples per pixel in 8x8 blocks.
 took 123.074 seconds.
 ```
 
+With BVH, Recursion to Iteration
+
+```
+Rendering a 1200x800 image with 500 samples per pixel in 8x8 blocks.
+took 37.8792 seconds.
+```
 
 With BVH
 ```
@@ -161,3 +167,8 @@ Total CPU Page faults: 35
 ### BVH Recursion to Iteration
 
 [Thinking Parallel, Part II: Tree Traversal on the GPU](https://developer.nvidia.com/blog/thinking-parallel-part-ii-tree-traversal-gpu/)
+
+```
+Rendering a 1200x800 image with 500 samples per pixel in 8x8 blocks.
+took 37.8792 seconds.
+```
