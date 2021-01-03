@@ -145,9 +145,9 @@ __global__ void create_world(hittable **d_list, hittable **d_world,
         new sphere(vec3(4, 1, 0), 1.0, new metal(vec3(0.7, 0.6, 0.5), 0.0));
     // *rand_state = local_rand_state;
 
-    *d_world = new hittable_list(d_list, 22 * 22 + 1 + 3);
-    // *d_world =
-    //     new bvh_node(d_list, 0, 22 * 22 + 1 + 3, 0.0f, 1.0f, &local_rand_state);
+    // *d_world = new hittable_list(d_list, 22 * 22 + 1 + 3);
+    *d_world =
+        new bvh_node(d_list, 0, 22 * 22 + 1 + 3, 0.0f, 1.0f, &local_rand_state);
 
     *rand_state = local_rand_state;
 
@@ -186,7 +186,7 @@ int main() {
   const auto aspect_ratio = 3.0 / 2.0;
   int nx = 1200;
   int ny = static_cast<int>(nx / aspect_ratio);
-  int ns = 500;
+  int ns = 5;
   //   int ns = 500;
   int tx = 8;
   int ty = 8;
