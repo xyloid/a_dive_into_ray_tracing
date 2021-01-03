@@ -1,8 +1,8 @@
 #ifndef SPHERE_H
 #define SPHERE_H
 
-#include "hittable.h"
 #include "aabb.h"
+#include "hittable.h"
 
 class sphere : public hittable {
 public:
@@ -37,7 +37,8 @@ __device__ bool sphere::hit(const ray &r, float t_min, float t_max,
       // find a root
       rec.t = temp;
       rec.p = r.at(rec.t);
-      rec.normal = (rec.p - center) / radius;
+      vec3 outward_normal = (rec.p - center) / radius;
+      rec.set_face_normal(r, outward_normal);
       rec.mat_ptr = mat_ptr;
       return true;
     }
@@ -46,7 +47,8 @@ __device__ bool sphere::hit(const ray &r, float t_min, float t_max,
       // find a root
       rec.t = temp;
       rec.p = r.at(rec.t);
-      rec.normal = (rec.p - center) / radius;
+      vec3 outward_normal = (rec.p - center) / radius;
+      rec.set_face_normal(r, outward_normal);
       rec.mat_ptr = mat_ptr;
       return true;
     }

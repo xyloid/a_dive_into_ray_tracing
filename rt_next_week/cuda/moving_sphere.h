@@ -62,7 +62,7 @@ __device__ bool moving_sphere::hit(const ray &r, float t_min, float t_max,
   rec.t = root;
   rec.p = r.at(rec.t);
   auto outward_normal = (rec.p - center(r.time())) / radius;
-  rec.normal = outward_normal;
+  rec.set_face_normal(r, outward_normal);
   rec.mat_ptr = mat_ptr;
 
   return true;

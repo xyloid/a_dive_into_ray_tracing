@@ -12,6 +12,18 @@ struct hit_record {
   vec3 normal;
   material *mat_ptr;
   // shared_ptr<material> mat_ptr;
+  float u;
+  float v;
+
+  bool front_face;
+
+  __device__ inline void set_face_normal(const ray &r,
+                                         const vec3 &outward_normal) {
+    front_face = dot(r.direction(), outward_normal) < 0;
+    // NOTE : this will change the direction of the scattered rays. It has effect on dielectrics.
+    // normal = front_face ? outward_normal : outward_normal;
+    normal = front_face ? outward_normal : - outward_normal;
+  }
 };
 
 class hittable {
