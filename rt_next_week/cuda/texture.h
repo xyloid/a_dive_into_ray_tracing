@@ -55,16 +55,17 @@ class noise_texture : public abstract_texture {
 public:
   __device__ noise_texture() {}
 
-  __device__ noise_texture(curandState *local_rand_state)
-      : noise(new perlin(local_rand_state)) {}
+  __device__ noise_texture(float sc, curandState *local_rand_state)
+      : scale(sc), noise(new perlin(local_rand_state)) {}
 
   __device__ virtual color value(float u, float v,
                                  const point3 &p) const override {
-    return color(1, 1, 1) * noise->noise(p);
+    return color(1, 1, 1) * noise->noise(scale * p);
   }
 
 public:
   perlin *noise;
+  float scale;
 };
 
 #endif

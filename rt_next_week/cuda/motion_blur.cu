@@ -147,10 +147,11 @@ __device__ hittable *two_spheres(curandState local_rand_state) {
 
 __device__ hittable *two_perlin_spheres(curandState local_rand_state) {
 
-  auto perlin_texture = new noise_texture(&local_rand_state);
+  auto perlin_texture = new noise_texture(4, &local_rand_state);
 
   hittable *ret[2];
-  ret[0] = new sphere(point3(0,-1000,0), 1000, new lambertian(perlin_texture));
+  ret[0] =
+      new sphere(point3(0, -1000, 0), 1000, new lambertian(perlin_texture));
   ret[1] = new sphere(point3(0, 2, 0), 2, new lambertian(perlin_texture));
 
   return new bvh_node(ret, 0, 2, 0.0f, 1.0f, &local_rand_state);
