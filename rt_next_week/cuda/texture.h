@@ -2,8 +2,8 @@
 #define TEXTURE_H
 
 #include "perlin.h"
-#include "rtweekend.h"
 #include "rtw_stb_image.h"
+#include "rtweekend.h"
 
 class abstract_texture {
 public:
@@ -74,7 +74,6 @@ public:
   float scale;
 };
 
-
 class image_texture : public abstract_texture {
 public:
   const static int bytes_per_pixel = 3;
@@ -106,6 +105,9 @@ public:
       i = width - 1;
     if (j >= height)
       j = height - 1;
+
+    // try to shift the map
+    i = (i + width / 2 + width / 3) % width;
 
     const float color_scale = 1.0f / 255.0f;
     auto pixel = data + j * bytes_per_scanline + i * bytes_per_pixel;
