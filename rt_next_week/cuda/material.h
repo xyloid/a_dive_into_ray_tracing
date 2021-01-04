@@ -149,4 +149,13 @@ public:
   float ref_idx;
 };
 
+class diffuse_light : public material {
+public:
+  __device__ diffuse_light(abstract_texture* a):emit(a){}
+
+  __device__ diffuse_light(color c): emit(new solid_color(c)){}
+
+public:
+  abstract_texture *emit;
+};
 #endif
