@@ -51,4 +51,9 @@ __device__ inline vec3 random_vec3(float min, float max,
               random_float(min, max, local_rand_state));
 }
 
+__device__ inline float clamp(const float &v, const float &lo,
+                              const float &hi) {
+  return (v < lo) ? lo : (hi < v) ? hi : v;
+}
+
 #endif

@@ -3,6 +3,7 @@
 
 #include "perlin.h"
 #include "rtweekend.h"
+#include "stb_image.h"
 
 class abstract_texture {
 public:
@@ -71,6 +72,52 @@ public:
 public:
   perlin *noise;
   float scale;
+};
+
+
+class image_texture : public abstract_texture {
+public:
+  const static int bytes_per_pixel = 3;
+  __device__ image_texture()
+      : data(nullptr), width(0), height(0), bytes_per_scanline(0) {}
+
+  __device__ image_texture(unsigned char *d, int w, int h) {
+    bytes_per_scanline = bytes_per_pixel * w;
+    width = w;
+    height = h;
+    data = d;
+  }
+
+  __device__ ~image_texture() { delete data; }
+
+  __device__ virtual color value(float u, float v,
+                                 const point3 &p) const override {
+    if (data == nullptr) {
+      return color(0.0f, 1.0f, 1.0f);
+    }
+
+    u = clamp(u, 0.0f, 1.0f);
+    v = 1.0f - clamp(v, 0.0f, 1.0f);
+
+    int i = (int)(u * width);
+    int j = (int)(v * height);
+
+    if (i >= width)
+      i = width - 1;
+    if (j >= height)
+      j = height - 1;
+
+    const float color_scale = 1.0f / 255.0f;
+    auto pixel = data + j * bytes_per_scanline + i * bytes_per_pixel;
+
+    return color(color_scale * pixel[0], color_scale * pixel[1],
+                 color_scale * pixel[2]);
+  }
+
+public:
+  unsigned char *data;
+  int width, height;
+  int bytes_per_scanline;
 };
 
 #endif
