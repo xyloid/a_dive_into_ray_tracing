@@ -123,6 +123,8 @@ took 130.967 seconds.
 
 - [Introduction to Computer Graphics (fall 2018), Lecture 12: Accelerating Ray Tracing](https://www.youtube.com/watch?v=FbLCMy-M2ls)
 
+- [Future of Gaming : Rasterization vs Ray Tracing vs Path Tracing](https://medium.com/@junyingw/future-of-gaming-rasterization-vs-ray-tracing-vs-path-tracing-32b334510f1f)
+
 
 ### Camera and Lens
 

@@ -1,5 +1,6 @@
 #include "bvh.h"
 #include "camera.h"
+#include "cuda_utils.h"
 #include "hittable_list.h"
 #include "material.h"
 #include "moving_sphere.h"
@@ -10,19 +11,6 @@
 #include <float.h>
 #include <iostream>
 #include <time.h>
-// limited version of checkCudaErrors from helper_cuda.h in CUDA examples
-#define checkCudaErrors(val) check_cuda((val), #val, __FILE__, __LINE__)
-
-void check_cuda(cudaError_t result, char const *const func,
-                const char *const file, int const line) {
-  if (result) {
-    std::cerr << "CUDA error = " << static_cast<unsigned int>(result) << " at "
-              << file << ":" << line << " '" << func << "' \n";
-    // Make sure we call CUDA Device Reset before exiting
-    cudaDeviceReset();
-    exit(99);
-  }
-}
 
 // Matching the C++ code would recurse enough into color() calls that
 // it was blowing up the stack, so we have to turn this into a
@@ -31,7 +19,7 @@ void check_cuda(cudaError_t result, char const *const func,
 __device__ vec3 get_color(const ray &r, hittable **world,
                           curandState *local_rand_state) {
   ray cur_ray = r;
-  vec3 cur_attenuation = vec3(1.0, 1.0, 1.0);
+  vec3 cur_attenuation(1.0f, 1.0f, 1.0f);
   for (int i = 0; i < 50; i++) {
     hit_record rec;
     if ((*world)->hit(cur_ray, 0.001f, FLT_MAX, rec)) {
@@ -157,6 +145,18 @@ __device__ hittable *two_spheres(curandState local_rand_state) {
   return new bvh_node(ret, 0, 2, 0.0f, 1.0f, &local_rand_state);
 }
 
+__device__ hittable *two_perlin_spheres(curandState local_rand_state) {
+
+  auto perlin_texture = new noise_texture(4, &local_rand_state);
+
+  hittable *ret[2];
+  ret[0] =
+      new sphere(point3(0, -1000, 0), 1000, new lambertian(perlin_texture));
+  ret[1] = new sphere(point3(0, 2, 0), 2, new lambertian(perlin_texture));
+
+  return new bvh_node(ret, 0, 2, 0.0f, 1.0f, &local_rand_state);
+}
+
 __global__ void create_world(hittable **d_list, hittable **d_world,
                              camera **d_camera, int nx, int ny,
                              curandState *rand_state) {
@@ -178,9 +178,15 @@ __global__ void create_world(hittable **d_list, hittable **d_world,
       aperture = 0.05;
       break;
 
-    default:
     case 2:
       *d_world = two_spheres(local_rand_state);
+      vfov = 20.0;
+      aperture = 0;
+      break;
+
+    default:
+    case 3:
+      *d_world = two_perlin_spheres(local_rand_state);
       vfov = 20.0;
       aperture = 0;
       break;
