@@ -36,6 +36,11 @@ public:
     float v = p.y() - floorf(p.y());
     float w = p.z() - floorf(p.z());
 
+    u = u * u * (3.0f - 2.0f * u);
+    v = v * v * (3.0f - 2.0f * v);
+    w = w * w * (3.0f - 2.0f * w);
+
+
     int i = (int)floorf(p.x());
     int j = (int)floorf(p.y());
     int k = (int)floorf(p.z());
