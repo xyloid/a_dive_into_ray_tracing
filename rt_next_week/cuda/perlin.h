@@ -26,11 +26,33 @@ public:
   }
 
   __device__ float noise(const point3 &p) const {
-    auto i = ((int)(4.0f * p.x())) & 255;
-    auto j = ((int)(4.0f * p.y())) & 255;
-    auto k = ((int)(4.0f * p.z())) & 255;
 
-    return ranfloat[perm_x[i] ^ perm_y[j] ^ perm_z[k]];
+    // auto i = ((int)(4.0f * p.x())) & 255;
+    // auto j = ((int)(4.0f * p.y())) & 255;
+    // auto k = ((int)(4.0f * p.z())) & 255;
+
+    // return ranfloat[perm_x[i] ^ perm_y[j] ^ perm_z[k]];
+    float u = p.x() - floorf(p.x());
+    float v = p.y() - floorf(p.y());
+    float w = p.z() - floorf(p.z());
+
+    int i = (int)floorf(p.x());
+    int j = (int)floorf(p.y());
+    int k = (int)floorf(p.z());
+
+    float c[2][2][2];
+
+    for (int di = 0; di < 2; di++) {
+      for (int dj = 0; dj < 2; dj++) {
+        for (int dk = 0; dk < 2; dk++) {
+          c[di][dj][dk] =
+              ranfloat[perm_x[(i + di) & 255] ^ perm_y[(j + dj) & 255] ^
+                       perm_z[(k + dk) & 255]];
+        }
+      }
+    }
+
+    return trilinear_interp(c, u, v, w);
   }
 
 private:
@@ -60,6 +82,21 @@ private:
       p[i] = p[target];
       p[target] = tmp;
     }
+  }
+
+  __device__ static float trilinear_interp(float c[2][2][2], float u, float v,
+                                           float w) {
+    float accum = 0.0;
+    for (int i = 0; i < 2; i++) {
+      for (int j = 0; j < 2; j++) {
+        for (int k = 0; k < 2; k++) {
+          accum += (i * u + (1 - i) * (1 - u)) * (j * v + (1 - j) * (1 - v)) *
+                   (k * w + (1 - k) * (1 - w)) * c[i][j][k];
+        }
+      }
+    }
+
+    return accum;
   }
 };
 
