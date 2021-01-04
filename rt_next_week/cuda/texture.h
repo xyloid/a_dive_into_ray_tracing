@@ -3,7 +3,7 @@
 
 #include "perlin.h"
 #include "rtweekend.h"
-#include "stb_image.h"
+#include "rtw_stb_image.h"
 
 class abstract_texture {
 public:
