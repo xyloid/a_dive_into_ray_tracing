@@ -157,9 +157,20 @@ __device__ hittable *two_perlin_spheres(curandState local_rand_state) {
   return new bvh_node(ret, 0, 2, 0.0f, 1.0f, &local_rand_state);
 }
 
+__device__ hittable *earth(unsigned char *data, int w, int h,
+                           curandState local_rand_state) {
+  auto earth_texture = new image_texture(data, w, h);
+  auto earth_surface = new lambertian(earth_texture);
+
+  hittable *ret[1];
+  ret[0] = new sphere(point3(0, 0, 0), 2, earth_surface);
+  return new bvh_node(ret, 0, 1, 0.0f, 1.0f, &local_rand_state);
+}
+
 __global__ void create_world(hittable **d_list, hittable **d_world,
                              camera **d_camera, int nx, int ny,
-                             curandState *rand_state) {
+                             curandState *rand_state, unsigned char *data,
+                             int w, int h) {
   if (threadIdx.x == 0 && blockIdx.x == 0) {
 
     curandState local_rand_state = *rand_state;
@@ -184,11 +195,14 @@ __global__ void create_world(hittable **d_list, hittable **d_world,
       aperture = 0;
       break;
 
-    default:
     case 3:
       *d_world = two_perlin_spheres(local_rand_state);
       vfov = 20.0;
       aperture = 0;
+      break;
+    default:
+    case 4:
+      *d_world = earth(data, w, h, local_rand_state);
       break;
     }
 
@@ -214,11 +228,24 @@ __global__ void free_world(hittable **d_list, hittable **d_world,
 int main() {
   cudaDeviceSetLimit(cudaLimitStackSize, 32768ULL);
 
-  //   const auto aspect_ratio = 3.0 / 2.0;
-  //   const int image_width = 1200; // 1200
-  //   const int image_height = static_cast<int>(image_width / aspect_ratio);
-  //   const int samples_per_pixel = 500; // 500
-  //   const int max_depth = 50;
+  const char *filename = "earthmap.jpeg";
+
+  int width, height;
+  int components_per_pixel = image_texture::bytes_per_pixel;
+
+  unsigned char *data;
+
+  data = stbi_load(filename, &width, &height, &components_per_pixel,
+                   components_per_pixel);
+
+  unsigned char *device_data;
+
+  size_t img_data_size =
+      components_per_pixel * width * height * sizeof(unsigned char);
+  checkCudaErrors(cudaMallocManaged((void **)&device_data, img_data_size));
+
+  checkCudaErrors(
+      cudaMemcpy((void*)device_data, (void*)data, img_data_size, cudaMemcpyHostToDevice));
 
   const auto aspect_ratio = 3.0 / 2.0;
   int nx = 1200;
@@ -266,7 +293,8 @@ int main() {
   checkCudaErrors(cudaGetLastError());
   checkCudaErrors(cudaDeviceSynchronize());
 
-  create_world<<<1, 1>>>(d_list, d_world, d_camera, nx, ny, d_rand_state2);
+  create_world<<<1, 1>>>(d_list, d_world, d_camera, nx, ny, d_rand_state2,
+                         device_data, width, height);
   checkCudaErrors(cudaGetLastError());
   checkCudaErrors(cudaDeviceSynchronize());
 
