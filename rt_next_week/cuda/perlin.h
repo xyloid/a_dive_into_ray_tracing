@@ -62,6 +62,20 @@ public:
     return trilinear_interp(c, u, v, w);
   }
 
+  __device__ float turb(const point3 &p, int depth = 7) const {
+    float accum = 0.0;
+    auto temp_p = p;
+    float weight = 1.0;
+
+    for (int i = 0; i < depth; i++) {
+      accum += weight * noise(temp_p);
+      weight *= 0.5;
+      temp_p *= 2;
+    }
+
+    return fabsf(accum);
+  }
+
 private:
   static const int point_count = 256;
   // float *ranfloat;
