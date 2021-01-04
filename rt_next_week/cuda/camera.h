@@ -15,10 +15,10 @@ __device__ vec3 random_in_unit_disk(curandState *local_rand_state) {
   return p;
 }
 
-__device__ float random_float(float min, float max,
-                              curandState *local_rand_state) {
-  return curand_uniform(local_rand_state) * (max - min) + min;
-}
+// __device__ float random_float(float min, float max,
+//                               curandState *local_rand_state) {
+//   return curand_uniform(local_rand_state) * (max - min) + min;
+// }
 
 class camera {
 public:

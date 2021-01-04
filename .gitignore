@@ -33,3 +33,6 @@
 inOneWeek
 *.ppm
 .vscode
+.settings
+.cproject
+.project

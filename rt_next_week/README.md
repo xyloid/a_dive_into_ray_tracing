@@ -114,9 +114,16 @@ Its `hit` can be done in recursive way or iterative way. It turns out CUDA prefe
         - image lookup
 - The author prefers to make color as texture although most programs keeps constant rgb colors and textures in different classes.
 
+## Perlin Noise
+
+[wikipedia](https://en.wikipedia.org/wiki/Perlin_noise)
 
 
+Perlin Noise is a technique used to produce natural appearing textures on computer generated surfaces for motion picture visual effects. The development of Perlin Noise has allowed computer graphics artists to better represent the complexity of natural phenomena in visual effects for the motion picture industry.
 
 
+Perlin noise returns something similar to blurred white nose.
 
+- A key part of Perlin noise is that it is **repeatable**: it takes a 3D point as input and always returns the same randomish number. Nearby points return similar numbers. 
 
+- Another important part of Perlin noise is that it be simple and fast, so it’s usually done as a hack.

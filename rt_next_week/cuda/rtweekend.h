@@ -28,4 +28,22 @@ __device__ inline float degrees_to_radians(float degrees) {
 #include "ray.h"
 #include "vec3.h"
 
+
+#include <curand_kernel.h>
+
+__device__ inline int random_int(int n, curandState *local_rand_state) {
+  float val = ((float)n) - 0.000001;
+  float ret = curand_uniform(local_rand_state) * val;
+  return (int)ret;
+}
+
+__device__ inline float random_float(curandState *local_rand_state) {
+  return curand_uniform(local_rand_state);
+}
+
+__device__ inline float random_float(float min, float max,
+                                     curandState *local_rand_state) {
+  return curand_uniform(local_rand_state) * (max - min) + min;
+}
+
 #endif
