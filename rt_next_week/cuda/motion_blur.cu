@@ -1,3 +1,4 @@
+#include "aarect.h"
 #include "bvh.h"
 #include "camera.h"
 #include "cuda_utils.h"
@@ -42,8 +43,8 @@ __device__ vec3 get_color(const ray &r, hittable **world,
   return vec3(0.0, 0.0, 0.0); // exceeded recursion
 }
 
-__device__ vec3 get_color(const ray &r, color **background,
-                          hittable **world, curandState *local_rand_state) {
+__device__ vec3 get_color(const ray &r, color **background, hittable **world,
+                          curandState *local_rand_state) {
   ray cur_ray = r;
   vec3 cur_attenuation(1.0f, 1.0f, 1.0f);
 
@@ -61,12 +62,14 @@ __device__ vec3 get_color(const ray &r, color **background,
         // scattered
         cur_attenuation *= attenuation;
         cur_attenuation += emitted;
+        // cur_attenuation *= (attenuation + emitted);
+
         cur_ray = scattered;
 
       } else {
         // no scatter
 
-        return emitted;
+        return cur_attenuation*emitted;
       }
     } else {
       // no hit
@@ -203,6 +206,21 @@ __device__ hittable *earth(unsigned char *data, int w, int h,
   return new bvh_node(ret, 0, 1, 0.0f, 1.0f, &local_rand_state);
 }
 
+__device__ hittable *simple_light(curandState local_rand_state) {
+  auto perlin_texture = new noise_texture(4, &local_rand_state);
+
+  hittable *ret[3];
+  ret[0] =
+      new sphere(point3(0, -1000, 0), 1000, new lambertian(perlin_texture));
+  ret[1] = new sphere(point3(0, 2, 0), 2, new lambertian(perlin_texture));
+
+  auto diff_light = new diffuse_light(color(4, 4, 4));
+
+  ret[2] = new xy_rect(3, 5, 1, 2, -2, diff_light);
+
+  return new bvh_node(ret, 0, 3, 0.0f, 1.0f, &local_rand_state);
+}
+
 __global__ void create_world(hittable **d_list, hittable **d_world,
                              camera **d_camera, int nx, int ny,
                              curandState *rand_state, unsigned char *data,
@@ -219,7 +237,7 @@ __global__ void create_world(hittable **d_list, hittable **d_world,
     vec3 vup(0, 1, 0);
     // background = new color(0, 0, 0);
 
-    switch (4) {
+    switch (0) {
     case 1:
       *d_world = random_scene(d_list, local_rand_state);
       vfov = 20.0;
@@ -247,6 +265,10 @@ __global__ void create_world(hittable **d_list, hittable **d_world,
     default:
     case 5:
       *background = new color(0.0, 0.0, 0.0);
+      *d_world = simple_light(local_rand_state);
+      lookfrom = point3(26, 3, 6);
+      lookat = point3(0, 2, 0);
+      vfov = 20.0f;
       break;
     }
 
@@ -292,7 +314,8 @@ int main() {
                              cudaMemcpyHostToDevice));
 
   color **background_color;
-  checkCudaErrors(cudaMallocManaged((void **)&background_color, sizeof(color*)));
+  checkCudaErrors(
+      cudaMallocManaged((void **)&background_color, sizeof(color *)));
 
   const auto aspect_ratio = 3.0 / 2.0;
   int nx = 1200;
