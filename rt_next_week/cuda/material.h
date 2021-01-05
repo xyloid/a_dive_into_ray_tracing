@@ -29,6 +29,11 @@ public:
   __device__ virtual bool scatter(const ray &r_in, const hit_record &rec,
                                   vec3 &attenuation, ray &scattered,
                                   curandState *local_rand_state) const = 0;
+
+  // by default, the material won't emit any light, which means emitting black.
+  __device__ virtual color emitted(float u, float v, const point3 &p) const {
+    return color(0, 0, 0);
+  }
 };
 
 class lambertian : public material {
@@ -151,9 +156,20 @@ public:
 
 class diffuse_light : public material {
 public:
-  __device__ diffuse_light(abstract_texture* a):emit(a){}
+  __device__ diffuse_light(abstract_texture *a) : emit(a) {}
 
-  __device__ diffuse_light(color c): emit(new solid_color(c)){}
+  __device__ diffuse_light(color c) : emit(new solid_color(c)) {}
+
+  __device__ virtual bool
+  scatter(const ray &r_in, const hit_record &rec, color &attenuation,
+          ray &scattered, curandState *local_rand_state) const override {
+    return false;
+  }
+
+  __device__ virtual color emitted(float u, float v,
+                                   const point3 &p) const override {
+    return emit->value(u, v, p);
+  }
 
 public:
   abstract_texture *emit;
