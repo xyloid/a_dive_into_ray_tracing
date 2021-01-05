@@ -231,7 +231,7 @@ __device__ hittable *earth(unsigned char *data, int w, int h,
 __device__ hittable *simple_light(curandState local_rand_state) {
   auto perlin_texture = new noise_texture(4, &local_rand_state);
 
-  hittable *ret[3];
+  hittable *ret[4];
   ret[0] =
       new sphere(point3(0, -1000, 0), 1000, new lambertian(perlin_texture));
   ret[1] = new sphere(point3(0, 2, 0), 2, new lambertian(perlin_texture));
@@ -240,7 +240,10 @@ __device__ hittable *simple_light(curandState local_rand_state) {
 
   ret[2] = new xy_rect(3, 5, 1, 2, -2, diff_light);
 
-  return new bvh_node(ret, 0, 3, 0.0f, 1.0f, &local_rand_state);
+  auto diff_light2 = new diffuse_light(color(6, 4, 4));
+  ret[3] = new sphere(point3(0, 6, 0), 1.5, diff_light2);
+
+  return new bvh_node(ret, 0, 4, 0.0f, 1.0f, &local_rand_state);
 }
 
 __global__ void create_world(hittable **d_list, hittable **d_world,
