@@ -246,6 +246,23 @@ __device__ hittable *simple_light(curandState local_rand_state) {
   return new bvh_node(ret, 0, 4, 0.0f, 1.0f, &local_rand_state);
 }
 
+__device__ hittable *cornell_box(curandState local_rand_state) {
+  hittable *ret[6];
+  auto red = new lambertian(color(.65, .05, .05));
+  auto white = new lambertian(color(.73, .73, .73));
+  auto green = new lambertian(color(.12, .45, .15));
+  auto light = new diffuse_light(color(15, 15, 15));
+
+  ret[0] = new yz_rect(0, 555, 0, 555, 555, green);
+  ret[1] = new yz_rect(0, 555, 0, 555, 0, red);
+  ret[2] = new xz_rect(213, 343, 227, 332, 554, light);
+  ret[3] = new xz_rect(0, 555, 0, 555, 0, white);
+  ret[4] = new xz_rect(0, 555, 0, 555, 555, white);
+  ret[5] = new xy_rect(0, 555, 0, 555, 555, white);
+
+  return new bvh_node(ret, 0, 6, 0.0f, 1.0f, &local_rand_state);
+}
+
 __global__ void create_world(hittable **d_list, hittable **d_world,
                              camera **d_camera, int nx, int ny,
                              curandState *rand_state, unsigned char *data,
@@ -256,7 +273,7 @@ __global__ void create_world(hittable **d_list, hittable **d_world,
 
     vec3 lookfrom(13, 2, 3);
     vec3 lookat(0, 0, 0);
-    float dist_to_focus = (lookfrom - lookat).length();
+    // float dist_to_focus = (lookfrom - lookat).length();
     float aperture = 0.05;
     float vfov = 40.0;
     vec3 vup(0, 1, 0);
@@ -287,7 +304,7 @@ __global__ void create_world(hittable **d_list, hittable **d_world,
       *d_world = earth(data, w, h, local_rand_state);
       *background = new color(0.70, 0.80, 1.00);
       break;
-    default:
+
     case 5:
       *background = new color(0.0, 0.0, 0.0);
       *d_world = simple_light(local_rand_state);
@@ -295,8 +312,17 @@ __global__ void create_world(hittable **d_list, hittable **d_world,
       lookat = point3(0, 2, 0);
       vfov = 20.0f;
       break;
+    default:
+    case 6:
+      *background = new color(0.0, 0.0, 0.0);
+      *d_world = cornell_box(local_rand_state);
+      lookfrom = point3(278, 278, -800);
+      lookat = point3(278, 278, 0);
+      vfov = 40.0;
+      break;
     }
 
+    float dist_to_focus = (lookfrom - lookat).length();
     *d_camera = new camera(lookfrom, lookat, vup, vfov, float(nx) / float(ny),
                            aperture, dist_to_focus, 0.0f, 1.0f);
     *rand_state = local_rand_state;

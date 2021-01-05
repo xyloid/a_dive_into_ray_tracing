@@ -16,7 +16,7 @@ public:
                      material *mat)
       : x0(_x0), x1(_x1), y0(_y0), y1(_y1), k(_k), mp(mat) {}
 
-  __device__ ~xy_rect() { delete mp; }
+  // __device__ ~xy_rect() { delete mp; }
 
   __device__ virtual bool hit(const ray &r, float t_min, float t_max,
                               hit_record &rec) const override;
@@ -70,7 +70,7 @@ public:
                      material *mat)
       : x0(_x0), x1(_x1), z0(_z0), z1(z1), k(_k), mp(mat) {}
 
-  __device__ ~xz_rect() { delete mp; }
+  // __device__ ~xz_rect() { delete mp; }
 
   __device__ virtual bool hit(const ray &r, float t_min, float t_max,
                               hit_record &rec) const override;
@@ -124,7 +124,7 @@ public:
                      material *mat)
       : y0(_y0), y1(_y1), z0(_z0), z1(_z1), k(_k), mp(mat) {}
 
-  __device__ ~yz_rect() { delete mp; }
+  // __device__ ~yz_rect() { delete mp; }
 
   __device__ virtual bool hit(const ray &r, float t_min, float t_max,
                               hit_record &rec) const override;
