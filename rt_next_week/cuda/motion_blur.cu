@@ -48,7 +48,12 @@ __device__ vec3 get_color(const ray &r, color **background, hittable **world,
   ray cur_ray = r;
   vec3 cur_attenuation(1.0f, 1.0f, 1.0f);
 
-  for (int i = 0; i < 50; i++) {
+  const int depth = 50;
+
+  vec3 emitted_rec[depth];
+  vec3 attenuation_rec[depth];
+
+  for (int i = 0; i < depth; i++) {
     hit_record rec;
     if ((*world)->hit(cur_ray, 0.001f, FLT_MAX, rec)) {
 
@@ -60,21 +65,38 @@ __device__ vec3 get_color(const ray &r, color **background, hittable **world,
       if (rec.mat_ptr->scatter(cur_ray, rec, attenuation, scattered,
                                local_rand_state)) {
         // scattered
-        cur_attenuation *= attenuation;
-        cur_attenuation += emitted;
+        // cur_attenuation *= attenuation;
+        // cur_attenuation += emitted;
         // cur_attenuation *= (attenuation + emitted);
+        emitted_rec[i] = emitted;
+        attenuation_rec[i] = attenuation;
 
         cur_ray = scattered;
 
       } else {
         // no scatter
+        // no attenuation
+        // no background light
+        // but we have emitted
 
-        return cur_attenuation*emitted;
+        cur_attenuation *= emitted;
+
+        while (i-- > 0) {
+          cur_attenuation =
+              emitted_rec[i] + cur_attenuation * attenuation_rec[i];
+        }
+
+        return cur_attenuation;
       }
     } else {
       // no hit
+      // only have background
+      cur_attenuation *= **background;
+      while (i-- > 0) {
+        cur_attenuation = emitted_rec[i] + cur_attenuation * attenuation_rec[i];
+      }
 
-      return cur_attenuation + **background;
+      return cur_attenuation;
     }
   }
   return **background; // exceeded recursion
