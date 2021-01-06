@@ -12,6 +12,7 @@
 #include <float.h>
 #include <iostream>
 #include <time.h>
+#include "box.h"
 
 // Matching the C++ code would recurse enough into color() calls that
 // it was blowing up the stack, so we have to turn this into a
@@ -247,7 +248,7 @@ __device__ hittable *simple_light(curandState local_rand_state) {
 }
 
 __device__ hittable *cornell_box(curandState local_rand_state) {
-  hittable *ret[6];
+  hittable *ret[8];
   auto red = new lambertian(color(.65, .05, .05));
   auto white = new lambertian(color(.73, .73, .73));
   auto green = new lambertian(color(.12, .45, .15));
@@ -260,7 +261,11 @@ __device__ hittable *cornell_box(curandState local_rand_state) {
   ret[4] = new xz_rect(0, 555, 0, 555, 555, white);
   ret[5] = new xy_rect(0, 555, 0, 555, 555, white);
 
-  return new bvh_node(ret, 0, 6, 0.0f, 1.0f, &local_rand_state);
+  ret[6] = new box(point3(130, 0, 65), point3(295, 165, 230), white);
+  ret[7] = new box(point3(265, 0, 295), point3(430, 330, 460), white);
+
+
+  return new bvh_node(ret, 0, 8, 0.0f, 1.0f, &local_rand_state);
 }
 
 __global__ void create_world(hittable **d_list, hittable **d_world,
