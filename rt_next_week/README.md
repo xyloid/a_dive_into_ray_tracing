@@ -127,3 +127,12 @@ Perlin noise returns something similar to blurred white nose.
 - A key part of Perlin noise is that it is **repeatable**: it takes a 3D point as input and always returns the same randomish number. Nearby points return similar numbers. 
 
 - Another important part of Perlin noise is that it be simple and fast, so it’s usually done as a hack.
+
+
+## Rectangles and Lights
+
+Early ray tracers used abstract light sources, like points in space, or directions.
+
+Modern ray tracers have more physically based lights, which have **position and size**.
+
+To create such light sources, we need emissive materials to turn any regular object into something that emits light into our scene.

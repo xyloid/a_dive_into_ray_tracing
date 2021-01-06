@@ -1,3 +1,4 @@
+#include "aarect.h"
 #include "bvh.h"
 #include "camera.h"
 #include "cuda_utils.h"
@@ -42,6 +43,65 @@ __device__ vec3 get_color(const ray &r, hittable **world,
   return vec3(0.0, 0.0, 0.0); // exceeded recursion
 }
 
+__device__ vec3 get_color(const ray &r, color **background, hittable **world,
+                          curandState *local_rand_state) {
+  ray cur_ray = r;
+  vec3 cur_attenuation(1.0f, 1.0f, 1.0f);
+
+  const int depth = 50;
+
+  vec3 emitted_rec[depth];
+  vec3 attenuation_rec[depth];
+
+  for (int i = 0; i < depth; i++) {
+    hit_record rec;
+    if ((*world)->hit(cur_ray, 0.001f, FLT_MAX, rec)) {
+
+      ray scattered;
+      vec3 attenuation;
+
+      color emitted = rec.mat_ptr->emitted(rec.u, rec.v, rec.p);
+
+      if (rec.mat_ptr->scatter(cur_ray, rec, attenuation, scattered,
+                               local_rand_state)) {
+        // scattered
+        // cur_attenuation *= attenuation;
+        // cur_attenuation += emitted;
+        // cur_attenuation *= (attenuation + emitted);
+        emitted_rec[i] = emitted;
+        attenuation_rec[i] = attenuation;
+
+        cur_ray = scattered;
+
+      } else {
+        // no scatter
+        // no attenuation
+        // no background light
+        // but we have emitted
+
+        cur_attenuation *= emitted;
+
+        while (i-- > 0) {
+          cur_attenuation =
+              emitted_rec[i] + cur_attenuation * attenuation_rec[i];
+        }
+
+        return cur_attenuation;
+      }
+    } else {
+      // no hit
+      // only have background
+      cur_attenuation *= **background;
+      while (i-- > 0) {
+        cur_attenuation = emitted_rec[i] + cur_attenuation * attenuation_rec[i];
+      }
+
+      return cur_attenuation;
+    }
+  }
+  return **background; // exceeded recursion
+}
+
 __global__ void rand_init(curandState *rand_state) {
   if (threadIdx.x == 0 && blockIdx.x == 0) {
     curand_init(1984, 0, 0, rand_state);
@@ -62,7 +122,8 @@ __global__ void render_init(int max_x, int max_y, curandState *rand_state) {
 }
 
 __global__ void render(vec3 *fb, int max_x, int max_y, int ns, camera **cam,
-                       hittable **world, curandState *rand_state) {
+                       hittable **world, curandState *rand_state,
+                       color **background) {
   int i = threadIdx.x + blockIdx.x * blockDim.x;
   int j = threadIdx.y + blockIdx.y * blockDim.y;
   if ((i >= max_x) || (j >= max_y))
@@ -74,7 +135,7 @@ __global__ void render(vec3 *fb, int max_x, int max_y, int ns, camera **cam,
     float u = float(i + curand_uniform(&local_rand_state)) / float(max_x);
     float v = float(j + curand_uniform(&local_rand_state)) / float(max_y);
     ray r = (*cam)->get_ray(u, v, &local_rand_state);
-    col += get_color(r, world, &local_rand_state);
+    col += get_color(r, background, world, &local_rand_state);
   }
   rand_state[pixel_index] = local_rand_state;
   col /= float(ns);
@@ -167,45 +228,102 @@ __device__ hittable *earth(unsigned char *data, int w, int h,
   return new bvh_node(ret, 0, 1, 0.0f, 1.0f, &local_rand_state);
 }
 
+__device__ hittable *simple_light(curandState local_rand_state) {
+  auto perlin_texture = new noise_texture(4, &local_rand_state);
+
+  hittable *ret[4];
+  ret[0] =
+      new sphere(point3(0, -1000, 0), 1000, new lambertian(perlin_texture));
+  ret[1] = new sphere(point3(0, 2, 0), 2, new lambertian(perlin_texture));
+
+  auto diff_light = new diffuse_light(color(4, 4, 4));
+
+  ret[2] = new xy_rect(3, 5, 1, 2, -2, diff_light);
+
+  auto diff_light2 = new diffuse_light(color(6, 4, 4));
+  ret[3] = new sphere(point3(0, 6, 0), 1.5, diff_light2);
+
+  return new bvh_node(ret, 0, 4, 0.0f, 1.0f, &local_rand_state);
+}
+
+__device__ hittable *cornell_box(curandState local_rand_state) {
+  hittable *ret[6];
+  auto red = new lambertian(color(.65, .05, .05));
+  auto white = new lambertian(color(.73, .73, .73));
+  auto green = new lambertian(color(.12, .45, .15));
+  auto light = new diffuse_light(color(15, 15, 15));
+
+  ret[0] = new yz_rect(0, 555, 0, 555, 555, green);
+  ret[1] = new yz_rect(0, 555, 0, 555, 0, red);
+  ret[2] = new xz_rect(213, 343, 227, 332, 554, light);
+  ret[3] = new xz_rect(0, 555, 0, 555, 0, white);
+  ret[4] = new xz_rect(0, 555, 0, 555, 555, white);
+  ret[5] = new xy_rect(0, 555, 0, 555, 555, white);
+
+  return new bvh_node(ret, 0, 6, 0.0f, 1.0f, &local_rand_state);
+}
+
 __global__ void create_world(hittable **d_list, hittable **d_world,
                              camera **d_camera, int nx, int ny,
                              curandState *rand_state, unsigned char *data,
-                             int w, int h) {
+                             int w, int h, color **background) {
   if (threadIdx.x == 0 && blockIdx.x == 0) {
 
     curandState local_rand_state = *rand_state;
 
     vec3 lookfrom(13, 2, 3);
     vec3 lookat(0, 0, 0);
-    float dist_to_focus = (lookfrom - lookat).length();
+    // float dist_to_focus = (lookfrom - lookat).length();
     float aperture = 0.05;
     float vfov = 40.0;
     vec3 vup(0, 1, 0);
+    // background = new color(0, 0, 0);
 
     switch (0) {
     case 1:
       *d_world = random_scene(d_list, local_rand_state);
       vfov = 20.0;
       aperture = 0.05;
+      *background = new color(0.70, 0.80, 1.00);
       break;
 
     case 2:
       *d_world = two_spheres(local_rand_state);
       vfov = 20.0;
       aperture = 0;
+      *background = new color(0.70, 0.80, 1.00);
       break;
 
     case 3:
       *d_world = two_perlin_spheres(local_rand_state);
       vfov = 20.0;
       aperture = 0;
+      *background = new color(0.70, 0.80, 1.00);
       break;
-    default:
     case 4:
       *d_world = earth(data, w, h, local_rand_state);
+      *background = new color(0.70, 0.80, 1.00);
+      break;
+
+    case 5:
+      *background = new color(0.0, 0.0, 0.0);
+      *d_world = simple_light(local_rand_state);
+      lookfrom = point3(26, 3, 6);
+      lookat = point3(0, 2, 0);
+      vfov = 20.0f;
+      break;
+    default:
+    case 6:
+      *background = new color(0.0, 0.0, 0.0);
+      // *background = new color(0.70, 0.80, 1.00);
+      *d_world = cornell_box(local_rand_state);
+      lookfrom = point3(278, 278, -800);
+      lookat = point3(278, 278, 0);
+      vfov = 40.0;
       break;
     }
 
+    float dist_to_focus = (lookfrom - lookat).length();
     *d_camera = new camera(lookfrom, lookat, vup, vfov, float(nx) / float(ny),
                            aperture, dist_to_focus, 0.0f, 1.0f);
     *rand_state = local_rand_state;
@@ -244,8 +362,12 @@ int main() {
       components_per_pixel * width * height * sizeof(unsigned char);
   checkCudaErrors(cudaMallocManaged((void **)&device_data, img_data_size));
 
+  checkCudaErrors(cudaMemcpy((void *)device_data, (void *)data, img_data_size,
+                             cudaMemcpyHostToDevice));
+
+  color **background_color;
   checkCudaErrors(
-      cudaMemcpy((void*)device_data, (void*)data, img_data_size, cudaMemcpyHostToDevice));
+      cudaMallocManaged((void **)&background_color, sizeof(color *)));
 
   const auto aspect_ratio = 3.0 / 2.0;
   int nx = 1200;
@@ -294,7 +416,7 @@ int main() {
   checkCudaErrors(cudaDeviceSynchronize());
 
   create_world<<<1, 1>>>(d_list, d_world, d_camera, nx, ny, d_rand_state2,
-                         device_data, width, height);
+                         device_data, width, height, background_color);
   checkCudaErrors(cudaGetLastError());
   checkCudaErrors(cudaDeviceSynchronize());
 
@@ -306,9 +428,11 @@ int main() {
   render_init<<<blocks, threads>>>(nx, ny, d_rand_state);
   checkCudaErrors(cudaGetLastError());
   checkCudaErrors(cudaDeviceSynchronize());
-  render<<<blocks, threads>>>(fb, nx, ny, ns, d_camera, d_world, d_rand_state);
+  render<<<blocks, threads>>>(fb, nx, ny, ns, d_camera, d_world, d_rand_state,
+                              background_color);
   checkCudaErrors(cudaGetLastError());
   checkCudaErrors(cudaDeviceSynchronize());
+
   stop = clock();
   double timer_seconds = ((double)(stop - start)) / CLOCKS_PER_SEC;
   std::cerr << "took " << timer_seconds << " seconds.\n";
