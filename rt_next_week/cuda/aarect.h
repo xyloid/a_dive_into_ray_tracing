@@ -7,7 +7,7 @@
 #include "material.h"
 
 // for the bounding box of the rectangle
-#define THICKNESS 0.00001
+#define THICKNESS 0.01
 class xy_rect : public hittable {
 public:
   __device__ xy_rect(){};
@@ -68,7 +68,7 @@ public:
 
   __device__ xz_rect(float _x0, float _x1, float _z0, float _z1, float _k,
                      material *mat)
-      : x0(_x0), x1(_x1), z0(_z0), z1(z1), k(_k), mp(mat) {}
+      : x0(_x0), x1(_x1), z0(_z0), z1(_z1), k(_k), mp(mat) {}
 
   // __device__ ~xz_rect() { delete mp; }
 

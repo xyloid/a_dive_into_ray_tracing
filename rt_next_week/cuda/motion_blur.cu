@@ -315,6 +315,7 @@ __global__ void create_world(hittable **d_list, hittable **d_world,
     default:
     case 6:
       *background = new color(0.0, 0.0, 0.0);
+      // *background = new color(0.70, 0.80, 1.00);
       *d_world = cornell_box(local_rand_state);
       lookfrom = point3(278, 278, -800);
       lookat = point3(278, 278, 0);
