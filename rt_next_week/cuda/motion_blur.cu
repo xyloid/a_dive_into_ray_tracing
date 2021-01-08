@@ -1,4 +1,5 @@
 #include "aarect.h"
+#include "box.h"
 #include "bvh.h"
 #include "camera.h"
 #include "cuda_utils.h"
@@ -12,7 +13,6 @@
 #include <float.h>
 #include <iostream>
 #include <time.h>
-#include "box.h"
 
 // Matching the C++ code would recurse enough into color() calls that
 // it was blowing up the stack, so we have to turn this into a
@@ -261,9 +261,17 @@ __device__ hittable *cornell_box(curandState local_rand_state) {
   ret[4] = new xz_rect(0, 555, 0, 555, 555, white);
   ret[5] = new xy_rect(0, 555, 0, 555, 555, white);
 
-  ret[6] = new box(point3(130, 0, 65), point3(295, 165, 230), white);
-  ret[7] = new box(point3(265, 0, 295), point3(430, 330, 460), white);
+  // ret[6] = new box(point3(130, 0, 65), point3(295, 165, 230), white);
+  // ret[7] = new box(point3(265, 0, 295), point3(430, 330, 460), white);
 
+  hittable *box1 = new box(point3(0, 0, 0), point3(165, 330, 165), white);
+  hittable *box1_t = new translate(box1, vec3(265, 0, 295));
+
+  hittable *box2 = new box(point3(0, 0, 0), point3(165, 165, 165), white);
+  hittable *box2_t = new translate(box2, vec3(130, 0, 65));
+
+  ret[6] = box1_t;
+  ret[7] = box2_t;
 
   return new bvh_node(ret, 0, 8, 0.0f, 1.0f, &local_rand_state);
 }
