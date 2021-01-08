@@ -265,13 +265,15 @@ __device__ hittable *cornell_box(curandState local_rand_state) {
   // ret[7] = new box(point3(265, 0, 295), point3(430, 330, 460), white);
 
   hittable *box1 = new box(point3(0, 0, 0), point3(165, 330, 165), white);
-  hittable *box1_t = new translate(box1, vec3(265, 0, 295));
+  box1 = new rotate_y(box1, 15);
+  box1 = new translate(box1, vec3(265, 0, 295));
 
   hittable *box2 = new box(point3(0, 0, 0), point3(165, 165, 165), white);
-  hittable *box2_t = new translate(box2, vec3(130, 0, 65));
+  box2 = new rotate_y(box2, -18);
+  box2 = new translate(box2, vec3(130, 0, 65));
 
-  ret[6] = box1_t;
-  ret[7] = box2_t;
+  ret[6] = box1;
+  ret[7] = box2;
 
   return new bvh_node(ret, 0, 8, 0.0f, 1.0f, &local_rand_state);
 }

@@ -3,6 +3,7 @@
 
 #include "aabb.h"
 #include "ray.h"
+#include "rtweekend.h"
 
 class material;
 
@@ -60,6 +61,8 @@ public:
 
 __device__ bool translate::hit(const ray &r, float t_min, float t_max,
                                hit_record &rec) const {
+  // offset the ray, compare this with the code that offsets the bounding box,
+  // they have different reference coordinate frames.
   ray moved_r(r.origin() - offset, r.direction(), r.time());
   if (!ptr->hit(moved_r, t_min, t_max, rec)) {
     return false;
@@ -76,7 +79,105 @@ __device__ bool translate::bounding_box(float time0, float time1,
     return false;
   }
 
+  // offset the bounding_box
   output_box = aabb(output_box.min() + offset, output_box.max() + offset);
+
+  return true;
+}
+
+class rotate_y : public hittable {
+public:
+  __device__ rotate_y(hittable *p, float angle);
+
+  __device__ virtual bool hit(const ray &r, float t_min, float t_max,
+                              hit_record &rec) const override;
+
+  __device__ virtual bool bounding_box(float time0, float time1,
+                                       aabb &output_box) const override {
+    output_box = bbox;
+    return hasbox;
+  }
+
+public:
+  hittable *ptr;
+  float sin_theta;
+  float cos_theta;
+  bool hasbox;
+  aabb bbox;
+};
+
+__device__ rotate_y::rotate_y(hittable *p, float angle) : ptr(p) {
+  float radians = degrees_to_radians(angle);
+
+  sin_theta = sinf(radians);
+  cos_theta = cosf(radians);
+
+  // note time0 and time1 values may need to change
+  hasbox = ptr->bounding_box(0, 1, bbox);
+
+  // offset the bounding_box;
+  point3 min(infinity, infinity, infinity);
+  point3 max(-infinity, -infinity, -infinity);
+
+  for (int i = 0; i < 2; i++) {
+    for (int j = 0; j < 2; j++) {
+      for (int k = 0; k < 2; k++) {
+
+        // i,j,k in {0,1}
+        // this loop generate 8 vertices' coordinates
+        // and then rotate the vector and find the max and min values
+
+        float x = i * bbox.max().x() + (1 - i) * bbox.min().x();
+        float y = j * bbox.max().y() + (1 - j) * bbox.min().y();
+        float z = k * bbox.max().z() + (1 - k) * bbox.min().z();
+
+        float newx = cos_theta * x + sin_theta * z;
+        float newz = -sin_theta * x + cos_theta * z;
+
+        vec3 tester(newx, y, newz);
+
+        for (int c = 0; c < 3; c++) {
+          min[c] = fminf(min[c], tester[c]);
+          max[c] = fmaxf(max[c], tester[c]);
+        }
+      }
+    }
+  }
+
+  bbox = aabb(min, max);
+}
+
+__device__ bool rotate_y::hit(const ray &r, float t_min, float t_max,
+                              hit_record &rec) const {
+  // offset the ray
+
+  auto origin = r.origin();
+  auto direction = r.direction();
+
+  // think of it as offset -angle
+  origin[0] = cos_theta * r.origin()[0] - sin_theta * r.origin()[2];
+  origin[2] = sin_theta * r.origin()[0] + cos_theta * r.origin()[2];
+
+  direction[0] = cos_theta * r.direction()[0] - sin_theta * r.direction()[2];
+  direction[2] = sin_theta * r.direction()[0] + cos_theta * r.direction()[2];
+
+  ray rotated_r(origin, direction, r.time());
+
+  if (!ptr->hit(rotated_r, t_min, t_max, rec)) {
+    return false;
+  }
+
+  auto p = rec.p;
+  auto normal = rec.normal;
+
+  p[0] = cos_theta * rec.p[0] + sin_theta * rec.p[2];
+  p[2] = -sin_theta * rec.p[0] + cos_theta * rec.p[2];
+
+  normal[0] = cos_theta * rec.normal[0] + sin_theta * rec.normal[2];
+  normal[2] = -sin_theta * rec.normal[0] + cos_theta * rec.normal[2];
+
+  rec.p = p;
+  rec.set_face_normal(rotated_r, normal);
 
   return true;
 }
