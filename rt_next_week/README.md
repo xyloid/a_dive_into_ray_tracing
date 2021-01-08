@@ -136,3 +136,24 @@ Early ray tracers used abstract light sources, like points in space, or directio
 Modern ray tracers have more physically based lights, which have **position and size**.
 
 To create such light sources, we need emissive materials to turn any regular object into something that emits light into our scene.
+
+## Instances
+
+### Translation and Rotation
+
+Note the below 2 shifts have differnt reference coordinate frames.
+
+- hit: shift the ray
+
+- bounding_box: shift the object
+
+## Volumes
+
+Implementation of **smoke/fog/mist** effects.
+
+volumes /  participating media
+
+- subsurface scattering: usually adds software architectural mayhem because volumes are a different animal than surfaces.
+ 
+- a surface that probabilistically might or might not be there at every point in the volume  
+
