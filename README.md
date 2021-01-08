@@ -146,6 +146,10 @@ took 130.967 seconds.
 - [Ray Tracing: The Next Week](https://raytracing.github.io/books/RayTracingTheNextWeek.html) 
 - [Ray Tracing: The Rest of Your Life](https://raytracing.github.io/books/RayTracingTheRestOfYourLife.html)
 
+
+### Memory Leak When Using CUDA
+
+Use `valfrind` and `cuda-memcheck` together. [reference](https://stackoverflow.com/questions/20593450/valgrind-and-cuda-are-reported-leaks-real)
 ### A Note on Nsight Eclipse Plugin for CUDA 11
 
 `com.spotify.docker.client` is no longer maintained, I have to download 2 jars manually and copy them to `$ECLISPE/dropins/plugins`. 

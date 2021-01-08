@@ -1,4 +1,5 @@
 #include "aarect.h"
+#include "box.h"
 #include "bvh.h"
 #include "camera.h"
 #include "cuda_utils.h"
@@ -247,7 +248,7 @@ __device__ hittable *simple_light(curandState local_rand_state) {
 }
 
 __device__ hittable *cornell_box(curandState local_rand_state) {
-  hittable *ret[6];
+  hittable *ret[8];
   auto red = new lambertian(color(.65, .05, .05));
   auto white = new lambertian(color(.73, .73, .73));
   auto green = new lambertian(color(.12, .45, .15));
@@ -260,7 +261,21 @@ __device__ hittable *cornell_box(curandState local_rand_state) {
   ret[4] = new xz_rect(0, 555, 0, 555, 555, white);
   ret[5] = new xy_rect(0, 555, 0, 555, 555, white);
 
-  return new bvh_node(ret, 0, 6, 0.0f, 1.0f, &local_rand_state);
+  // ret[6] = new box(point3(130, 0, 65), point3(295, 165, 230), white);
+  // ret[7] = new box(point3(265, 0, 295), point3(430, 330, 460), white);
+
+  hittable *box1 = new box(point3(0, 0, 0), point3(165, 330, 165), white);
+  box1 = new rotate_y(box1, 15);
+  box1 = new translate(box1, vec3(265, 0, 295));
+
+  hittable *box2 = new box(point3(0, 0, 0), point3(165, 165, 165), white);
+  box2 = new rotate_y(box2, -18);
+  box2 = new translate(box2, vec3(130, 0, 65));
+
+  ret[6] = box1;
+  ret[7] = box2;
+
+  return new bvh_node(ret, 0, 8, 0.0f, 1.0f, &local_rand_state);
 }
 
 __global__ void create_world(hittable **d_list, hittable **d_world,
