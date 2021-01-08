@@ -46,7 +46,8 @@ public:
                       float time1, curandState *local_rand_state);
 
   __device__ virtual bool hit(const ray &r, float t_min, float t_max,
-                              hit_record &rec) const override;
+                              hit_record &rec,
+                              curandState *local_rand_state) const override;
 
   __device__ virtual bool bounding_box(float time0, float time1,
                                        aabb &output_box) const override;
@@ -75,7 +76,8 @@ __device__ bool bvh_node::bounding_box(float time0, float time1,
 // }
 
 __device__ bool bvh_node::hit(const ray &r, float t_min, float t_max,
-                              hit_record &rec) const {
+                              hit_record &rec,
+                              curandState *local_rand_state) const {
   if (!box.hit(r, t_min, t_max)) {
     return false;
   }
@@ -102,9 +104,10 @@ __device__ bool bvh_node::hit(const ray &r, float t_min, float t_max,
       r_child->bounding_box(t_min, t_max, r_box);
 
       // must hit one of them
-      bool hit_left = l_child->hit(r, t_min, t_max, rec);
+      bool hit_left = l_child->hit(r, t_min, t_max, rec, local_rand_state);
       t_max = hit_left ? rec.t : t_max;
-      bool hit_right = r_child->hit(r, t_min, hit_left ? rec.t : t_max, rec);
+      bool hit_right = r_child->hit(r, t_min, hit_left ? rec.t : t_max, rec,
+                                    local_rand_state);
       t_max = hit_right ? rec.t : t_max;
 
       node = (bvh_node *)*--stack_ptr;

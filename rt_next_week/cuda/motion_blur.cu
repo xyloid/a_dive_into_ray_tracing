@@ -24,7 +24,7 @@ __device__ vec3 get_color(const ray &r, hittable **world,
   vec3 cur_attenuation(1.0f, 1.0f, 1.0f);
   for (int i = 0; i < 50; i++) {
     hit_record rec;
-    if ((*world)->hit(cur_ray, 0.001f, FLT_MAX, rec)) {
+    if ((*world)->hit(cur_ray, 0.001f, FLT_MAX, rec, local_rand_state)) {
       ray scattered;
       vec3 attenuation;
       if (rec.mat_ptr->scatter(cur_ray, rec, attenuation, scattered,
@@ -56,7 +56,7 @@ __device__ vec3 get_color(const ray &r, color **background, hittable **world,
 
   for (int i = 0; i < depth; i++) {
     hit_record rec;
-    if ((*world)->hit(cur_ray, 0.001f, FLT_MAX, rec)) {
+    if ((*world)->hit(cur_ray, 0.001f, FLT_MAX, rec, local_rand_state)) {
 
       ray scattered;
       vec3 attenuation;
