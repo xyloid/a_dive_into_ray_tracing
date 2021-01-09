@@ -19,7 +19,8 @@ public:
   // __device__ ~xy_rect() { delete mp; }
 
   __device__ virtual bool hit(const ray &r, float t_min, float t_max,
-                              hit_record &rec) const override;
+                              hit_record &rec,
+                              curandState *local_rand_state) const override;
 
   __device__ virtual bool bounding_box(float time0, float time1,
                                        aabb &output_box) const override {
@@ -35,7 +36,8 @@ public:
 };
 
 __device__ bool xy_rect::hit(const ray &r, float t_min, float t_max,
-                             hit_record &rec) const {
+                             hit_record &rec,
+                             curandState *local_rand_state) const {
   auto t = (k - r.origin().z()) / r.direction().z();
   if (t < t_min || t > t_max) {
     return false;
@@ -73,7 +75,8 @@ public:
   // __device__ ~xz_rect() { delete mp; }
 
   __device__ virtual bool hit(const ray &r, float t_min, float t_max,
-                              hit_record &rec) const override;
+                              hit_record &rec,
+                              curandState *local_rand_state) const override;
 
   __device__ virtual bool bounding_box(float time0, float time1,
                                        aabb &output_box) const override {
@@ -88,7 +91,8 @@ public:
 };
 
 __device__ bool xz_rect::hit(const ray &r, float t_min, float t_max,
-                             hit_record &rec) const {
+                             hit_record &rec,
+                             curandState *local_rand_state) const {
   auto t = (k - r.origin().y()) / (r.direction().y());
 
   if (t < t_min || t > t_max) {
@@ -127,7 +131,8 @@ public:
   // __device__ ~yz_rect() { delete mp; }
 
   __device__ virtual bool hit(const ray &r, float t_min, float t_max,
-                              hit_record &rec) const override;
+                              hit_record &rec,
+                              curandState *local_rand_state) const override;
 
   __device__ virtual bool bounding_box(float time0, float time1,
                                        aabb &output_box) const override {
@@ -142,7 +147,8 @@ public:
 };
 
 __device__ bool yz_rect::hit(const ray &r, float t_min, float t_max,
-                             hit_record &rec) const {
+                             hit_record &rec,
+                             curandState *local_rand_state) const {
 
   auto t = (k - r.origin().x()) / r.direction().x();
   if (t < t_min || t > t_max) {

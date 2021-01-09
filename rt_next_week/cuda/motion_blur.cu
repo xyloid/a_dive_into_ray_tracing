@@ -2,6 +2,7 @@
 #include "box.h"
 #include "bvh.h"
 #include "camera.h"
+#include "constant_medium.h"
 #include "cuda_utils.h"
 #include "hittable_list.h"
 #include "material.h"
@@ -24,7 +25,7 @@ __device__ vec3 get_color(const ray &r, hittable **world,
   vec3 cur_attenuation(1.0f, 1.0f, 1.0f);
   for (int i = 0; i < 50; i++) {
     hit_record rec;
-    if ((*world)->hit(cur_ray, 0.001f, FLT_MAX, rec)) {
+    if ((*world)->hit(cur_ray, 0.001f, FLT_MAX, rec, local_rand_state)) {
       ray scattered;
       vec3 attenuation;
       if (rec.mat_ptr->scatter(cur_ray, rec, attenuation, scattered,
@@ -56,7 +57,7 @@ __device__ vec3 get_color(const ray &r, color **background, hittable **world,
 
   for (int i = 0; i < depth; i++) {
     hit_record rec;
-    if ((*world)->hit(cur_ray, 0.001f, FLT_MAX, rec)) {
+    if ((*world)->hit(cur_ray, 0.001f, FLT_MAX, rec, local_rand_state)) {
 
       ray scattered;
       vec3 attenuation;
@@ -278,6 +279,36 @@ __device__ hittable *cornell_box(curandState local_rand_state) {
   return new bvh_node(ret, 0, 8, 0.0f, 1.0f, &local_rand_state);
 }
 
+__device__ hittable *cornell_smoke(curandState local_rand_state) {
+  hittable *ret[8];
+  auto red = new lambertian(color(.65, .05, .05));
+  auto white = new lambertian(color(.73, .73, .73));
+  auto green = new lambertian(color(.12, .45, .15));
+  auto light = new diffuse_light(color(15, 15, 15));
+
+  ret[0] = new yz_rect(0, 555, 0, 555, 555, green);
+  ret[1] = new yz_rect(0, 555, 0, 555, 0, red);
+  ret[2] = new xz_rect(213, 343, 227, 332, 554, light);
+  ret[3] = new xz_rect(0, 555, 0, 555, 0, white);
+  ret[4] = new xz_rect(0, 555, 0, 555, 555, white);
+  ret[5] = new xy_rect(0, 555, 0, 555, 555, white);
+
+  hittable *box1 = new box(point3(0, 0, 0), point3(165, 330, 165), white);
+  box1 = new rotate_y(box1, 15);
+  box1 = new translate(box1, vec3(265, 0, 295));
+  box1 = new constant_medium(box1, 0.01, color(0, 0, 0));
+
+  hittable *box2 = new box(point3(0, 0, 0), point3(165, 165, 165), white);
+  box2 = new rotate_y(box2, -18);
+  box2 = new translate(box2, vec3(130, 0, 65));
+  box2 = new constant_medium(box2, 0.01, color(1, 1, 1));
+
+  ret[6] = box1;
+  ret[7] = box2;
+
+  return new bvh_node(ret, 0, 8, 0.0f, 1.0f, &local_rand_state);
+}
+
 __global__ void create_world(hittable **d_list, hittable **d_world,
                              camera **d_camera, int nx, int ny,
                              curandState *rand_state, unsigned char *data,
@@ -327,11 +358,19 @@ __global__ void create_world(hittable **d_list, hittable **d_world,
       lookat = point3(0, 2, 0);
       vfov = 20.0f;
       break;
-    default:
+
     case 6:
       *background = new color(0.0, 0.0, 0.0);
       // *background = new color(0.70, 0.80, 1.00);
       *d_world = cornell_box(local_rand_state);
+      lookfrom = point3(278, 278, -800);
+      lookat = point3(278, 278, 0);
+      vfov = 40.0;
+      break;
+    default:
+    case 7:
+      *background = new color(0.0, 0.0, 0.0);
+      *d_world = cornell_smoke(local_rand_state);
       lookfrom = point3(278, 278, -800);
       lookat = point3(278, 278, 0);
       vfov = 40.0;

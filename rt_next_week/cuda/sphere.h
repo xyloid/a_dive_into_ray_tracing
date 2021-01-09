@@ -12,8 +12,9 @@ public:
   // __device__ sphere(vec3 cen, double r, shared_ptr<material> m)
   //     : center(cen), radius(r), mat_ptr(m) {}
 
-  __device__ virtual bool hit(const ray &r, float t_min, float t_max,
-                              hit_record &rec) const override;
+  __device__ virtual bool
+  hit(const ray &r, float t_min, float t_max, hit_record &rec,
+      curandState *local_rand_state) const override;
   __device__ virtual bool bounding_box(float time0, float time1,
                                        aabb &output_box) const override;
 
@@ -40,7 +41,8 @@ protected:
 };
 
 __device__ bool sphere::hit(const ray &r, float t_min, float t_max,
-                            hit_record &rec) const {
+                            hit_record &rec,
+                            curandState *local_rand_state) const {
   vec3 oc = r.origin() - center;
   float a = dot(r.direction(), r.direction());
   float b = dot(oc, r.direction());

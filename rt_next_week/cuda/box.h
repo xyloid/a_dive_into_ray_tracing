@@ -22,7 +22,8 @@ public:
   }
 
   __device__ virtual bool hit(const ray &r, float t_min, float t_max,
-                              hit_record &rec) const override;
+                              hit_record &rec,
+                              curandState *local_rand_state) const override;
 
   __device__ virtual bool bounding_box(float time0, float time1,
                                        aabb &output_box) const override {
@@ -57,8 +58,8 @@ __device__ box::box(const point3 &p0, const point3 &p1, material *ptr) {
 }
 
 __device__ bool box::hit(const ray &r, float t_min, float t_max,
-                         hit_record &rec) const {
-  return sides->hit(r, t_min, t_max, rec);
+                         hit_record &rec, curandState *local_rand_state) const {
+  return sides->hit(r, t_min, t_max, rec, local_rand_state);
 }
 
 #endif
