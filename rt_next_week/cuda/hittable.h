@@ -25,7 +25,8 @@ struct hit_record {
     // NOTE : this will change the direction of the scattered rays. It has
     // effect on dielectrics. normal = front_face ? outward_normal :
     // outward_normal;
-    normal = front_face ? outward_normal : -outward_normal;
+    // normal = front_face ? outward_normal : -outward_normal;
+    normal = front_face ? outward_normal : outward_normal;
   }
 };
 

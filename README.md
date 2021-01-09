@@ -24,6 +24,8 @@ This project is inspired by Peter Shirley's Ray Tracing series.
 ```
 prime-select nvidia
 
+# restart the computer to make sure correct driver is loaded
+
 time ./obj > final.ppm
 Rendering a 1200x800 image with 500 samples per pixel in 8x8 blocks.
 took 146.189 seconds.
@@ -32,9 +34,6 @@ took 146.189 seconds.
 Rendering a 1200x800 image with 500 samples per pixel in 8x8 blocks.
 took 129.241 seconds.
 ./obj > final.ppm  129.46s user 0.15s system 99% cpu 2:09.67 total
-
-
-prime-select intel
 
 Rendering a 1200x800 image with 500 samples per pixel in 8x8 blocks.
 took 130.967 seconds.

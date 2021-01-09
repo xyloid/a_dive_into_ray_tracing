@@ -184,7 +184,8 @@ public:
   scatter(const ray &r_in, const hit_record &rec, color &attenuation,
           ray &scattered, curandState *local_rand_state) const override {
     // light changes its direction randomly
-    scattered = ray(rec.p, random_in_unit_sphere(local_rand_state), r_in.time());
+    scattered =
+        ray(rec.p, random_in_unit_sphere(local_rand_state), r_in.time());
     attenuation = albedo->value(rec.u, rec.v, rec.p);
     return true;
   }
