@@ -1,0 +1,34 @@
+#$ _NVVM_BRANCH_=nvvm
+#$ _SPACE_= 
+#$ _CUDART_=cudart
+#$ _HERE_=/usr/local/cuda-11.1/bin
+#$ _THERE_=/usr/local/cuda-11.1/bin
+#$ _TARGET_SIZE_=
+#$ _TARGET_DIR_=
+#$ _TARGET_DIR_=targets/x86_64-linux
+#$ TOP=/usr/local/cuda-11.1/bin/..
+#$ NVVMIR_LIBRARY_DIR=/usr/local/cuda-11.1/bin/../nvvm/libdevice
+#$ LD_LIBRARY_PATH=/usr/local/cuda-11.1/bin/../lib:/usr/local/cuda-11.1/lib64
+#$ PATH=/usr/local/cuda-11.1/bin/../nvvm/bin:/usr/local/cuda-11.1/bin:/usr/local/cuda-11.1/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/home/xyl/tools/hadoop/hadoop-2.8.5/bin:/home/xyl/tools/hadoop/hadoop-2.8.5/sbin:/home/xyl/tools/hadoop/hadoop-2.8.5/sbin:/home/xyl/tools/hadoop/hadoop-2.8.5/bin:/usr/share/scala/bin:/home/xyl/tools/spark/spark-3.0.1-bin-without-hadoop/bin:/home/xyl/tools/hbase/hbase-2.2.6/bin
+#$ INCLUDES="-I/usr/local/cuda-11.1/bin/../targets/x86_64-linux/include"  
+#$ LIBRARIES=  "-L/usr/local/cuda-11.1/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/local/cuda-11.1/bin/../targets/x86_64-linux/lib"
+#$ CUDAFE_FLAGS=
+#$ PTXAS_FLAGS=
+#$ gcc -D__CUDA_ARCH__=520 -E -x c++  -DCUDA_DOUBLE_MATH_FUNCTIONS -D__CUDACC__ -D__NVCC__  "-I/usr/local/cuda-11.1/bin/../targets/x86_64-linux/include"    -D__CUDACC_VER_MAJOR__=11 -D__CUDACC_VER_MINOR__=1 -D__CUDACC_VER_BUILD__=105 -D__CUDA_API_VER_MAJOR__=11 -D__CUDA_API_VER_MINOR__=1 -include "cuda_runtime.h" -m64 "motion_blur.cu" -o "/tmp/tmpxft_000019e3_00000000-9_motion_blur.cpp1.ii" 
+#$ cicc --c++14 --gnu_version=90300 --orig_src_file_name "motion_blur.cu" --allow_managed   -arch compute_52 -m64 -ftz=0 -prec_div=1 -prec_sqrt=1 -fmad=1 --include_file_name "tmpxft_000019e3_00000000-3_motion_blur.fatbin.c" -tused -nvvmir-library "/usr/local/cuda-11.1/bin/../nvvm/libdevice/libdevice.10.bc" --gen_module_id_file --module_id_file_name "/tmp/tmpxft_000019e3_00000000-4_motion_blur.module_id" --gen_c_file_name "/tmp/tmpxft_000019e3_00000000-6_motion_blur.cudafe1.c" --stub_file_name "/tmp/tmpxft_000019e3_00000000-6_motion_blur.cudafe1.stub.c" --gen_device_file_name "/tmp/tmpxft_000019e3_00000000-6_motion_blur.cudafe1.gpu"  "/tmp/tmpxft_000019e3_00000000-9_motion_blur.cpp1.ii" -o "/tmp/tmpxft_000019e3_00000000-6_motion_blur.ptx"
+#$ ptxas -arch=sm_52 -m64  "/tmp/tmpxft_000019e3_00000000-6_motion_blur.ptx"  -o "/tmp/tmpxft_000019e3_00000000-10_motion_blur.sm_52.cubin" 
+ptxas warning : Stack size for entry function '_ZN6thrust8cuda_cub4core13_kernel_agentINS0_12__merge_sort14BlockSortAgentIPP8hittableS7_lPFbPKS5_S9_ENS_6detail17integral_constantIbLb0EEESE_EEbS7_S7_lS7_S7_SB_EEvT0_T1_T2_T3_T4_T5_T6_' cannot be statically determined
+ptxas warning : Stack size for entry function '_ZN6thrust8cuda_cub4core13_kernel_agentINS0_12__merge_sort10MergeAgentIPP8hittableS7_lPFbPKS5_S9_ENS_6detail17integral_constantIbLb0EEEEEbS7_S7_lS7_S7_SB_PllEEvT0_T1_T2_T3_T4_T5_T6_T7_T8_' cannot be statically determined
+ptxas warning : Stack size for entry function '_Z12create_worldPP8hittableS1_PP6cameraiiP17curandStateXORWOW' cannot be statically determined
+ptxas warning : Stack size for entry function '_ZN6thrust8cuda_cub4core13_kernel_agentINS0_12__merge_sort14PartitionAgentIPP8hittablelPFbPKS5_S9_EEEbS7_S7_lmPlSB_liEEvT0_T1_T2_T3_T4_T5_T6_T7_T8_' cannot be statically determined
+ptxas warning : Stack size for entry function '_Z6renderP4vec3iiiPP6cameraPP8hittableP17curandStateXORWOW' cannot be statically determined
+#$ fatbinary -64 --cicc-cmdline="-ftz=0 -prec_div=1 -prec_sqrt=1 -fmad=1 " "--image3=kind=elf,sm=52,file=/tmp/tmpxft_000019e3_00000000-10_motion_blur.sm_52.cubin" "--image3=kind=ptx,sm=52,file=/tmp/tmpxft_000019e3_00000000-6_motion_blur.ptx" --embedded-fatbin="/tmp/tmpxft_000019e3_00000000-3_motion_blur.fatbin.c" 
+#$ rm /tmp/tmpxft_000019e3_00000000-3_motion_blur.fatbin
+#$ gcc -E -x c++ -D__CUDACC__ -D__NVCC__  "-I/usr/local/cuda-11.1/bin/../targets/x86_64-linux/include"    -D__CUDACC_VER_MAJOR__=11 -D__CUDACC_VER_MINOR__=1 -D__CUDACC_VER_BUILD__=105 -D__CUDA_API_VER_MAJOR__=11 -D__CUDA_API_VER_MINOR__=1 -include "cuda_runtime.h" -m64 "motion_blur.cu" -o "/tmp/tmpxft_000019e3_00000000-5_motion_blur.cpp4.ii" 
+#$ cudafe++ --c++14 --gnu_version=90300 --orig_src_file_name "motion_blur.cu" --allow_managed  --m64 --parse_templates --gen_c_file_name "/tmp/tmpxft_000019e3_00000000-6_motion_blur.cudafe1.cpp" --stub_file_name "tmpxft_000019e3_00000000-6_motion_blur.cudafe1.stub.c" --module_id_file_name "/tmp/tmpxft_000019e3_00000000-4_motion_blur.module_id" "/tmp/tmpxft_000019e3_00000000-5_motion_blur.cpp4.ii" 
+#$ gcc -D__CUDA_ARCH__=520 -c -x c++  -DCUDA_DOUBLE_MATH_FUNCTIONS "-I/usr/local/cuda-11.1/bin/../targets/x86_64-linux/include"   -m64 "/tmp/tmpxft_000019e3_00000000-6_motion_blur.cudafe1.cpp" -o "/tmp/tmpxft_000019e3_00000000-11_motion_blur.o" 
+#$ nvlink --arch=sm_52 --register-link-binaries="/tmp/tmpxft_000019e3_00000000-7_obj_dlink.reg.c"  -m64   "-L/usr/local/cuda-11.1/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/local/cuda-11.1/bin/../targets/x86_64-linux/lib" -cpu-arch=X86_64 "/tmp/tmpxft_000019e3_00000000-11_motion_blur.o"  -lcudadevrt  -o "/tmp/tmpxft_000019e3_00000000-12_obj_dlink.sm_52.cubin"
+#$ fatbinary -64 --cicc-cmdline="-ftz=0 -prec_div=1 -prec_sqrt=1 -fmad=1 " -link "--image3=kind=elf,sm=52,file=/tmp/tmpxft_000019e3_00000000-12_obj_dlink.sm_52.cubin" --embedded-fatbin="/tmp/tmpxft_000019e3_00000000-8_obj_dlink.fatbin.c" 
+#$ rm /tmp/tmpxft_000019e3_00000000-8_obj_dlink.fatbin
+#$ gcc -c -x c++ -DFATBINFILE="\"/tmp/tmpxft_000019e3_00000000-8_obj_dlink.fatbin.c\"" -DREGISTERLINKBINARYFILE="\"/tmp/tmpxft_000019e3_00000000-7_obj_dlink.reg.c\"" -I. -D__NV_EXTRA_INITIALIZATION= -D__NV_EXTRA_FINALIZATION= -D__CUDA_INCLUDE_COMPILER_INTERNAL_HEADERS__  "-I/usr/local/cuda-11.1/bin/../targets/x86_64-linux/include"    -D__CUDACC_VER_MAJOR__=11 -D__CUDACC_VER_MINOR__=1 -D__CUDACC_VER_BUILD__=105 -D__CUDA_API_VER_MAJOR__=11 -D__CUDA_API_VER_MINOR__=1 -m64 "/usr/local/cuda-11.1/bin/crt/link.stub" -o "/tmp/tmpxft_000019e3_00000000-13_obj_dlink.o" 
+#$ g++ -m64 -Wl,--start-group "/tmp/tmpxft_000019e3_00000000-13_obj_dlink.o" "/tmp/tmpxft_000019e3_00000000-11_motion_blur.o"   "-L/usr/local/cuda-11.1/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/local/cuda-11.1/bin/../targets/x86_64-linux/lib"  -lcudadevrt  -lcudart_static  -lrt -lpthread  -ldl  -Wl,--end-group -o "obj" 

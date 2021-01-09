@@ -24,6 +24,8 @@ This project is inspired by Peter Shirley's Ray Tracing series.
 ```
 prime-select nvidia
 
+# restart the computer to make sure correct driver is loaded
+
 time ./obj > final.ppm
 Rendering a 1200x800 image with 500 samples per pixel in 8x8 blocks.
 took 146.189 seconds.
@@ -32,9 +34,6 @@ took 146.189 seconds.
 Rendering a 1200x800 image with 500 samples per pixel in 8x8 blocks.
 took 129.241 seconds.
 ./obj > final.ppm  129.46s user 0.15s system 99% cpu 2:09.67 total
-
-
-prime-select intel
 
 Rendering a 1200x800 image with 500 samples per pixel in 8x8 blocks.
 took 130.967 seconds.
@@ -123,6 +122,8 @@ took 130.967 seconds.
 
 - [Introduction to Computer Graphics (fall 2018), Lecture 12: Accelerating Ray Tracing](https://www.youtube.com/watch?v=FbLCMy-M2ls)
 
+- [Future of Gaming : Rasterization vs Ray Tracing vs Path Tracing](https://medium.com/@junyingw/future-of-gaming-rasterization-vs-ray-tracing-vs-path-tracing-32b334510f1f)
+
 
 ### Camera and Lens
 
@@ -144,6 +145,10 @@ took 130.967 seconds.
 - [Ray Tracing: The Next Week](https://raytracing.github.io/books/RayTracingTheNextWeek.html) 
 - [Ray Tracing: The Rest of Your Life](https://raytracing.github.io/books/RayTracingTheRestOfYourLife.html)
 
+
+### Memory Leak When Using CUDA
+
+Use `valfrind` and `cuda-memcheck` together. [reference](https://stackoverflow.com/questions/20593450/valgrind-and-cuda-are-reported-leaks-real)
 ### A Note on Nsight Eclipse Plugin for CUDA 11
 
 `com.spotify.docker.client` is no longer maintained, I have to download 2 jars manually and copy them to `$ECLISPE/dropins/plugins`. 
@@ -152,3 +157,17 @@ Then start eclipse with `eclipse -clean`, so the eclipse will clean the cache an
 - Dependencies
   - `com.fasterxml.jackson.datatype.jackson-datatype-guava_2.9.9.v20190906-1522.jar`
   - `com.spotify.docker.client_8.11.7.v20180731-1413.jar`
+
+
+
+## Vulkan
+
+[Beginner-Friendly Vulkan Tutorials](http://stephaniehurlburt.com/blog/2017/7/14/beginner-friendly-vulkan-tutorials)
+
+[How to Learn Vulkan](https://www.jeremyong.com/c++/vulkan/graphics/rendering/2018/03/26/how-to-learn-vulkan/)
+
+### A Note on Vulkan 1.2 on Ubuntu 20.04 with Optimus
+
+After installation, `vkcube` is a black window. I have to remove `intel_icd.*` and `radeon_icd.*` from `/usr/share/vulkan/icd.d/` in order to pass `vkvia`
+
+
