@@ -278,6 +278,53 @@ __device__ hittable *cornell_box(curandState local_rand_state) {
   return new bvh_node(ret, 0, 8, 0.0f, 1.0f, &local_rand_state);
 }
 
+__device__ hittable *rt_next_week_final_scene(unsigned char *data, int w, int h,
+                                              curandState local_rand_state) {
+  const int boxes_per_side = 20;
+
+  const int num_obj = boxes_per_side * boxes_per_side + 1 + 1 + 2;
+  hittable *ret[num_obj];
+
+  // ground
+  auto ground = new lambertian(color(0.48, 0.83, 0.53));
+
+  int index = 0;
+  for (int i = 0; i < boxes_per_side; i++) {
+    for (int j = 0; j < boxes_per_side; j++) {
+      float w = 100.0;
+      float x0 = -1000.0f + i * w;
+      float z0 = -1000.0f + j * w;
+      float y0 = 0.0;
+      float x1 = x0 + w;
+      float y1 = random_float(1, 101, &local_rand_state);
+      float z1 = z0 + w;
+      ret[index++] = new box(point3(x0, y0, z0), point3(x1, y1, z1), ground);
+    }
+  }
+
+  // light
+  auto light = new diffuse_light(color(7, 7, 7));
+  ret[index++] = new xz_rect(123, 423, 147, 412, 554, light);
+
+  // moving sphere
+  auto center1 = point3(400, 400, 200);
+  auto center2 = center1 + vec3(30, 0, 0);
+  auto moving_sphere_material = new lambertian(color(0.7, 0.3, 0.1));
+  ret[index++] =
+      new moving_sphere(center1, center2, 0, 1, 50, moving_sphere_material);
+
+  ret[index++] = new sphere(point3(260, 150, 45), 50, new dielectric(1.5));
+  ret[index++] =
+      new sphere(point3(0, 150, 145), 50, new metal(color(0.8, 0.8, 0.9), 1.0));
+
+  // coonstant medium
+  auto boundary = new sphere(point3(360, 150, 145), 70, new dielectric(1.5));
+  ret[index++] = boundary;
+  // auto cm = new 
+
+  return new bvh_node(ret, 0, index, 0.0, 1.0, &local_rand_state);
+}
+
 __global__ void create_world(hittable **d_list, hittable **d_world,
                              camera **d_camera, int nx, int ny,
                              curandState *rand_state, unsigned char *data,
@@ -289,7 +336,7 @@ __global__ void create_world(hittable **d_list, hittable **d_world,
     vec3 lookfrom(13, 2, 3);
     vec3 lookat(0, 0, 0);
     // float dist_to_focus = (lookfrom - lookat).length();
-    float aperture = 0.05;
+    float aperture = 0.00;
     float vfov = 40.0;
     vec3 vup(0, 1, 0);
     // background = new color(0, 0, 0);
@@ -327,12 +374,20 @@ __global__ void create_world(hittable **d_list, hittable **d_world,
       lookat = point3(0, 2, 0);
       vfov = 20.0f;
       break;
-    default:
+
     case 6:
       *background = new color(0.0, 0.0, 0.0);
       // *background = new color(0.70, 0.80, 1.00);
       *d_world = cornell_box(local_rand_state);
       lookfrom = point3(278, 278, -800);
+      lookat = point3(278, 278, 0);
+      vfov = 40.0;
+      break;
+    default:
+    case 7:
+      *background = new color(0.0, 0.0, 0.0);
+      *d_world = rt_next_week_final_scene(data, w, h, local_rand_state);
+      lookfrom = point3(478, 278, -600);
       lookat = point3(278, 278, 0);
       vfov = 40.0;
       break;
