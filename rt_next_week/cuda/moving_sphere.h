@@ -21,7 +21,8 @@ public:
   //       time1(_time1){};
 
   __device__ virtual bool hit(const ray &r, float t_min, float t_max,
-                              hit_record &rec) const override;
+                              hit_record &rec,
+                              curandState *local_rand_state) const override;
 
   __device__ virtual bool bounding_box(float _time0, float _time1,
                                        aabb &output_box) const override;
@@ -40,7 +41,8 @@ __device__ point3 moving_sphere::center(float time) const {
 }
 
 __device__ bool moving_sphere::hit(const ray &r, float t_min, float t_max,
-                                   hit_record &rec) const {
+                                   hit_record &rec,
+                                   curandState *local_rand_state) const {
   vec3 oc = r.origin() - center(r.time());
   float a = r.direction().length_squared();
   float half_b = dot(oc, r.direction());
