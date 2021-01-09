@@ -2,6 +2,7 @@
 #include "box.h"
 #include "bvh.h"
 #include "camera.h"
+#include "constant_medium.h"
 #include "cuda_utils.h"
 #include "hittable_list.h"
 #include "material.h"
@@ -24,7 +25,7 @@ __device__ vec3 get_color(const ray &r, hittable **world,
   vec3 cur_attenuation(1.0f, 1.0f, 1.0f);
   for (int i = 0; i < 50; i++) {
     hit_record rec;
-    if ((*world)->hit(cur_ray, 0.001f, FLT_MAX, rec)) {
+    if ((*world)->hit(cur_ray, 0.001f, FLT_MAX, rec, local_rand_state)) {
       ray scattered;
       vec3 attenuation;
       if (rec.mat_ptr->scatter(cur_ray, rec, attenuation, scattered,
@@ -56,7 +57,7 @@ __device__ vec3 get_color(const ray &r, color **background, hittable **world,
 
   for (int i = 0; i < depth; i++) {
     hit_record rec;
-    if ((*world)->hit(cur_ray, 0.001f, FLT_MAX, rec)) {
+    if ((*world)->hit(cur_ray, 0.001f, FLT_MAX, rec, local_rand_state)) {
 
       ray scattered;
       vec3 attenuation;
@@ -119,7 +120,8 @@ __global__ void render_init(int max_x, int max_y, curandState *rand_state) {
   // offset curand_init(1984, pixel_index, 0, &rand_state[pixel_index]); BUGFIX,
   // see Issue#2: Each thread gets different seed, same sequence for performance
   // improvement of about 2x!
-  curand_init(1984 + pixel_index, 0, 0, &rand_state[pixel_index]);
+  // curand_init(1984 + pixel_index, 0, 0, &rand_state[pixel_index]);
+  curand_init(1984 + pixel_index, i, j, &rand_state[pixel_index]);
 }
 
 __global__ void render(vec3 *fb, int max_x, int max_y, int ns, camera **cam,
@@ -278,11 +280,41 @@ __device__ hittable *cornell_box(curandState local_rand_state) {
   return new bvh_node(ret, 0, 8, 0.0f, 1.0f, &local_rand_state);
 }
 
+__device__ hittable *cornell_smoke(curandState local_rand_state) {
+  hittable *ret[8];
+  auto red = new lambertian(color(.65, .05, .05));
+  auto white = new lambertian(color(.73, .73, .73));
+  auto green = new lambertian(color(.12, .45, .15));
+  auto light = new diffuse_light(color(15, 15, 15));
+
+  ret[0] = new yz_rect(0, 555, 0, 555, 555, green);
+  ret[1] = new yz_rect(0, 555, 0, 555, 0, red);
+  ret[2] = new xz_rect(213, 343, 227, 332, 554, light);
+  ret[3] = new xz_rect(0, 555, 0, 555, 0, white);
+  ret[4] = new xz_rect(0, 555, 0, 555, 555, white);
+  ret[5] = new xy_rect(0, 555, 0, 555, 555, white);
+
+  hittable *box1 = new box(point3(0, 0, 0), point3(165, 330, 165), white);
+  box1 = new rotate_y(box1, 15);
+  box1 = new translate(box1, vec3(265, 0, 295));
+  box1 = new constant_medium(box1, 0.01, color(0, 0, 0));
+
+  hittable *box2 = new box(point3(0, 0, 0), point3(165, 165, 165), white);
+  box2 = new rotate_y(box2, -18);
+  box2 = new translate(box2, vec3(130, 0, 65));
+  box2 = new constant_medium(box2, 0.01, color(1, 1, 1));
+
+  ret[6] = box1;
+  ret[7] = box2;
+
+  return new bvh_node(ret, 0, 8, 0.0f, 1.0f, &local_rand_state);
+}
+
 __device__ hittable *rt_next_week_final_scene(unsigned char *data, int w, int h,
                                               curandState local_rand_state) {
   const int boxes_per_side = 20;
 
-  const int num_obj = boxes_per_side * boxes_per_side + 1 + 1 + 2;
+  const int num_obj = boxes_per_side * boxes_per_side + 10;
   hittable *ret[num_obj];
 
   // ground
@@ -317,10 +349,36 @@ __device__ hittable *rt_next_week_final_scene(unsigned char *data, int w, int h,
   ret[index++] =
       new sphere(point3(0, 150, 145), 50, new metal(color(0.8, 0.8, 0.9), 1.0));
 
-  // coonstant medium
-  auto boundary = new sphere(point3(360, 150, 145), 70, new dielectric(1.5));
-  ret[index++] = boundary;
-  // auto cm = new 
+  // constant medium
+  auto sphere_dielectric_2 =
+      new sphere(point3(360, 150, 145), 70, new dielectric(1.5));
+  ret[index++] = sphere_dielectric_2;
+  ret[index++] =
+      new constant_medium(sphere_dielectric_2, 0.2, color(0.2, 0.4, 0.9));
+
+  // fog
+  auto fog = new sphere(point3(0, 0, 0), 5000, new dielectric(1.5));
+  ret[index++] = new constant_medium(fog, 0.0001, color(1, 1, 1));
+
+  // earth
+  auto earth_texture = new image_texture(data, w, h);
+  auto earth_surface = new lambertian(earth_texture);
+  ret[index++] = new sphere(point3(400, 200, 400), 100, earth_surface);
+
+  auto pertext = new noise_texture(0.1, &local_rand_state);
+  ret[index++] = new sphere(point3(220, 280, 300), 80, new lambertian(pertext));
+
+  auto white = new lambertian(color(.73, .73, .73));
+
+  const int ns = 1000;
+  hittable *cluster[ns];
+  for (int j = 0; j < ns; j++) {
+    cluster[j] = new sphere(random_vec3(0, 165, &local_rand_state), 10, white);
+  }
+
+  ret[index++] = new translate(
+      new rotate_y(new bvh_node(cluster, 0, ns, 0, 1, &local_rand_state), 15),
+      vec3(-100, 270, 395));
 
   return new bvh_node(ret, 0, index, 0.0, 1.0, &local_rand_state);
 }
@@ -383,8 +441,16 @@ __global__ void create_world(hittable **d_list, hittable **d_world,
       lookat = point3(278, 278, 0);
       vfov = 40.0;
       break;
-    default:
+
     case 7:
+      *background = new color(0.0, 0.0, 0.0);
+      *d_world = cornell_smoke(local_rand_state);
+      lookfrom = point3(278, 278, -800);
+      lookat = point3(278, 278, 0);
+      vfov = 40.0;
+      break;
+    default:
+    case 8:
       *background = new color(0.0, 0.0, 0.0);
       *d_world = rt_next_week_final_scene(data, w, h, local_rand_state);
       lookfrom = point3(478, 278, -600);
@@ -439,10 +505,10 @@ int main() {
   checkCudaErrors(
       cudaMallocManaged((void **)&background_color, sizeof(color *)));
 
-  const auto aspect_ratio = 3.0 / 2.0;
-  int nx = 1200;
+  const auto aspect_ratio = 1.0; // 3.0 / 2.0;
+  int nx = 800;                  // 1200;
   int ny = static_cast<int>(nx / aspect_ratio);
-  int ns = 500;
+  int ns = 500; // 500;
   //   int ns = 500;
   int tx = 8;
   int ty = 8;

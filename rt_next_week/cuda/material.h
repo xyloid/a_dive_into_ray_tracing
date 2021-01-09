@@ -174,4 +174,23 @@ public:
 public:
   abstract_texture *emit;
 };
+
+class isotropic : public material {
+public:
+  __device__ isotropic(color c) : albedo(new solid_color(c)) {}
+  __device__ isotropic(abstract_texture *a) : albedo(a) {}
+
+  __device__ virtual bool
+  scatter(const ray &r_in, const hit_record &rec, color &attenuation,
+          ray &scattered, curandState *local_rand_state) const override {
+    // light changes its direction randomly
+    scattered =
+        ray(rec.p, random_in_unit_sphere(local_rand_state), r_in.time());
+    attenuation = albedo->value(rec.u, rec.v, rec.p);
+    return true;
+  }
+
+public:
+  abstract_texture *albedo;
+};
 #endif
