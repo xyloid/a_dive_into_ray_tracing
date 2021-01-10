@@ -14,6 +14,7 @@
 #include <float.h>
 #include <iostream>
 #include <time.h>
+#include "triangle.h"
 
 // Matching the C++ code would recurse enough into color() calls that
 // it was blowing up the stack, so we have to turn this into a
