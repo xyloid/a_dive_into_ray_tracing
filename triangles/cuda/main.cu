@@ -9,12 +9,12 @@
 #include "moving_sphere.h"
 #include "ray.h"
 #include "sphere.h"
+#include "triangle.h"
 #include "vec3.h"
 #include <curand_kernel.h>
 #include <float.h>
 #include <iostream>
 #include <time.h>
-#include "triangle.h"
 
 // Matching the C++ code would recurse enough into color() calls that
 // it was blowing up the stack, so we have to turn this into a
@@ -384,6 +384,21 @@ __device__ hittable *rt_next_week_final_scene(unsigned char *data, int w, int h,
   return new bvh_node(ret, 0, index, 0.0, 1.0, &local_rand_state);
 }
 
+__device__ hittable *simple_triangle(curandState local_rand_state) {
+  hittable *ret[2];
+  int index = 0;
+  // light
+  auto light = new diffuse_light(color(7, 7, 7));
+  ret[index++] = new xz_rect(123, 423, 147, 412, 554, light);
+
+  auto white = new lambertian(color(.73, .73, .73));
+  ret[index++] =
+      new triangle(vec3(0, 0, 0), vec3(100, 0, 0), vec3(0, 50, 0),
+                   vec3(0, 0, 0), vec3(0, 0, 0), vec3(0, 0, 0), white);
+
+  return new bvh_node(ret, 0, index, 0, 1, &local_rand_state);
+}
+
 __global__ void create_world(hittable **d_list, hittable **d_world,
                              camera **d_camera, int nx, int ny,
                              curandState *rand_state, unsigned char *data,
@@ -450,10 +465,18 @@ __global__ void create_world(hittable **d_list, hittable **d_world,
       lookat = point3(278, 278, 0);
       vfov = 40.0;
       break;
-    default:
+
     case 8:
       *background = new color(0.0, 0.0, 0.0);
       *d_world = rt_next_week_final_scene(data, w, h, local_rand_state);
+      lookfrom = point3(478, 278, -600);
+      lookat = point3(278, 278, 0);
+      vfov = 40.0;
+      break;
+    default:
+    case 9:
+      *background = new color(0.0, 0.0, 0.0);
+      *d_world = simple_triangle(local_rand_state);
       lookfrom = point3(478, 278, -600);
       lookat = point3(278, 278, 0);
       vfov = 40.0;
@@ -509,7 +532,7 @@ int main() {
   const auto aspect_ratio = 1.0; // 3.0 / 2.0;
   int nx = 800;                  // 1200;
   int ny = static_cast<int>(nx / aspect_ratio);
-  int ns = 5000; // 500;
+  int ns = 500; // 500;
   //   int ns = 500;
   int tx = 8;
   int ty = 8;
