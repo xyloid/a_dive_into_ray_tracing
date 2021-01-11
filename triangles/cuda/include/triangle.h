@@ -24,7 +24,7 @@ public:
     face_normal = dot(face_normal_candidate, average_vn) > 0.0f
                       ? face_normal_candidate
                       : -face_normal_candidate;
-    // face_normal = -face_normal_candidate;
+    face_normal = face_normal_candidate;
 
     // face normal was calculated on v0
     dist_to_origin = fabsf(dot(unit_vector(face_normal), v0));
@@ -92,7 +92,7 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
   // AB = v1 - v0
   vec3 v0p = rec.p - v0;
   C = cross(AB, v0p);
-  if (dot(-face_normal, C) < 0) {
+  if (dot(face_normal, C) < 0) {
     // P is on the right side of AB
     return false;
   }
@@ -103,7 +103,7 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
   vec3 edge1 = v2 - v1;
   vec3 v1p = rec.p - v1;
   C = cross(edge1, v1p);
-  float u = dot(-face_normal, C);
+  float u = dot(face_normal, C);
   if (u < 0) {
     return false;
   }
@@ -113,7 +113,7 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
   vec3 edge2 = v0 - v2;
   vec3 v2p = rec.p - v2;
   C = cross(edge2, v2p);
-  float v = dot(-face_normal, C);
+  float v = dot(face_normal, C);
   if (v < 0) {
     return false;
   }
@@ -121,7 +121,7 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
   rec.mat_ptr = mat_ptr;
   rec.u = u;
   rec.v = v;
-  rec.set_face_normal(r, unit_vector(-face_normal));
+  rec.set_face_normal(r, unit_vector(face_normal));
   return true;
 }
 
