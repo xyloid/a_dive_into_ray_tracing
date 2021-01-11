@@ -393,7 +393,7 @@ __device__ hittable *simple_triangle(curandState local_rand_state) {
 
   auto white = new lambertian(color(.073, .73, .73));
   ret[index++] =
-      new triangle(vec3(123, 0, 150), vec3(423, 0, 150), vec3(273, 50, 500),
+      new triangle(vec3(123, 0, 150), vec3(423, 0, 150), vec3(273, 50, (500 + 150) / 2),
                    vec3(0, 1, 0), vec3(0, 1, 0), vec3(0, 1, 0), white);
 
   ret[index++] = new sphere(point3(273, 100, (500 + 150) / 2), 10,
