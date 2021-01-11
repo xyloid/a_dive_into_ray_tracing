@@ -21,9 +21,9 @@ public:
     AC = v2 - v0;
     vec3 face_normal_candidate = cross(AB, AC);
 
-    // face_normal = dot(face_normal_candidate, average_vn) > 0.0f
-    //                   ? face_normal_candidate
-    //                   : -face_normal_candidate;
+    face_normal = dot(face_normal_candidate, average_vn) > 0.0f
+                      ? face_normal_candidate
+                      : -face_normal_candidate;
     face_normal = face_normal_candidate;
 
     // face normal was calculated on v0
@@ -75,7 +75,7 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
   }
 
   // compute t
-  float t = -(dot(unit_vector(face_normal), r.origin()) + dist_to_origin) /
+  float t = - (dot(unit_vector(face_normal), r.origin()) + dist_to_origin) /
             norm_dot_ray_dir;
 
   // the triangle is behind the eye
@@ -118,10 +118,12 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
     return false;
   }
 
+  // printf("hit %f %f %f\n", face_normal.x(), face_normal.y(), face_normal.z());
+
   rec.mat_ptr = mat_ptr;
   rec.u = u;
   rec.v = v;
-  rec.set_face_normal(r, unit_vector(face_normal));
+  rec.set_face_normal(r, unit_vector(-face_normal));
   return true;
 }
 
