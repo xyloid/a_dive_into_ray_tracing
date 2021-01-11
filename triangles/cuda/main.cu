@@ -385,7 +385,7 @@ __device__ hittable *rt_next_week_final_scene(unsigned char *data, int w, int h,
 }
 
 __device__ hittable *simple_triangle(curandState local_rand_state) {
-  hittable *ret[2];
+  hittable *ret[3];
   int index = 0;
   // light
   auto light = new diffuse_light(color(7, 7, 7));
@@ -393,8 +393,10 @@ __device__ hittable *simple_triangle(curandState local_rand_state) {
 
   auto white = new lambertian(color(.73, .73, .73));
   ret[index++] =
-      new triangle(vec3(0, 0, 0), vec3(100, 0, 0), vec3(0, 50, 0),
-                   vec3(0, 0, 0), vec3(0, 0, 0), vec3(0, 0, 0), white);
+      new triangle(vec3(0, 0, 500), vec3(100, 0, 500), vec3(0, 50, 600),
+                   vec3(0, 0, -1), vec3(0, 0, -1), vec3(0, 0, -1), light);
+
+  ret[index++] = new sphere(point3(220, 280, 300), 80, new lambertian(color(0.5,0.5,0.5)));
 
   return new bvh_node(ret, 0, index, 0, 1, &local_rand_state);
 }
@@ -479,7 +481,7 @@ __global__ void create_world(hittable **d_list, hittable **d_world,
       *d_world = simple_triangle(local_rand_state);
       lookfrom = point3(478, 278, -600);
       lookat = point3(278, 278, 0);
-      vfov = 40.0;
+      vfov = 50.0;
       break;
     }
 
@@ -532,7 +534,7 @@ int main() {
   const auto aspect_ratio = 1.0; // 3.0 / 2.0;
   int nx = 800;                  // 1200;
   int ny = static_cast<int>(nx / aspect_ratio);
-  int ns = 500; // 500;
+  int ns = 50; // 500;
   //   int ns = 500;
   int tx = 8;
   int ty = 8;
