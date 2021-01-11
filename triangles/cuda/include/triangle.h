@@ -121,7 +121,7 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
   rec.mat_ptr = mat_ptr;
   rec.u = u;
   rec.v = v;
-  rec.set_face_normal(r, -face_normal);
+  rec.set_face_normal(r, unit_vector(-face_normal));
   return true;
 }
 
