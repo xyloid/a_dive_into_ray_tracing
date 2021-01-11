@@ -388,7 +388,7 @@ __device__ hittable *simple_triangle(curandState local_rand_state) {
   hittable *ret[3];
   int index = 0;
   // light
-  auto light = new diffuse_light(color(7, 7, 7));
+  auto light = new diffuse_light(color(17, 17, 17));
   ret[index++] = new xz_rect(123, 423, 147, 412, 554, light);
 
   auto white = new lambertian(color(.073, .73, .73));
@@ -396,8 +396,8 @@ __device__ hittable *simple_triangle(curandState local_rand_state) {
       new triangle(vec3(123, 0, 150), vec3(423, 0, 150), vec3(273, 50, 500),
                    vec3(0, 1, 0), vec3(0, 1, 0), vec3(0, 1, 0), white);
 
-  // ret[index++] = new sphere(point3(273, 50, (500 + 150) / 2), 50,
-  //                           new lambertian(color(0.5, 0.5, 0.5)));
+  ret[index++] = new sphere(point3(273, 100, (500 + 150) / 2), 10,
+                            new lambertian(color(0.5, 0.5, 0.5)));
 
   return new bvh_node(ret, 0, index, 0, 1, &local_rand_state);
 }
@@ -478,8 +478,8 @@ __global__ void create_world(hittable **d_list, hittable **d_world,
       break;
     default:
     case 9:
-      *background = new color(0.70/2, 0.80/2, 1.00/2);
-      // *background = new color(0.0, 0.0, 0.0);
+      // *background = new color(0.70/2, 0.80/2, 1.00/2);
+      *background = new color(0.0, 0.0, 0.0);
       *d_world = simple_triangle(local_rand_state);
       lookfrom = point3(278, 278, -600);
       lookat = point3(278, 278, 0);

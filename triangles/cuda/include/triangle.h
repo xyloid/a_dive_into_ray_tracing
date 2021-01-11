@@ -21,9 +21,9 @@ public:
     AC = v2 - v0;
     vec3 face_normal_candidate = cross(AB, AC);
 
-    face_normal = dot(face_normal_candidate, average_vn) > 0.0f
-                      ? face_normal_candidate
-                      : -face_normal_candidate;
+    // face_normal = dot(face_normal_candidate, average_vn) > 0.0f
+    //                   ? face_normal_candidate
+    //                   : -face_normal_candidate;
     face_normal = face_normal_candidate;
 
     // face normal was calculated on v0
