@@ -10,5 +10,8 @@ obj2:
 dobj:
 	nvcc -G -v -Xptxas -v -lineinfo ${INC} main.cu  -o obj 
 
+tri:
+	nvcc obj_read.cu ${INC} -o obj
+
 clean:
 	rm ./obj

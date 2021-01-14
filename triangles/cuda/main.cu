@@ -625,4 +625,6 @@ int main() {
   checkCudaErrors(cudaFree(fb));
 
   cudaDeviceReset();
+
+  return 0;
 }
