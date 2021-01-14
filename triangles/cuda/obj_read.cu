@@ -9,9 +9,10 @@
 int main() {
   // vector<triangle> triangles;
 
-  std::string filename = "./objs/default_cube_in_triangles.obj";
+  std::string filename = "objs/dafault_cube_in_triangles.obj";
 
-  std::ifstream infile("./obj/test.obj");
+  // std::ifstream infile("objs/test.obj");
+  std::ifstream infile(filename);
 
   if (infile.is_open()) {
     std::string line;
