@@ -11,7 +11,8 @@ int main() {
   vector<vec3> vs;
   vector<triangle> triangles;
 
-  std::string filename = "objs/dafault_cube_in_triangles.obj";
+  // std::string filename = "objs/dafault_cube_in_triangles.obj";
+  std::string filename = "objs/bunny.obj";
 
   // std::ifstream infile("objs/test.obj");
   std::ifstream infile(filename);
@@ -39,6 +40,7 @@ int main() {
       } else if (type == "f") {
         // find face
         // format 1//1 2//2 3//2
+        vector<int> indices;
         while (!in.eof()) {
           string section;
           in >> section;
@@ -47,12 +49,19 @@ int main() {
           std::istringstream sec(section);
           string num;
           while (getline(sec, num, delimiter)) {
-            if (num.length() == 0)
-              continue;
-            float n = std::stof(num);
-            std::cout << num << "\t" << n << std::endl;
+            if (num.length() == 0) {
+              indices.push_back(-1);
+            } else {
+              float n = std::stof(num);
+              std::cout << num << "\t" << n << std::endl;
+              indices.push_back(--n);
+            }
           }
         }
+        triangles.push_back(triangle(vs.at(indices.at(0)), vs.at(indices.at(3)),
+                                     vs.at(indices.at(6)), vs.at(indices.at(2)),
+                                     vs.at(indices.at(5)), vs.at(indices.at(8)),
+                                     nullptr));
       }
 
       // if (line.rfind("#", 0) == 0) {

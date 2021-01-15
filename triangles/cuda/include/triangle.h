@@ -7,8 +7,8 @@
 
 class triangle : public hittable {
 public:
-  __device__ triangle() {}
-  __device__ triangle(vec3 _v0, vec3 _v1, vec3 _v2, vec3 _vn0, vec3 _vn1,
+  __device__ __host__ triangle() {}
+  __device__ __host__ triangle(vec3 _v0, vec3 _v1, vec3 _v2, vec3 _vn0, vec3 _vn1,
                       vec3 _vn2, material *mat)
       : v0(_v0), v1(_v1), v2(_v2), vn0(_vn0), vn1(_vn1), vn2(_vn2),
         mat_ptr(mat) {
