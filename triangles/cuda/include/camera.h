@@ -64,14 +64,11 @@ public:
   __device__ ray get_ray(float s, float t,
                          curandState *local_rand_state) const {
     vec3 rd = lens_radius * random_in_unit_disk(local_rand_state);
-    // vec3 rd(0, 0, 0);
-    return ray();
-    // vec3 offset = u * rd.x() + v * rd.y();
-    // return ray(origin + offset,
-    //            lower_left_corner + s * horizontal + t * vertical - origin -
-    //                offset,
-    //            0.0);
-    //  random_float(time0, time1, local_rand_state));
+    vec3 offset = u * rd.x() + v * rd.y();
+    return ray(origin + offset,
+               lower_left_corner + s * horizontal + t * vertical - origin -
+                   offset,
+               random_float(time0, time1, local_rand_state));
   }
 
 private:

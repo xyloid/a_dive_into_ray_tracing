@@ -418,7 +418,7 @@ __global__ void create_world(hittable **d_list, hittable **d_world,
     vec3 vup(0, 1, 0);
     // background = new color(0, 0, 0);
 
-    switch (0) {
+    switch (8) {
     case 1:
       *d_world = random_scene(d_list, local_rand_state);
       vfov = 20.0;
@@ -570,6 +570,8 @@ int main() {
 
   checkCudaErrors(
       cudaMalloc((void **)&d_list, num_hitables * sizeof(hittable *)));
+
+      
   hittable **d_world;
   // checkCudaErrors(cudaMalloc((void **)&d_world, sizeof(hittable *)));
   checkCudaErrors(cudaMalloc((void **)&d_world, sizeof(bvh_node *)));

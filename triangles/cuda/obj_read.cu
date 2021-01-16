@@ -103,6 +103,7 @@ __global__ void render(vec3 *fb, int max_x, int max_y, int ns, camera **cam,
     return;
   int pixel_index = j * max_x + i;
   curandState local_rand_state = rand_state[pixel_index];
+  printf("%p %p %d\n", &local_rand_state, &rand_state[pixel_index], pixel_index);
   vec3 col(0, 0, 0);
   for (int s = 0; s < ns; s++) {
     float u = float(i + curand_uniform(&local_rand_state)) / float(max_x);
@@ -162,7 +163,8 @@ __global__ void create_world(hittable **d_list, hittable **d_world,
       d_list[i] = &tri_data[i];
     }
 
-    *d_world = new bvh_node(d_list, 0, tri_data_size, 0.0, 1.0, &local_rand_state);
+    *d_world =
+        new bvh_node(d_list, 0, tri_data_size, 0.0, 1.0, &local_rand_state);
 
     float dist_to_focus = (lookfrom - lookat).length();
     *d_camera = new camera(lookfrom, lookat, vup, vfov, float(nx) / float(ny),
@@ -176,8 +178,8 @@ int main() {
   vector<vec3> vs;
   vector<triangle> triangles;
 
-  // std::string filename = "objs/dafault_cube_in_triangles.obj";
-  std::string filename = "objs/bunny.obj";
+  std::string filename = "objs/dafault_cube_in_triangles.obj";
+  // std::string filename = "objs/bunny.obj";
 
   // std::ifstream infile("objs/test.obj");
   std::ifstream infile(filename);
@@ -236,7 +238,7 @@ int main() {
   }
 
   // we have the triangles here
-  cudaDeviceSetLimit(cudaLimitStackSize, 32768ULL);
+  cudaDeviceSetLimit(cudaLimitStackSize, 2*32768ULL);
   triangle *tri_data;
 
   checkCudaErrors(
