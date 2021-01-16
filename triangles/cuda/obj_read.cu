@@ -107,6 +107,42 @@ __global__ void set_triangle(triangle *tri_data, int tri_data_size, int max_x,
   // printf("\n");
 }
 
+__global__ void create_world(hittable **d_list, hittable **d_world,
+                             camera **d_camera, int nx, int ny,
+                             curandState *rand_state, triangle *tri_data,
+                             int tri_data_size, int w, int h,
+                             color **background) {
+  if (threadIdx.x == 0 && blockIdx.x == 0) {
+    curandState local_rand_state = *rand_state;
+
+    vec3 lookfrom(3, 2, 3);
+    vec3 lookat(0, 0, 0);
+    // float dist_to_focus = (lookfrom - lookat).length();
+    float aperture = 0.00;
+    float vfov = 40.0;
+    vec3 vup(0, 1, 0);
+
+    *background = new color(0.70 / 2, 0.80 / 2, 1.00 / 2);
+    // *background = new color(0, 0, 0);
+
+    hittable **l = new hittable *[tri_data_size];
+
+    for (int i = 0; i < tri_data_size; i++) {
+      printf("%d\n", i);
+      l[i] = &tri_data[i];
+    }
+
+    // *d_world = new bvh_node(l, 0, tri_data_size, 0.0, 1.0,
+    // &local_rand_state);
+
+    // float dist_to_focus = (lookfrom - lookat).length();
+    // *d_camera = new camera(lookfrom, lookat, vup, vfov, float(nx) /
+    // float(ny),
+    //                        aperture, dist_to_focus, 0.0f, 1.0f);
+    // *rand_state = local_rand_state;
+  }
+}
+
 int main() {
   vector<vec3> vns;
   vector<vec3> vs;
@@ -229,9 +265,18 @@ int main() {
   camera **d_camera;
   checkCudaErrors(cudaMalloc((void **)&d_camera, sizeof(camera *)));
 
+  color **background_color;
+  checkCudaErrors(
+      cudaMallocManaged((void **)&background_color, sizeof(color *)));
+
   checkCudaErrors(cudaGetLastError());
   checkCudaErrors(cudaDeviceSynchronize());
   // create world
+
+  create_world<<<1, 1>>>(NULL, d_world, d_camera, nx, ny, d_rand_state2,
+                         tri_data, size, 0, 0, background_color);
+  checkCudaErrors(cudaGetLastError());
+  checkCudaErrors(cudaDeviceSynchronize());
 
   // render
   dim3 blocks(nx / tx + 1, ny / ty + 1);
