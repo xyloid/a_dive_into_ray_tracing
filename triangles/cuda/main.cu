@@ -589,7 +589,9 @@ int main() {
   // Render our buffer
   dim3 blocks(nx / tx + 1, ny / ty + 1);
   dim3 threads(tx, ty);
+  
   render_init<<<blocks, threads>>>(nx, ny, d_rand_state);
+
   checkCudaErrors(cudaGetLastError());
   checkCudaErrors(cudaDeviceSynchronize());
   render<<<blocks, threads>>>(fb, nx, ny, ns, d_camera, d_world, d_rand_state,
