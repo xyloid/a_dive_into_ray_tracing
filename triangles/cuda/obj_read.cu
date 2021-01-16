@@ -17,55 +17,57 @@ __device__ vec3 get_color(const ray &r, color **background, hittable **world,
   vec3 cur_attenuation(1.0f, 1.0f, 1.0f);
 
   const int depth = 50;
-
   vec3 emitted_rec[depth];
   vec3 attenuation_rec[depth];
 
   for (int i = 0; i < depth; i++) {
     hit_record rec;
-    if ((*world)->hit(cur_ray, 0.001f, FLT_MAX, rec, local_rand_state)) {
+    (*world)->hit(cur_ray, 0.001f, FLT_MAX, rec, local_rand_state);
+    // hit_record rec;
+    // if ((*world)->hit(cur_ray, 0.001f, FLT_MAX, rec, local_rand_state)) {
 
-      ray scattered;
-      vec3 attenuation;
+    //   ray scattered;
+    //   vec3 attenuation;
 
-      color emitted = rec.mat_ptr->emitted(rec.u, rec.v, rec.p);
+    //   color emitted = rec.mat_ptr->emitted(rec.u, rec.v, rec.p);
 
-      if (rec.mat_ptr->scatter(cur_ray, rec, attenuation, scattered,
-                               local_rand_state)) {
-        // scattered
-        // cur_attenuation *= attenuation;
-        // cur_attenuation += emitted;
-        // cur_attenuation *= (attenuation + emitted);
-        emitted_rec[i] = emitted;
-        attenuation_rec[i] = attenuation;
+    //   if (rec.mat_ptr->scatter(cur_ray, rec, attenuation, scattered,
+    //                            local_rand_state)) {
+    //     // scattered
+    //     // cur_attenuation *= attenuation;
+    //     // cur_attenuation += emitted;
+    //     // cur_attenuation *= (attenuation + emitted);
+    //     emitted_rec[i] = emitted;
+    //     attenuation_rec[i] = attenuation;
 
-        cur_ray = scattered;
+    //     cur_ray = scattered;
 
-      } else {
-        // no scatter
-        // no attenuation
-        // no background light
-        // but we have emitted
+    //   } else {
+    //     // no scatter
+    //     // no attenuation
+    //     // no background light
+    //     // but we have emitted
 
-        cur_attenuation *= emitted;
+    //     cur_attenuation *= emitted;
 
-        while (i-- > 0) {
-          cur_attenuation =
-              emitted_rec[i] + cur_attenuation * attenuation_rec[i];
-        }
+    //     while (i-- > 0) {
+    //       cur_attenuation =
+    //           emitted_rec[i] + cur_attenuation * attenuation_rec[i];
+    //     }
 
-        return cur_attenuation;
-      }
-    } else {
-      // no hit
-      // only have background
-      cur_attenuation *= **background;
-      while (i-- > 0) {
-        cur_attenuation = emitted_rec[i] + cur_attenuation * attenuation_rec[i];
-      }
+    //     return cur_attenuation;
+    //   }
+    // } else {
+    //   // no hit
+    //   // only have background
+    //   cur_attenuation *= **background;
+    //   while (i-- > 0) {
+    //     cur_attenuation = emitted_rec[i] + cur_attenuation *
+    //     attenuation_rec[i];
+    //   }
 
-      return cur_attenuation;
-    }
+    //   return cur_attenuation;
+    // }
   }
   return **background; // exceeded recursion
 }
@@ -90,6 +92,30 @@ __global__ void render_init(int max_x, int max_y, curandState *rand_state) {
   // improvement of about 2x!
   // curand_init(1984 + pixel_index, 0, 0, &rand_state[pixel_index]);
   curand_init(1984 + pixel_index, i, j, &rand_state[pixel_index]);
+}
+
+__global__ void render(vec3 *fb, int max_x, int max_y, int ns, camera **cam,
+                       hittable **world, curandState *rand_state,
+                       color **background) {
+  int i = threadIdx.x + blockIdx.x * blockDim.x;
+  int j = threadIdx.y + blockIdx.y * blockDim.y;
+  if ((i >= max_x) || (j >= max_y))
+    return;
+  int pixel_index = j * max_x + i;
+  curandState local_rand_state = rand_state[pixel_index];
+  vec3 col(0, 0, 0);
+  for (int s = 0; s < ns; s++) {
+    float u = float(i + curand_uniform(&local_rand_state)) / float(max_x);
+    float v = float(j + curand_uniform(&local_rand_state)) / float(max_y);
+    ray r = (*cam)->get_ray(u, v, &local_rand_state);
+    col += get_color(r, background, world, &local_rand_state);
+  }
+  rand_state[pixel_index] = local_rand_state;
+  // col /= float(ns);
+  // col[0] = sqrt(col[0]);
+  // col[1] = sqrt(col[1]);
+  // col[2] = sqrt(col[2]);
+  // fb[pixel_index] = col;
 }
 
 __global__ void set_triangle(triangle *tri_data, int tri_data_size, int max_x,
@@ -130,20 +156,18 @@ __global__ void create_world(hittable **d_list, hittable **d_world,
     hittable **l = new hittable *[tri_data_size];
 
     for (int i = 0; i < tri_data_size; i++) {
-      printf("%d\n", i);
+      // printf("%d\n", i);
       // l[i] = (hittable *)&tri_data[i];
       // d_list[i] = (tri_data + i);
       d_list[i] = &tri_data[i];
     }
 
-    // *d_world = new bvh_node(l, 0, tri_data_size, 0.0, 1.0,
-    // &local_rand_state);
+    *d_world = new bvh_node(l, 0, tri_data_size, 0.0, 1.0, &local_rand_state);
 
-    // float dist_to_focus = (lookfrom - lookat).length();
-    // *d_camera = new camera(lookfrom, lookat, vup, vfov, float(nx) /
-    // float(ny),
-    //                        aperture, dist_to_focus, 0.0f, 1.0f);
-    // *rand_state = local_rand_state;
+    float dist_to_focus = (lookfrom - lookat).length();
+    *d_camera = new camera(lookfrom, lookat, vup, vfov, float(nx) / float(ny),
+                           aperture, dist_to_focus, 0.0f, 1.0f);
+    *rand_state = local_rand_state;
   }
 }
 
@@ -291,6 +315,13 @@ int main() {
   dim3 threads(tx, ty);
 
   render_init<<<blocks, threads>>>(nx, ny, d_rand_state);
+
+  checkCudaErrors(cudaGetLastError());
+  checkCudaErrors(cudaDeviceSynchronize());
+  render<<<blocks, threads>>>(fb, nx, ny, ns, d_camera, d_world, d_rand_state,
+                              background_color);
+  checkCudaErrors(cudaGetLastError());
+  checkCudaErrors(cudaDeviceSynchronize());
 
   checkCudaErrors(cudaFree(tri_data));
 
