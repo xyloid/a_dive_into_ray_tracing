@@ -22,7 +22,7 @@ __device__ vec3 get_color(const ray &r, color **background, hittable **world,
 
   for (int i = 0; i < depth; i++) {
     hit_record rec;
-    (*world)->hit(cur_ray, 0.001f, FLT_MAX, rec, local_rand_state);
+    // (*world)->hit(cur_ray, 0.001f, FLT_MAX, rec, local_rand_state);
     // hit_record rec;
     // if ((*world)->hit(cur_ray, 0.001f, FLT_MAX, rec, local_rand_state)) {
 
@@ -108,9 +108,9 @@ __global__ void render(vec3 *fb, int max_x, int max_y, int ns, camera **cam,
     float u = float(i + curand_uniform(&local_rand_state)) / float(max_x);
     float v = float(j + curand_uniform(&local_rand_state)) / float(max_y);
     ray r = (*cam)->get_ray(u, v, &local_rand_state);
-    col += get_color(r, background, world, &local_rand_state);
+    // col += get_color(r, background, world, &local_rand_state);
   }
-  rand_state[pixel_index] = local_rand_state;
+  // rand_state[pixel_index] = local_rand_state;
   // col /= float(ns);
   // col[0] = sqrt(col[0]);
   // col[1] = sqrt(col[1]);
@@ -153,7 +153,7 @@ __global__ void create_world(hittable **d_list, hittable **d_world,
 
     // page fault if we use this to allocate memory, I think the reason is large
     // amount of memory must be allocated before the execution start.
-    hittable **l = new hittable *[tri_data_size];
+    // hittable **l = new hittable *[tri_data_size];
 
     for (int i = 0; i < tri_data_size; i++) {
       // printf("%d\n", i);
@@ -162,7 +162,7 @@ __global__ void create_world(hittable **d_list, hittable **d_world,
       d_list[i] = &tri_data[i];
     }
 
-    *d_world = new bvh_node(l, 0, tri_data_size, 0.0, 1.0, &local_rand_state);
+    *d_world = new bvh_node(d_list, 0, tri_data_size, 0.0, 1.0, &local_rand_state);
 
     float dist_to_focus = (lookfrom - lookat).length();
     *d_camera = new camera(lookfrom, lookat, vup, vfov, float(nx) / float(ny),

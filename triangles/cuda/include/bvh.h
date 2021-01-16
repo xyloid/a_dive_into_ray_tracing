@@ -78,68 +78,70 @@ __device__ bool bvh_node::bounding_box(float time0, float time1,
 __device__ bool bvh_node::hit(const ray &r, float t_min, float t_max,
                               hit_record &rec,
                               curandState *local_rand_state) const {
-  if (!box.hit(r, t_min, t_max)) {
-    return false;
-  }
+  return true;
+  
+  // if (!box.hit(r, t_min, t_max)) {
+  //   return false;
+  // }
 
-  hittable *stack[64];
-  hittable **stack_ptr = stack;
-  *stack_ptr++ = NULL;
+  // hittable *stack[256];
+  // hittable **stack_ptr = stack;
+  // *stack_ptr++ = NULL;
 
-  bvh_node *node = (bvh_node *)this;
+  // bvh_node *node = (bvh_node *)this;
 
-  bool is_hit = false;
+  // bool is_hit = false;
 
-  do {
-    hittable *l_child = node->left;
-    hittable *r_child = node->right;
+  // do {
+  //   hittable *l_child = node->left;
+  //   hittable *r_child = node->right;
 
-    // TODO: working on recursion to iteration
+  //   // TODO: working on recursion to iteration
 
-    // no bounding box on leaf, not bvh_node
-    if (l_child->is_leaf || r_child->is_leaf) {
+  //   // no bounding box on leaf, not bvh_node
+  //   if (l_child->is_leaf || r_child->is_leaf) {
 
-      aabb l_box, r_box;
-      l_child->bounding_box(t_min, t_max, l_box);
-      r_child->bounding_box(t_min, t_max, r_box);
+  //     aabb l_box, r_box;
+  //     l_child->bounding_box(t_min, t_max, l_box);
+  //     r_child->bounding_box(t_min, t_max, r_box);
 
-      // must hit one of them
-      bool hit_left = l_child->hit(r, t_min, t_max, rec, local_rand_state);
-      t_max = hit_left ? rec.t : t_max;
-      bool hit_right = r_child->hit(r, t_min, hit_left ? rec.t : t_max, rec,
-                                    local_rand_state);
-      t_max = hit_right ? rec.t : t_max;
+  //     // must hit one of them
+  //     bool hit_left = l_child->hit(r, t_min, t_max, rec, local_rand_state);
+  //     t_max = hit_left ? rec.t : t_max;
+  //     bool hit_right = r_child->hit(r, t_min, hit_left ? rec.t : t_max, rec,
+  //                                   local_rand_state);
+  //     t_max = hit_right ? rec.t : t_max;
 
-      node = (bvh_node *)*--stack_ptr;
+  //     node = (bvh_node *)*--stack_ptr;
 
-      if (hit_left || hit_right)
-        is_hit = true;
-    } else {
-      // else , we need forward to next level of the tree
+  //     if (hit_left || hit_right)
+  //       is_hit = true;
+  //   } else {
+  //     // else , we need forward to next level of the tree
 
-      bool hit_left = ((bvh_node *)l_child)->box.hit(r, t_min, t_max);
+  //     bool hit_left = ((bvh_node *)l_child)->box.hit(r, t_min, t_max);
 
-      bool hit_right = ((bvh_node *)r_child)->box.hit(r, t_min, t_max);
+  //     bool hit_right = ((bvh_node *)r_child)->box.hit(r, t_min, t_max);
 
-      if (!hit_left && !hit_right) {
-        node = (bvh_node *)*--stack_ptr;
-      } else {
-        node = hit_left ? (bvh_node *)l_child : (bvh_node *)r_child;
-        if (hit_left && hit_right) {
-          *stack_ptr++ = r_child;
-        }
-      }
-    }
+  //     if (!hit_left && !hit_right) {
+  //       node = (bvh_node *)*--stack_ptr;
+  //     } else {
+  //       node = hit_left ? (bvh_node *)l_child : (bvh_node *)r_child;
+  //       if (hit_left && hit_right) {
+  //         *stack_ptr++ = r_child;
+  //       }
+  //     }
+  //   }
 
-  } while (node != NULL);
+  // } while (node != NULL);
 
-  return is_hit;
+  // return is_hit;
 }
 
 __device__ bvh_node::bvh_node(hittable **l, size_t start, size_t end,
                               float time0, float time1,
                               curandState *local_rand_state) {
-  // printf("%lu %lu enter\n", start, end);
+  printf("%lu %lu enter\n", start, end);
   int axis = curand_uniform(local_rand_state) * 3;
 
   auto comparator =
@@ -147,7 +149,7 @@ __device__ bvh_node::bvh_node(hittable **l, size_t start, size_t end,
 
   size_t object_span = end - start;
 
-  // // printf("%lu %lu %d\n", start, end, axis);
+  // printf("%lu %lu %d\n", start, end, axis);
   // if (object_span == 0)
   //   return;
 
