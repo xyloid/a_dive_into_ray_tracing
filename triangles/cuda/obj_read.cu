@@ -1,10 +1,26 @@
+#include "cuda_utils.h"
+#include "material.h"
 #include "obj_parser.h"
-
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <string>
 #include <vector>
+
+__global__ void set_triangle(triangle *tri_data, int tri_data_size, int max_x,
+                             int max_y) {
+  int i = threadIdx.x + blockIdx.x * blockDim.x;
+  int j = threadIdx.y + blockIdx.y * blockDim.y;
+  if ((i >= max_x) || (j >= max_y))
+    return;
+  int index = j * max_x + i;
+  // printf("%d %d\n", index, tri_data_size);
+  if (index < tri_data_size) {
+    // printf("%d\n", index);
+    tri_data[index].mat_ptr = new lambertian(color(.73, .73, .73));
+  }
+  // printf("\n");
+}
 
 int main() {
   vector<vec3> vns;
@@ -28,15 +44,15 @@ int main() {
       if (type == "vn") {
         in >> x >> y >> z;
         vns.push_back(vec3(x, y, z));
-        std::cout << "vn found " << std::endl
-                  << line << std::endl
-                  << x << "," << y << "," << z << std::endl;
+        // std::cout << "vn found " << std::endl
+        //           << line << std::endl
+        //           << x << "," << y << "," << z << std::endl;
       } else if (type == "v") {
         in >> x >> y >> z;
         vs.push_back(vec3(x, y, z));
-        std::cout << "v found " << std::endl
-                  << line << std::endl
-                  << x << "," << y << "," << z << std::endl;
+        // std::cout << "v found " << std::endl
+        //           << line << std::endl
+        //           << x << "," << y << "," << z << std::endl;
       } else if (type == "f") {
         // find face
         // format 1//1 2//2 3//2
@@ -44,7 +60,7 @@ int main() {
         while (!in.eof()) {
           string section;
           in >> section;
-          std::cout << "section: " << section << std::endl;
+          // std::cout << "section: " << section << std::endl;
           char delimiter = '/';
           std::istringstream sec(section);
           string num;
@@ -53,7 +69,7 @@ int main() {
               indices.push_back(-1);
             } else {
               float n = std::stof(num);
-              std::cout << num << "\t" << n << std::endl;
+              // std::cout << num << "\t" << n << std::endl;
               indices.push_back(--n);
             }
           }
@@ -63,29 +79,6 @@ int main() {
                                      vs.at(indices.at(5)), vs.at(indices.at(8)),
                                      nullptr));
       }
-
-      // if (line.rfind("#", 0) == 0) {
-      //   // found comments
-      //   continue;
-      // } else if (line.rfind("vn", 1) == 0) {
-      //   // found normal vectors
-
-      //   std::istringstream in(line.substr(1));
-      //   in >> x >> y >> z;
-      //   vns.push_back(vec3(x, y, z));
-      //   std::cout << "vn found " << std::endl
-      //             << line.substr(2) << std::endl
-      //             << x << "," << y << "," << z << std::endl;
-      // } else if (line.rfind("vt", 1) == 0) {
-      //   // found texture data
-      //   continue;
-      // } else if (line.rfind("v", 0) == 0) {
-      //   // found vertex
-      //   std::cout << "v found" << std::endl;
-      // } else if (line.rfind("f", 0) == 0) {
-      //   // found faces
-      //   std::cout << "face found" << std::endl;
-      // }
     }
     infile.close();
   } else {
@@ -93,8 +86,36 @@ int main() {
     std::cerr << "read failed" << std::endl;
   }
 
-  for (vector<vec3>::iterator ptr = vs.begin(); ptr < vs.end(); ptr++) {
-    std::cout << *ptr << std::endl;
-  }
+  // we have the triangles here
+  cudaDeviceSetLimit(cudaLimitStackSize, 32768ULL);
+  triangle *tri_data;
+
+  checkCudaErrors(
+      cudaMalloc((void **)&tri_data, triangles.size() * sizeof(triangle)));
+
+  checkCudaErrors(cudaMemcpy((void *)tri_data, (void *)triangles.data(),
+                             triangles.size() * sizeof(triangle),
+                             cudaMemcpyHostToDevice));
+
+  checkCudaErrors(cudaGetLastError());
+  checkCudaErrors(cudaDeviceSynchronize());
+
+  int size = triangles.size();
+  int tx = 8;
+  int ty = 8;
+
+  int nx = 128;
+  int ny = size / 128 + 1;
+
+  dim3 blocks(nx / tx + 1, ny / ty + 1);
+  dim3 threads(tx, ty);
+
+  set_triangle<<<blocks, threads>>>(tri_data, triangles.size(), nx, ny);
+
+  checkCudaErrors(cudaGetLastError());
+  checkCudaErrors(cudaDeviceSynchronize());
+
+  checkCudaErrors(cudaFree(tri_data));
+
   return 0;
 }
