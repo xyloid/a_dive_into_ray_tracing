@@ -125,11 +125,15 @@ __global__ void create_world(hittable **d_list, hittable **d_world,
     *background = new color(0.70 / 2, 0.80 / 2, 1.00 / 2);
     // *background = new color(0, 0, 0);
 
+    // page fault if we use this to allocate memory, I think the reason is large
+    // amount of memory must be allocated before the execution start.
     hittable **l = new hittable *[tri_data_size];
 
     for (int i = 0; i < tri_data_size; i++) {
       printf("%d\n", i);
-      l[i] = &tri_data[i];
+      // l[i] = (hittable *)&tri_data[i];
+      // d_list[i] = (tri_data + i);
+      d_list[i] = &tri_data[i];
     }
 
     // *d_world = new bvh_node(l, 0, tri_data_size, 0.0, 1.0,
@@ -248,6 +252,10 @@ int main() {
   vec3 *fb;
   checkCudaErrors(cudaMallocManaged((void **)&fb, fb_size));
 
+  hittable **d_list;
+
+  checkCudaErrors(cudaMalloc((void **)&d_list, size * sizeof(hittable *)));
+
   // allocate random state
   curandState *d_rand_state;
   checkCudaErrors(
@@ -273,7 +281,7 @@ int main() {
   checkCudaErrors(cudaDeviceSynchronize());
   // create world
 
-  create_world<<<1, 1>>>(NULL, d_world, d_camera, nx, ny, d_rand_state2,
+  create_world<<<1, 1>>>(d_list, d_world, d_camera, nx, ny, d_rand_state2,
                          tri_data, size, 0, 0, background_color);
   checkCudaErrors(cudaGetLastError());
   checkCudaErrors(cudaDeviceSynchronize());
