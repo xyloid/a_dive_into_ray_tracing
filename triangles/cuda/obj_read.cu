@@ -103,7 +103,8 @@ __global__ void render(vec3 *fb, int max_x, int max_y, int ns, camera **cam,
     return;
   int pixel_index = j * max_x + i;
   curandState local_rand_state = rand_state[pixel_index];
-  printf("%p %p %d\n", &local_rand_state, &rand_state[pixel_index], pixel_index);
+  printf("%p %p %d\n", &local_rand_state, &rand_state[pixel_index],
+         pixel_index);
   vec3 col(0, 0, 0);
   for (int s = 0; s < ns; s++) {
     float u = float(i + curand_uniform(&local_rand_state)) / float(max_x);
@@ -174,71 +175,15 @@ __global__ void create_world(hittable **d_list, hittable **d_world,
 }
 
 int main() {
-  vector<vec3> vns;
-  vector<vec3> vs;
+
   vector<triangle> triangles;
 
-  std::string filename = "objs/dafault_cube_in_triangles.obj";
-  // std::string filename = "objs/bunny.obj";
+  read_triangles(triangles);
 
-  // std::ifstream infile("objs/test.obj");
-  std::ifstream infile(filename);
-
-  if (infile.is_open()) {
-    std::string line;
-    float x, y, z;
-    while (std::getline(infile, line)) {
-
-      std::istringstream in(line);
-      std::string type;
-      in >> type;
-      if (type == "vn") {
-        in >> x >> y >> z;
-        vns.push_back(vec3(x, y, z));
-        // std::cout << "vn found " << std::endl
-        //           << line << std::endl
-        //           << x << "," << y << "," << z << std::endl;
-      } else if (type == "v") {
-        in >> x >> y >> z;
-        vs.push_back(vec3(x, y, z));
-        // std::cout << "v found " << std::endl
-        //           << line << std::endl
-        //           << x << "," << y << "," << z << std::endl;
-      } else if (type == "f") {
-        // find face
-        // format 1//1 2//2 3//2
-        vector<int> indices;
-        while (!in.eof()) {
-          string section;
-          in >> section;
-          // std::cout << "section: " << section << std::endl;
-          char delimiter = '/';
-          std::istringstream sec(section);
-          string num;
-          while (getline(sec, num, delimiter)) {
-            if (num.length() == 0) {
-              indices.push_back(-1);
-            } else {
-              float n = std::stof(num);
-              // std::cout << num << "\t" << n << std::endl;
-              indices.push_back(--n);
-            }
-          }
-        }
-        triangles.push_back(triangle(vs.at(indices.at(0)), vs.at(indices.at(3)),
-                                     vs.at(indices.at(6)), vs.at(indices.at(2)),
-                                     vs.at(indices.at(5)), vs.at(indices.at(8)),
-                                     nullptr));
-      }
-    }
-    infile.close();
-  } else {
-
-    std::cerr << "read failed" << std::endl;
-  }
+  std::cout << triangles.size() << std::endl;
 
   // we have the triangles here
-  cudaDeviceSetLimit(cudaLimitStackSize, 2*32768ULL);
+  cudaDeviceSetLimit(cudaLimitStackSize, 2 * 32768ULL);
   triangle *tri_data;
 
   checkCudaErrors(
@@ -266,64 +211,66 @@ int main() {
   checkCudaErrors(cudaGetLastError());
   checkCudaErrors(cudaDeviceSynchronize());
 
-  const auto aspect_ratio = 1.0; // 3.0 / 2.0;
-  int nx = 800;                  // 1200;
-  int ny = static_cast<int>(nx / aspect_ratio);
-  int ns = 50; // 500;
+  // const auto aspect_ratio = 1.0; // 3.0 / 2.0;
+  // int nx = 800;                  // 1200;
+  // int ny = static_cast<int>(nx / aspect_ratio);
+  // int ns = 50; // 500;
 
-  int num_pixels = nx * ny;
-  size_t fb_size = num_pixels * sizeof(vec3);
+  // int num_pixels = nx * ny;
+  // size_t fb_size = num_pixels * sizeof(vec3);
 
-  // allocate FB
-  vec3 *fb;
-  checkCudaErrors(cudaMallocManaged((void **)&fb, fb_size));
+  // // allocate FB
+  // vec3 *fb;
+  // checkCudaErrors(cudaMallocManaged((void **)&fb, fb_size));
 
-  hittable **d_list;
+  // hittable **d_list;
 
-  checkCudaErrors(cudaMalloc((void **)&d_list, size * sizeof(hittable *)));
+  // checkCudaErrors(cudaMalloc((void **)&d_list, size * sizeof(hittable *)));
 
-  // allocate random state
-  curandState *d_rand_state;
-  checkCudaErrors(
-      cudaMalloc((void **)&d_rand_state, num_pixels * sizeof(curandState)));
-  curandState *d_rand_state2;
-  checkCudaErrors(cudaMalloc((void **)&d_rand_state2, 1 * sizeof(curandState)));
+  // // allocate random state
+  // curandState *d_rand_state;
+  // checkCudaErrors(
+  //     cudaMalloc((void **)&d_rand_state, num_pixels * sizeof(curandState)));
+  // curandState *d_rand_state2;
+  // checkCudaErrors(cudaMalloc((void **)&d_rand_state2, 1 *
+  // sizeof(curandState)));
 
-  rand_init<<<1, 1>>>(d_rand_state2);
-  checkCudaErrors(cudaGetLastError());
-  checkCudaErrors(cudaDeviceSynchronize());
+  // rand_init<<<1, 1>>>(d_rand_state2);
+  // checkCudaErrors(cudaGetLastError());
+  // checkCudaErrors(cudaDeviceSynchronize());
 
-  hittable **d_world;
-  // checkCudaErrors(cudaMalloc((void **)&d_world, sizeof(hittable *)));
-  checkCudaErrors(cudaMalloc((void **)&d_world, sizeof(bvh_node *)));
-  camera **d_camera;
-  checkCudaErrors(cudaMalloc((void **)&d_camera, sizeof(camera *)));
+  // hittable **d_world;
+  // // checkCudaErrors(cudaMalloc((void **)&d_world, sizeof(hittable *)));
+  // checkCudaErrors(cudaMalloc((void **)&d_world, sizeof(bvh_node *)));
+  // camera **d_camera;
+  // checkCudaErrors(cudaMalloc((void **)&d_camera, sizeof(camera *)));
 
-  color **background_color;
-  checkCudaErrors(
-      cudaMallocManaged((void **)&background_color, sizeof(color *)));
+  // color **background_color;
+  // checkCudaErrors(
+  //     cudaMallocManaged((void **)&background_color, sizeof(color *)));
 
-  checkCudaErrors(cudaGetLastError());
-  checkCudaErrors(cudaDeviceSynchronize());
-  // create world
+  // checkCudaErrors(cudaGetLastError());
+  // checkCudaErrors(cudaDeviceSynchronize());
+  // // create world
 
-  create_world<<<1, 1>>>(d_list, d_world, d_camera, nx, ny, d_rand_state2,
-                         tri_data, size, 0, 0, background_color);
-  checkCudaErrors(cudaGetLastError());
-  checkCudaErrors(cudaDeviceSynchronize());
+  // create_world<<<1, 1>>>(d_list, d_world, d_camera, nx, ny, d_rand_state2,
+  //                        tri_data, size, 0, 0, background_color);
+  // checkCudaErrors(cudaGetLastError());
+  // checkCudaErrors(cudaDeviceSynchronize());
 
-  // render
-  dim3 blocks(nx / tx + 1, ny / ty + 1);
-  dim3 threads(tx, ty);
+  // // render
+  // dim3 blocks(nx / tx + 1, ny / ty + 1);
+  // dim3 threads(tx, ty);
 
-  render_init<<<blocks, threads>>>(nx, ny, d_rand_state);
+  // render_init<<<blocks, threads>>>(nx, ny, d_rand_state);
 
-  checkCudaErrors(cudaGetLastError());
-  checkCudaErrors(cudaDeviceSynchronize());
-  render<<<blocks, threads>>>(fb, nx, ny, ns, d_camera, d_world, d_rand_state,
-                              background_color);
-  checkCudaErrors(cudaGetLastError());
-  checkCudaErrors(cudaDeviceSynchronize());
+  // checkCudaErrors(cudaGetLastError());
+  // checkCudaErrors(cudaDeviceSynchronize());
+  // render<<<blocks, threads>>>(fb, nx, ny, ns, d_camera, d_world,
+  // d_rand_state,
+  //                             background_color);
+  // checkCudaErrors(cudaGetLastError());
+  // checkCudaErrors(cudaDeviceSynchronize());
 
   checkCudaErrors(cudaFree(tri_data));
 

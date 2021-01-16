@@ -4,12 +4,18 @@
 #include "aabb.h"
 #include "hittable.h"
 #include "rtweekend.h"
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <vector>
+
 
 class triangle : public hittable {
 public:
   __device__ __host__ triangle() {}
-  __device__ __host__ triangle(vec3 _v0, vec3 _v1, vec3 _v2, vec3 _vn0, vec3 _vn1,
-                      vec3 _vn2, material *mat)
+  __device__ __host__ triangle(vec3 _v0, vec3 _v1, vec3 _v2, vec3 _vn0,
+                               vec3 _vn1, vec3 _vn2, material *mat)
       : v0(_v0), v1(_v1), v2(_v2), vn0(_vn0), vn1(_vn1), vn2(_vn2),
         mat_ptr(mat) {
 
@@ -75,7 +81,7 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
   }
 
   // compute t
-  float t = - (dot(unit_vector(face_normal), r.origin()) + dist_to_origin) /
+  float t = -(dot(unit_vector(face_normal), r.origin()) + dist_to_origin) /
             norm_dot_ray_dir;
 
   // the triangle is behind the eye
@@ -118,13 +124,78 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
     return false;
   }
 
-  // printf("hit %f %f %f\n", face_normal.x(), face_normal.y(), face_normal.z());
+  // printf("hit %f %f %f\n", face_normal.x(), face_normal.y(),
+  // face_normal.z());
 
   rec.mat_ptr = mat_ptr;
   rec.u = u;
   rec.v = v;
   rec.set_face_normal(r, unit_vector(face_normal));
   return true;
+}
+
+
+void read_triangles(vector<triangle> &triangles) {
+  vector<vec3> vns;
+  vector<vec3> vs;
+  std::string filename = "objs/dafault_cube_in_triangles.obj";
+  // std::string filename = "objs/bunny.obj";
+
+  // std::ifstream infile("objs/test.obj");
+  std::ifstream infile(filename);
+
+  if (infile.is_open()) {
+    std::string line;
+    float x, y, z;
+    while (std::getline(infile, line)) {
+
+      std::istringstream in(line);
+      std::string type;
+      in >> type;
+      if (type == "vn") {
+        in >> x >> y >> z;
+        vns.push_back(vec3(x, y, z));
+        // std::cout << "vn found " << std::endl
+        //           << line << std::endl
+        //           << x << "," << y << "," << z << std::endl;
+      } else if (type == "v") {
+        in >> x >> y >> z;
+        vs.push_back(vec3(x, y, z));
+        // std::cout << "v found " << std::endl
+        //           << line << std::endl
+        //           << x << "," << y << "," << z << std::endl;
+      } else if (type == "f") {
+        // find face
+        // format 1//1 2//2 3//2
+        vector<int> indices;
+        while (!in.eof()) {
+          string section;
+          in >> section;
+          // std::cout << "section: " << section << std::endl;
+          char delimiter = '/';
+          std::istringstream sec(section);
+          string num;
+          while (getline(sec, num, delimiter)) {
+            if (num.length() == 0) {
+              indices.push_back(-1);
+            } else {
+              float n = std::stof(num);
+              // std::cout << num << "\t" << n << std::endl;
+              indices.push_back(--n);
+            }
+          }
+        }
+        triangles.push_back(triangle(vs.at(indices.at(0)), vs.at(indices.at(3)),
+                                     vs.at(indices.at(6)), vs.at(indices.at(2)),
+                                     vs.at(indices.at(5)), vs.at(indices.at(8)),
+                                     nullptr));
+      }
+    }
+    infile.close();
+  } else {
+
+    std::cerr << "read failed" << std::endl;
+  }
 }
 
 #endif
