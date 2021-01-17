@@ -10,7 +10,6 @@
 #include <string>
 #include <vector>
 
-
 class triangle : public hittable {
 public:
   __device__ __host__ triangle() {}
@@ -134,12 +133,12 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
   return true;
 }
 
-
 void read_triangles(std::vector<triangle> &triangles) {
   std::vector<vec3> vns;
   std::vector<vec3> vs;
   std::string filename = "objs/dafault_cube_in_triangles.obj";
   // std::string filename = "objs/bunny.obj";
+  // std::string filename = "objs/ball_in_triangles.obj";
 
   // std::ifstream infile("objs/test.obj");
   std::ifstream infile(filename);
@@ -166,6 +165,8 @@ void read_triangles(std::vector<triangle> &triangles) {
         //           << x << "," << y << "," << z << std::endl;
       } else if (type == "f") {
         // find face
+        // 0/1/2 3/4/5 6/7/8
+        //
         // format 1//1 2//2 3//2
         std::vector<int> indices;
         while (!in.eof()) {
@@ -179,12 +180,20 @@ void read_triangles(std::vector<triangle> &triangles) {
             if (num.length() == 0) {
               indices.push_back(-1);
             } else {
-              float n = std::stof(num);
+              float n = std::stof(num) - 1;
               // std::cout << num << "\t" << n << std::endl;
-              indices.push_back(--n);
+              indices.push_back(n);
             }
           }
         }
+        // cw to ccw
+        // triangles.push_back(triangle(vs.at(indices.at(6)),
+        // vs.at(indices.at(3)),
+        //                              vs.at(indices.at(0)),
+        //                              vs.at(indices.at(5)),
+        //                              vs.at(indices.at(2)),
+        //                              vs.at(indices.at(8)), nullptr));
+
         triangles.push_back(triangle(vs.at(indices.at(0)), vs.at(indices.at(3)),
                                      vs.at(indices.at(6)), vs.at(indices.at(2)),
                                      vs.at(indices.at(5)), vs.at(indices.at(8)),
