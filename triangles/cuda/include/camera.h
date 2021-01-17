@@ -66,6 +66,7 @@ public:
                          curandState *local_rand_state) const {
     vec3 rd = lens_radius * random_in_unit_disk(local_rand_state);
     vec3 offset = u * rd.x() + v * rd.y();
+    // printf("offset %f %f %f\n", offset.x(), offset.y(), offset.z());
     // direction pointing to negative direction
     return ray(origin + offset,
                lower_left_corner + s * horizontal + t * vertical - origin -

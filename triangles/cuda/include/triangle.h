@@ -95,6 +95,9 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
                               hit_record &rec,
                               curandState *local_rand_state) const {
 
+  // printf("enter %f, %f, %f,  -  %f, %f, %f\n", r.orig.x(), r.orig.y(),
+  //        r.orig.z(), r.dir.x(), r.dir.y(), r.dir.z());
+
   float norm_dot_ray_dir =
       dot(unit_vector(face_normal), unit_vector(r.direction()));
 
@@ -109,6 +112,7 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
 
   // the triangle is behind the eye
   if (t < 0) {
+    // printf("t < 0\n");
     return false;
   }
 
@@ -123,6 +127,7 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
   C = cross(v1 - v0, v0p);
   if (dot(face_normal, C) < 0) {
     // P is on the right side of AB
+    // printf("return 1\n");
     return false;
   }
 
@@ -134,6 +139,7 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
   C = cross(edge1, v1p);
   float u = dot(face_normal, C);
   if (u < 0) {
+    // printf("return 2\n");
     return false;
   }
 
@@ -144,11 +150,11 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
   C = cross(edge2, v2p);
   float v = dot(face_normal, C);
   if (v < 0) {
+    // printf("return 3\n");
     return false;
   }
 
-  // printf("hit %f %f %f\n", face_normal.x(), face_normal.y(),
-  // face_normal.z());
+  // printf("hit %f %f %f\n", rec.p.x(), rec.p.y(), rec.p.z());
 
   rec.mat_ptr = mat_ptr;
   rec.u = u;

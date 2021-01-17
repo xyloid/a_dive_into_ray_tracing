@@ -405,13 +405,43 @@ __device__ hittable *obj_model(hittable **tri_ptr, int tri_sz,
                                curandState *local_rand_state) {
   hittable **ret = new hittable *[tri_sz + 1];
 
+  auto white = new lambertian(color(.073, .73, .73));
+
   int index = 0;
 
   auto light = new diffuse_light(color(17, 17, 17));
-  ret[index++] = new sphere(point3(0, 3, 0), 1, light);
-  for (int i = 0; i < tri_sz; i++) {
-    ret[index++] = tri_ptr[i];
-  }
+  ret[index++] = new sphere(point3(0, 4, 0), 2, light);
+
+  vec3 v1(-1, 1, 1);
+  vec3 v2(-1, -1, 1);
+  vec3 v3(-1, 1, -1);
+  vec3 v4(-1, -1, -1);
+  vec3 v5(1, 1, 1);
+  vec3 v6(1, -1, 1);
+  vec3 v7(1, 1, -1);
+  vec3 v8(1, -1, -1);
+
+  vec3 vn1(0, 1, 0);
+  vec3 vn2(0, 0, -1);
+  vec3 vn3(1, 0, 0);
+  vec3 vn4(0, -1, 0);
+  vec3 vn5(-1, 0, 0);
+  vec3 vn6(0, 0, 1);
+
+  // ret[index++] = new triangle(v3, v7, v5, vn1, vn1, vn1,
+  //                             new lambertian(color(.073, .73, .73)));
+  // ret[index++] = new triangle(v1, v3, v5, vn1, vn1, vn1,
+  //                             new lambertian(color(.073, .73, .73)));
+
+  ret[index++] = new triangle(v3, v7, v5, vn1, vn1, vn1, white);
+  ret[index++] = new triangle(v1, v3, v5, vn1, vn1, vn1, light);
+
+  ret[index++] =
+      new xz_rect(-1, 1, -1, 1, 0.5, new lambertian(color(.73, .073, .73)));
+
+  // for (int i = 0; i < tri_sz; i++) {
+  //   ret[index++] = tri_ptr[i];
+  // }
 
   return new bvh_node(ret, 0, index, 0.0, 1.0, local_rand_state);
 }
@@ -632,7 +662,7 @@ int main() {
    */
 
   const auto aspect_ratio = 1.0; // 3.0 / 2.0;
-  int nx = 800/2;                  // 1200;
+  int nx = 800 / 2;              // 1200;
   int ny = static_cast<int>(nx / aspect_ratio);
   int ns = 100; // 500;
   //   int ns = 500;
