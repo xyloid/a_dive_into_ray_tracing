@@ -106,8 +106,9 @@ __device__ bool bvh_node::hit(const ray &r, float t_min, float t_max,
       // must hit one of them
       bool hit_left = l_child->hit(r, t_min, t_max, rec, local_rand_state);
       t_max = hit_left ? rec.t : t_max;
-      bool hit_right = r_child->hit(r, t_min, hit_left ? rec.t : t_max, rec,
-                                    local_rand_state);
+      // bool hit_right = r_child->hit(r, t_min, hit_left ? rec.t : t_max, rec,
+      //                               local_rand_state);
+      bool hit_right = r_child->hit(r, t_min, t_max, rec, local_rand_state);
       t_max = hit_right ? rec.t : t_max;
 
       node = (bvh_node *)*--stack_ptr;

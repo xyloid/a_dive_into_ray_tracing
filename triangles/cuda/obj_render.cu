@@ -122,7 +122,7 @@ __global__ void render_init(int max_x, int max_y, curandState *rand_state) {
   // see Issue#2: Each thread gets different seed, same sequence for performance
   // improvement of about 2x!
   // curand_init(1984 + pixel_index, 0, 0, &rand_state[pixel_index]);
-  curand_init(1984 + pixel_index, 0, 0, &rand_state[pixel_index]);
+  curand_init(1984 + pixel_index, i, j, &rand_state[pixel_index]);
 }
 
 __global__ void render(vec3 *fb, int max_x, int max_y, int ns, camera **cam,
@@ -410,7 +410,11 @@ __device__ hittable *obj_model(hittable **tri_ptr, int tri_sz,
   int index = 0;
 
   auto light = new diffuse_light(color(17, 17, 17));
-  ret[index++] = new sphere(point3(0, 4, 0), 2, light);
+  auto light_1 = new diffuse_light(color(0, 17, 10));
+  auto light_2 = new diffuse_light(color(10, 0, 0));
+  auto light_3 = new diffuse_light(color(17, 0, 17));
+  auto light_4 = new diffuse_light(color(17, 17, 0));
+  ret[index++] = new sphere(point3(0, 5, 0), 3, light);
 
   vec3 v1(-1, 1, 1);
   vec3 v2(-1, -1, 1);
@@ -433,11 +437,35 @@ __device__ hittable *obj_model(hittable **tri_ptr, int tri_sz,
   // ret[index++] = new triangle(v1, v3, v5, vn1, vn1, vn1,
   //                             new lambertian(color(.073, .73, .73)));
 
-  ret[index++] = new triangle(v3, v7, v5, vn1, vn1, vn1, white);
-  ret[index++] = new triangle(v1, v3, v5, vn1, vn1, vn1, light);
+  // ret[index++] = new hittable_list(tri_ptr, 1);
 
-  ret[index++] =
-      new xz_rect(-1, 1, -1, 1, 0.5, new lambertian(color(.73, .073, .73)));
+  ret[index++] = new triangle(v3, v7, v5, vn1, vn1, vn1, light);
+  ret[index++] = new triangle(v1, v3, v5, vn1, vn1, vn1, light_1);
+
+  // ret[index++] = new triangle(v8, v6, v7, vn3, vn3, vn3, light);
+
+  // ret[index++] = new xz_rect(-0.5, 0.5, -0.5, 0.5, 0.5,
+  //                            new lambertian(color(.73, .073, .73)));
+
+  // ret[index++] = new triangle(v8, v6, v7, vn3, vn3, vn3,
+  //                             new lambertian(vec3(.073, .73, .73)));
+
+  // ret[index++] = new triangle(v6, v5, v7, vn3, vn3, vn3,
+  //                             new lambertian(vec3(.073, .73, .73)));
+
+  // ret[index++] = new triangle(v6, v2, v5, vn6, vn6, vn6,
+  //                             new lambertian(vec3(.073, .73, .73)));
+
+  ret[index++] = new triangle(v8, v6, v7, vn3, vn3, vn3, light_2);
+
+  ret[index++] = new triangle(v6, v5, v7, vn3, vn3, vn3, light_3);
+
+  ret[index++] = new triangle(v6, v2, v5, vn6, vn6, vn6, light_4);
+
+  ret[index++] = new triangle(v2, v1, v5, vn6, vn6, vn6, light_2);
+
+  // comment out this line the vertical square disappear
+  // the problem seems to be inside bvh algo.
 
   // for (int i = 0; i < tri_sz; i++) {
   //   ret[index++] = tri_ptr[i];

@@ -116,14 +116,13 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
     return false;
   }
 
-  rec.t = t;
-  rec.p = r.origin() + rec.t * unit_vector(r.direction());
+  vec3 p = r.origin() + t * unit_vector(r.direction());
 
   vec3 C;
 
   // edge 0
   // AB = v1 - v0
-  vec3 v0p = rec.p - v0;
+  vec3 v0p = p - v0;
   C = cross(v1 - v0, v0p);
   if (dot(face_normal, C) < 0) {
     // P is on the right side of AB
@@ -135,7 +134,7 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
   // v2 - v1
 
   vec3 edge1 = v2 - v1;
-  vec3 v1p = rec.p - v1;
+  vec3 v1p = p - v1;
   C = cross(edge1, v1p);
   float u = dot(face_normal, C);
   if (u < 0) {
@@ -146,7 +145,7 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
   // edge2 ccw
   // v0 -v2
   vec3 edge2 = v0 - v2;
-  vec3 v2p = rec.p - v2;
+  vec3 v2p = p - v2;
   C = cross(edge2, v2p);
   float v = dot(face_normal, C);
   if (v < 0) {
@@ -155,7 +154,8 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
   }
 
   // printf("hit %f %f %f\n", rec.p.x(), rec.p.y(), rec.p.z());
-
+  rec.t = t;
+  rec.p = p;
   rec.mat_ptr = mat_ptr;
   rec.u = u;
   rec.v = v;
