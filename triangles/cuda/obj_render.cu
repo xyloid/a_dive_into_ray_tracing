@@ -194,8 +194,7 @@ __device__ hittable *random_scene(hittable **d_list,
   d_list[i++] =
       new sphere(vec3(4, 1, 0), 1.0, new metal(vec3(0.7, 0.6, 0.5), 0.0));
 
-  return new bvh_node(d_list, 0, 22 * 22 + 1 + 3, 0.0f, 1.0f,
-                      local_rand_state);
+  return new bvh_node(d_list, 0, 22 * 22 + 1 + 3, 0.0f, 1.0f, local_rand_state);
 }
 
 __device__ hittable *two_spheres(curandState *local_rand_state) {
@@ -223,7 +222,7 @@ __device__ hittable *two_perlin_spheres(curandState *local_rand_state) {
 }
 
 __device__ hittable *earth(unsigned char *data, int w, int h,
-                           curandState* local_rand_state) {
+                           curandState *local_rand_state) {
   auto earth_texture = new image_texture(data, w, h);
   auto earth_surface = new lambertian(earth_texture);
 
@@ -404,7 +403,17 @@ __device__ hittable *simple_triangle(curandState *local_rand_state) {
 
 __device__ hittable *obj_model(hittable **tri_ptr, int tri_sz,
                                curandState *local_rand_state) {
-  return new bvh_node(tri_ptr, 0, tri_sz, 0.0, 1.0, local_rand_state);
+  hittable **ret = new hittable *[tri_sz + 1];
+
+  int index = 0;
+
+  auto light = new diffuse_light(color(17, 17, 17));
+  ret[index++] = new sphere(point3(0, 2, 0), 0.5, light);
+  for (int i = 0; i < tri_sz; i++) {
+    ret[index++] = tri_ptr[i];
+  }
+
+  return new bvh_node(ret, 0, index, 0.0, 1.0, local_rand_state);
 }
 
 __global__ void create_world(hittable **d_list, hittable **d_world,
@@ -494,8 +503,9 @@ __global__ void create_world(hittable **d_list, hittable **d_world,
     default:
     case 10:
       *background = new color(0.70 / 2, 0.80 / 2, 1.00 / 2);
+      *background = new color(0.0, 0.0, 0.0);
       *d_world = obj_model(tri_ptr, tri_sz, local_rand_state);
-      lookfrom = point3(4, 4, 4);
+      lookfrom = point3(0, 4, -4);
       lookat = point3(0, 0, 0);
       vfov = 50.0;
       break;
@@ -531,11 +541,18 @@ __global__ void set_triangle(triangle *tri_data, hittable **tri_ptr,
   // printf("%d %d\n", index, tri_data_size);
   if (index < tri_data_size) {
     // printf("%d\n", index);
-    tri_data[index].mat_ptr = new lambertian(color(.73, .73, .73));
-    tri_ptr[index] =
-        new triangle(tri_data[index].v0, tri_data[index].v1, tri_data[index].v2,
-                     tri_data[index].vn0, tri_data[index].vn1,
-                     tri_data[index].vn2, new lambertian(color(.73, .73, .73)));
+    tri_data[index].mat_ptr = new lambertian(color(.073, .73, .73));
+    // new diffuse_light(color(15, 15, 15));
+    tri_ptr[index] = new triangle(tri_data[index].v0, tri_data[index].v1,
+                                  tri_data[index].v2, tri_data[index].vn0,
+                                  tri_data[index].vn1, tri_data[index].vn2,
+                                  new lambertian(color(.073, .73, .73)));
+    // tri_ptr[index] =
+    //     new triangle(tri_data[index].v0, tri_data[index].v1,
+    //     tri_data[index].v2,
+    //                  tri_data[index].vn0, tri_data[index].vn1,
+    //                  tri_data[index].vn2, new diffuse_light(color(15, 15,
+    //                  15)));
   }
   // printf("\n");
 }
@@ -615,9 +632,9 @@ int main() {
    */
 
   const auto aspect_ratio = 1.0; // 3.0 / 2.0;
-  int nx = 800;                  // 1200;
+  int nx = 800/2;                  // 1200;
   int ny = static_cast<int>(nx / aspect_ratio);
-  int ns = 50; // 500;
+  int ns = 100; // 500;
   //   int ns = 500;
   int tx = 8;
   int ty = 8;
@@ -638,8 +655,7 @@ int main() {
   checkCudaErrors(
       cudaMalloc((void **)&d_rand_state, num_pixels * sizeof(curandState)));
   curandState *d_rand_state2;
-  checkCudaErrors(
-      cudaMalloc((void **)&d_rand_state2, 1 * sizeof(curandState)));
+  checkCudaErrors(cudaMalloc((void **)&d_rand_state2, 1 * sizeof(curandState)));
 
   // we need that 2nd random state to be initialized for the world creation
   rand_init<<<1, 1>>>(d_rand_state2);

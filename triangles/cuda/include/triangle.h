@@ -26,10 +26,20 @@ public:
     AC = v2 - v0;
     vec3 face_normal_candidate = cross(AB, AC);
 
-    face_normal = dot(face_normal_candidate, average_vn) > 0.0f
-                      ? face_normal_candidate
-                      : -face_normal_candidate;
-    // face_normal = face_normal_candidate;
+    if (dot(face_normal_candidate, average_vn) < 0.0f) {
+      v0 = _v2;
+      v2 = _v1;
+      vn0 = _vn2;
+      vn2 = _vn0;
+    }
+
+    AB = v1 - v0;
+    AC = v2 - v0;
+
+    // face_normal = dot(face_normal_candidate, average_vn) > 0.0f
+    //                   ? face_normal_candidate
+    //                   : -face_normal_candidate;
+    face_normal = (vn0 + vn1 + vn2) / 3.0f;
 
     // face normal was calculated on v0
     dist_to_origin = fabsf(dot(unit_vector(face_normal), v0));
@@ -75,7 +85,7 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
       dot(unit_vector(face_normal), unit_vector(r.direction()));
 
   // parallel, return false;
-  if (fabsf(norm_dot_ray_dir) < 0.001) {
+  if (fabsf(norm_dot_ray_dir) < 0.00001) {
     return false;
   }
 
@@ -96,8 +106,8 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
   // edge 0
   // AB = v1 - v0
   vec3 v0p = rec.p - v0;
-  C = cross(AB, v0p);
-  if (dot(face_normal, C) > 0) {
+  C = cross(v1 - v0, v0p);
+  if (dot(face_normal, C) < 0) {
     // P is on the right side of AB
     return false;
   }
@@ -109,7 +119,7 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
   vec3 v1p = rec.p - v1;
   C = cross(edge1, v1p);
   float u = dot(face_normal, C);
-  if (u > 0) {
+  if (u < 0) {
     return false;
   }
 
@@ -119,7 +129,7 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
   vec3 v2p = rec.p - v2;
   C = cross(edge2, v2p);
   float v = dot(face_normal, C);
-  if (v > 0) {
+  if (v < 0) {
     return false;
   }
 
@@ -194,9 +204,10 @@ void read_triangles(std::vector<triangle> &triangles) {
         //                              vs.at(indices.at(2)),
         //                              vs.at(indices.at(8)), nullptr));
 
-        triangles.push_back(triangle(vs.at(indices.at(0)), vs.at(indices.at(3)),
-                                     vs.at(indices.at(6)), vs.at(indices.at(2)),
-                                     vs.at(indices.at(5)), vs.at(indices.at(8)),
+        // std::cout<<vs.at(indices.at(0))<<std::endl;
+        triangles.push_back(triangle(vs.at(indices.at(6)), vs.at(indices.at(3)),
+                                     vs.at(indices.at(0)), vs.at(indices.at(8)),
+                                     vs.at(indices.at(5)), vs.at(indices.at(2)),
                                      nullptr));
       }
     }
