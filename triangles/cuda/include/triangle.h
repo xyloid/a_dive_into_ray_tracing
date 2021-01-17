@@ -135,9 +135,9 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
 }
 
 
-void read_triangles(vector<triangle> &triangles) {
-  vector<vec3> vns;
-  vector<vec3> vs;
+void read_triangles(std::vector<triangle> &triangles) {
+  std::vector<vec3> vns;
+  std::vector<vec3> vs;
   std::string filename = "objs/dafault_cube_in_triangles.obj";
   // std::string filename = "objs/bunny.obj";
 
@@ -167,15 +167,15 @@ void read_triangles(vector<triangle> &triangles) {
       } else if (type == "f") {
         // find face
         // format 1//1 2//2 3//2
-        vector<int> indices;
+        std::vector<int> indices;
         while (!in.eof()) {
-          string section;
+          std::string section;
           in >> section;
           // std::cout << "section: " << section << std::endl;
           char delimiter = '/';
           std::istringstream sec(section);
-          string num;
-          while (getline(sec, num, delimiter)) {
+          std::string num;
+          while (std::getline(sec, num, delimiter)) {
             if (num.length() == 0) {
               indices.push_back(-1);
             } else {
