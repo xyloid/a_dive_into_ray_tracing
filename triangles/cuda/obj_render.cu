@@ -55,8 +55,8 @@ __device__ vec3 get_color(const ray &r, color **background, hittable **world,
 
   vec3 emitted_rec[depth];
   vec3 attenuation_rec[depth];
-
-  for (int i = 0; i < depth; i++) {
+  int i = 0;
+  for (i = 0; i < depth; i++) {
     hit_record rec;
     if ((*world)->hit(cur_ray, 0.001f, FLT_MAX, rec, local_rand_state)) {
 
@@ -92,18 +92,25 @@ __device__ vec3 get_color(const ray &r, color **background, hittable **world,
         return cur_attenuation;
       }
     } else {
-      // no hit
-      // only have background
       cur_attenuation *= **background;
       while (i-- > 0) {
         cur_attenuation = emitted_rec[i] + cur_attenuation * attenuation_rec[i];
       }
-
       return cur_attenuation;
     }
   }
+
+  // no hit
+  // only have background
+  // cur_attenuation *= vec3(0, 0, 0.73);
+  cur_attenuation *= **background;
+  while (i-- > 0) {
+    cur_attenuation = emitted_rec[i] + cur_attenuation * attenuation_rec[i];
+  }
+
+  // return cur_attenuation;
   // return **background; // exceeded recursion
-  return vec3(0,0,0.73); // exceeded recursion
+  return vec3(0, 0, 0.73); // exceeded recursion
 }
 
 __global__ void rand_init(curandState *rand_state) {

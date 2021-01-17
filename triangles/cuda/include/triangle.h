@@ -4,6 +4,7 @@
 #include "aabb.h"
 #include "hittable.h"
 #include "rtweekend.h"
+#include <float.h>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -18,6 +19,7 @@ public:
       : v0(_v0), v1(_v1), v2(_v2), vn0(_vn0), vn1(_vn1), vn2(_vn2),
         mat_ptr(mat) {
 
+    mat_ptr = mat;
     // cacluate face normal
     vec3 average_vn = (vn0 + vn1 + vn2) / 3.0f;
 
@@ -116,13 +118,21 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
     return false;
   }
 
-// we can not use t_min and t_max here since the t has different unit.
+  // we can not use t_min and t_max here since the t has different unit.
   // if (t < t_min || t > t_max) {
   //   return false;
   // }
 
   vec3 p = r.origin() + t * unit_vector(r.direction());
   // vec3 p = r.at(t);
+
+  vec3 dist = p - r.orig;
+
+  float converted_t = dist.length() / r.dir.length();
+
+  if (converted_t < t_min || converted_t > t_max) {
+    return false;
+  }
 
   vec3 C;
 
@@ -160,7 +170,8 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
   }
 
   // printf("hit %f %f %f\n", rec.p.x(), rec.p.y(), rec.p.z());
-  rec.t = t;
+  // this t is used in bvh traversal
+  rec.t = converted_t;
   rec.p = p;
   rec.u = u;
   rec.v = v;
