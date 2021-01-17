@@ -45,6 +45,7 @@ public:
                                   curandState *local_rand_state) const {
     // generate a random point for diffuse
     vec3 target = rec.p + rec.normal + random_in_unit_sphere(local_rand_state);
+    // vec3 target = rec.p + random_in_unit_sphere(local_rand_state);
     scattered = ray(rec.p, target - rec.p, r_in.time());
     attenuation = albedo->value(rec.u, rec.v, rec.p);
     // attenuation = albedo;

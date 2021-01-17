@@ -405,7 +405,9 @@ __device__ hittable *obj_model(hittable **tri_ptr, int tri_sz,
                                curandState *local_rand_state) {
   hittable **ret = new hittable *[tri_sz + 1];
 
-  auto white = new lambertian(color(.073, .73, .73));
+  auto red = new lambertian(color(.65, .05, .05));
+  auto white = new lambertian(color(.73, .73, .73));
+  auto green = new lambertian(color(.12, .45, .15));
 
   int index = 0;
 
@@ -414,7 +416,13 @@ __device__ hittable *obj_model(hittable **tri_ptr, int tri_sz,
   auto light_2 = new diffuse_light(color(10, 0, 0));
   auto light_3 = new diffuse_light(color(17, 0, 17));
   auto light_4 = new diffuse_light(color(17, 17, 0));
+
   ret[index++] = new sphere(point3(0, 5, 0), 3, light);
+
+  ret[index++] = new xy_rect(-3, 3, -3, 3, -3, green);
+  ret[index++] = new xz_rect(-4, 4, -4, 4, -2, red);
+  ret[index++] = new yz_rect(-4, 4, -4, 4, -2, white);
+  ret[index++] = new yz_rect(-4, 4, -4, 4, 2, white);
 
   vec3 v1(-1, 1, 1);
   vec3 v2(-1, -1, 1);
@@ -439,8 +447,8 @@ __device__ hittable *obj_model(hittable **tri_ptr, int tri_sz,
 
   // ret[index++] = new hittable_list(tri_ptr, 1);
 
-  ret[index++] = new triangle(v3, v7, v5, vn1, vn1, vn1, light);
-  ret[index++] = new triangle(v1, v3, v5, vn1, vn1, vn1, light_1);
+  ret[index++] = new triangle(v3, v7, v5, vn1, vn1, vn1, green);
+  ret[index++] = new triangle(v1, v3, v5, vn1, vn1, vn1, red);
 
   // ret[index++] = new triangle(v8, v6, v7, vn3, vn3, vn3, light);
 
@@ -456,13 +464,13 @@ __device__ hittable *obj_model(hittable **tri_ptr, int tri_sz,
   // ret[index++] = new triangle(v6, v2, v5, vn6, vn6, vn6,
   //                             new lambertian(vec3(.073, .73, .73)));
 
-  ret[index++] = new triangle(v8, v6, v7, vn3, vn3, vn3, light_2);
+  ret[index++] = new triangle(v8, v6, v7, vn3, vn3, vn3, green);
 
-  ret[index++] = new triangle(v6, v5, v7, vn3, vn3, vn3, light_3);
+  ret[index++] = new triangle(v6, v5, v7, vn3, vn3, vn3, red);
 
-  ret[index++] = new triangle(v6, v2, v5, vn6, vn6, vn6, light_4);
+  ret[index++] = new triangle(v6, v2, v5, vn6, vn6, vn6, red);
 
-  ret[index++] = new triangle(v2, v1, v5, vn6, vn6, vn6, light_2);
+  ret[index++] = new triangle(v2, v1, v5, vn6, vn6, vn6, green);
 
   // comment out this line the vertical square disappear
   // the problem seems to be inside bvh algo.
@@ -560,8 +568,8 @@ __global__ void create_world(hittable **d_list, hittable **d_world,
       break;
     default:
     case 10:
-      *background = new color(0.70 / 2, 0.80 / 2, 1.00 / 2);
-      // *background = new color(0.0, 0.0, 0.0);
+      // *background = new color(0.70 / 2, 0.80 / 2, 1.00 / 2);
+      *background = new color(0.0, 0.0, 0.0);
       *d_world = obj_model(tri_ptr, tri_sz, local_rand_state);
       lookfrom = point3(2, 2, 6);
       lookat = point3(0, 0, 0);

@@ -156,10 +156,10 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
   // printf("hit %f %f %f\n", rec.p.x(), rec.p.y(), rec.p.z());
   rec.t = t;
   rec.p = p;
-  rec.mat_ptr = mat_ptr;
   rec.u = u;
   rec.v = v;
-  rec.set_face_normal(r, unit_vector(face_normal));
+  rec.set_face_normal(r, unit_vector(cross(AB, AC)));
+  rec.mat_ptr = mat_ptr;
   return true;
 }
 
