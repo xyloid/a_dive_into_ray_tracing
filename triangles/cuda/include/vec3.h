@@ -35,6 +35,13 @@ public:
     return *this;
   }
 
+  __host__ __device__ inline vec3 &operator=(const vec3 &v) {
+    e[0] = v.e[0];
+    e[1] = v.e[1];
+    e[2] = v.e[2];
+    return *this;
+  }
+
   __host__ __device__ inline vec3 &operator*=(const float t) {
     e[0] *= t;
     e[1] *= t;
@@ -46,7 +53,9 @@ public:
     return *this *= 1.0f / t;
   }
 
-  __host__ __device__ inline float length() const { return sqrt(length_squared()); }
+  __host__ __device__ inline float length() const {
+    return sqrt(length_squared());
+  }
 
   __host__ __device__ inline float length_squared() const {
     return e[0] * e[0] + e[1] * e[1] + e[2] * e[2];

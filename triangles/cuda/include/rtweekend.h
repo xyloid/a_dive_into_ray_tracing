@@ -56,4 +56,7 @@ __device__ inline float clamp(const float &v, const float &lo,
   return (v < lo) ? lo : (hi < v) ? hi : v;
 }
 
+// for the bounding box of the rectangle
+#define THICKNESS 0.01
+
 #endif

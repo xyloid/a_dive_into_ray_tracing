@@ -408,7 +408,7 @@ __device__ hittable *obj_model(hittable **tri_ptr, int tri_sz,
   int index = 0;
 
   auto light = new diffuse_light(color(17, 17, 17));
-  ret[index++] = new sphere(point3(0, 2, 0), 0.5, light);
+  ret[index++] = new sphere(point3(0, 3, 0), 1, light);
   for (int i = 0; i < tri_sz; i++) {
     ret[index++] = tri_ptr[i];
   }
@@ -503,9 +503,9 @@ __global__ void create_world(hittable **d_list, hittable **d_world,
     default:
     case 10:
       *background = new color(0.70 / 2, 0.80 / 2, 1.00 / 2);
-      *background = new color(0.0, 0.0, 0.0);
+      // *background = new color(0.0, 0.0, 0.0);
       *d_world = obj_model(tri_ptr, tri_sz, local_rand_state);
-      lookfrom = point3(0, 4, -4);
+      lookfrom = point3(2, 2, 6);
       lookat = point3(0, 0, 0);
       vfov = 50.0;
       break;

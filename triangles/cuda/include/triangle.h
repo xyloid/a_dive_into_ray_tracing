@@ -26,20 +26,22 @@ public:
     AC = v2 - v0;
     vec3 face_normal_candidate = cross(AB, AC);
 
-    if (dot(face_normal_candidate, average_vn) < 0.0f) {
-      v0 = _v2;
-      v2 = _v1;
-      vn0 = _vn2;
-      vn2 = _vn0;
-    }
+    // if (dot(face_normal_candidate, average_vn) < 0.0f) {
+    //   v0 = _v2;
+    //   v2 = _v1;
+    //   vn0 = _vn2;
+    //   vn2 = _vn0;
+    // }
 
-    AB = v1 - v0;
-    AC = v2 - v0;
+    // AB = v1 - v0;
+    // AC = v2 - v0;
 
     // face_normal = dot(face_normal_candidate, average_vn) > 0.0f
     //                   ? face_normal_candidate
     //                   : -face_normal_candidate;
-    face_normal = (vn0 + vn1 + vn2) / 3.0f;
+    // face_normal = (vn0 + vn1 + vn2) / 3.0f;
+
+    face_normal = cross(AB, AC);
 
     // face normal was calculated on v0
     dist_to_origin = fabsf(dot(unit_vector(face_normal), v0));
@@ -71,6 +73,18 @@ __device__ bool triangle::bounding_box(float time0, float time1,
   point3 max(fmaxf(fmaxf(v0.x(), v1.x()), v2.x()),
              fmaxf(fmaxf(v0.y(), v1.y()), v2.y()),
              fmaxf(fmaxf(v0.z(), v1.z()), v2.z()));
+
+  // if (fabsf(min.x() - max.x()) < THICKNESS) {
+  //   min.e[0] = min.x() - THICKNESS;
+  //   max.e[0] = max.x() + THICKNESS;
+  // }
+
+  for (int i = 0; i < 3; i++) {
+    if (fabsf(min.e[i] - max.e[i]) < THICKNESS) {
+      min.e[i] = min.e[i] - THICKNESS;
+      max.e[i] = max.e[i] + THICKNESS;
+    }
+  }
 
   output_box = aabb(min, max);
 

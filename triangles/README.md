@@ -13,3 +13,8 @@ subgoals below.
     - optimize using pthreads (optional)
     - optimize using cuda (optional)
 
+## Debug
+
+- Custom model with triangles incorrectly rendered
+- Triangle could have zero width bounding box
+    - adding thickness do help the triangle shows up

@@ -44,6 +44,7 @@ public:
     origin = lookfrom;
 
     w = unit_vector(lookfrom - lookat);
+    // w = unit_vector(lookat - lookfrom);
     u = unit_vector(cross(vup, w));
     v = cross(w, u);
 
@@ -65,6 +66,7 @@ public:
                          curandState *local_rand_state) const {
     vec3 rd = lens_radius * random_in_unit_disk(local_rand_state);
     vec3 offset = u * rd.x() + v * rd.y();
+    // direction pointing to negative direction
     return ray(origin + offset,
                lower_left_corner + s * horizontal + t * vertical - origin -
                    offset,
