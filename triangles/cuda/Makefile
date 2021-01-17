@@ -11,7 +11,7 @@ dobj:
 	nvcc -G -v -Xptxas -v -lineinfo ${INC} main.cu  -o obj 
 
 tri:
-	nvcc -G -v -Xptxas -v -lineinfo obj_read.cu ${INC} -o obj
+	nvcc obj_render.cu ${INC} -o obj
 
 clean:
 	rm ./obj

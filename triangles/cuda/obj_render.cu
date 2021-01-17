@@ -392,9 +392,9 @@ __device__ hittable *simple_triangle(curandState local_rand_state) {
   ret[index++] = new xz_rect(123, 423, 147, 412, 554, light);
 
   auto white = new lambertian(color(.073, .73, .73));
-  ret[index++] =
-      new triangle(vec3(123, 0, 150), vec3(423, 0, 150), vec3(273, 50, (500 + 150) / 2),
-                   vec3(0, 1, 0), vec3(0, 1, 0), vec3(0, 1, 0), white);
+  ret[index++] = new triangle(vec3(123, 0, 150), vec3(423, 0, 150),
+                              vec3(273, 50, (500 + 150) / 2), vec3(0, 1, 0),
+                              vec3(0, 1, 0), vec3(0, 1, 0), white);
 
   ret[index++] = new sphere(point3(273, 100, (500 + 150) / 2), 10,
                             new lambertian(color(0.5, 0.5, 0.5)));
@@ -507,9 +507,68 @@ __global__ void free_world(hittable **d_list, hittable **d_world,
   delete *d_camera;
 }
 
+__global__ void set_triangle(triangle *tri_data, triangle **tri_ptr,
+                             int tri_data_size, int max_x, int max_y) {
+  int i = threadIdx.x + blockIdx.x * blockDim.x;
+  int j = threadIdx.y + blockIdx.y * blockDim.y;
+  if ((i >= max_x) || (j >= max_y))
+    return;
+  int index = j * max_x + i;
+  // printf("%d %d\n", index, tri_data_size);
+  if (index < tri_data_size) {
+    // printf("%d\n", index);
+    tri_data[index].mat_ptr = new lambertian(color(.73, .73, .73));
+    tri_ptr[index] = &tri_data[index];
+  }
+  // printf("\n");
+}
+
 int main() {
   cudaDeviceSetLimit(cudaLimitStackSize, 32768ULL);
 
+  /**
+   *    read obj file
+   */
+
+  // read data from file and generate a vector of triangles
+  std::vector<triangle> triangles;
+  read_triangles(triangles);
+
+  // allocate memory in device memory
+  triangle *tri_data;
+  int tri_sz = triangles.size();
+
+  checkCudaErrors(
+      cudaMalloc((void **)&tri_data, triangles.size() * sizeof(triangle)));
+
+  checkCudaErrors(cudaDeviceSynchronize());
+
+  // copy the triangles to the device memory
+  checkCudaErrors(cudaMemcpy((void *)tri_data, (void *)triangles.data(),
+                             tri_sz * sizeof(triangle),
+                             cudaMemcpyHostToDevice));
+  checkCudaErrors(cudaDeviceSynchronize());
+
+  // this is like d_list
+  triangle **tri_data_ptr;
+  checkCudaErrors(
+      cudaMalloc((void **)&tri_data_ptr, tri_sz * sizeof(triangle *)));
+
+  checkCudaErrors(cudaDeviceSynchronize());
+
+  // initialize **tri_data_ptr
+  int dnx = 128;
+  int dny = tri_sz / 128 + 1;
+
+  dim3 dblocks(dnx / 8 + 1, dny / 8 + 1);
+  dim3 dthreads(8, 8);
+
+  set_triangle<<<dblocks, dthreads>>>(tri_data, tri_data_ptr, tri_sz, dnx, dny);
+  checkCudaErrors(cudaGetLastError());
+  checkCudaErrors(cudaDeviceSynchronize());
+  /**
+   *    read earthmap
+   */
   const char *filename = "earthmap.jpeg";
 
   int width, height;
@@ -532,6 +591,10 @@ int main() {
   color **background_color;
   checkCudaErrors(
       cudaMallocManaged((void **)&background_color, sizeof(color *)));
+
+  /**
+   *    setup picture information
+   */
 
   const auto aspect_ratio = 1.0; // 3.0 / 2.0;
   int nx = 800;                  // 1200;
@@ -571,7 +634,6 @@ int main() {
   checkCudaErrors(
       cudaMalloc((void **)&d_list, num_hitables * sizeof(hittable *)));
 
-      
   hittable **d_world;
   // checkCudaErrors(cudaMalloc((void **)&d_world, sizeof(hittable *)));
   checkCudaErrors(cudaMalloc((void **)&d_world, sizeof(bvh_node *)));
@@ -591,7 +653,7 @@ int main() {
   // Render our buffer
   dim3 blocks(nx / tx + 1, ny / ty + 1);
   dim3 threads(tx, ty);
-  
+
   render_init<<<blocks, threads>>>(nx, ny, d_rand_state);
 
   checkCudaErrors(cudaGetLastError());
