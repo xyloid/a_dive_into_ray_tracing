@@ -102,12 +102,13 @@ __device__ vec3 get_color(const ray &r, color **background, hittable **world,
       return cur_attenuation;
     }
   }
-  return **background; // exceeded recursion
+  // return **background; // exceeded recursion
+  return vec3(0,0,0.73); // exceeded recursion
 }
 
 __global__ void rand_init(curandState *rand_state) {
   if (threadIdx.x == 0 && blockIdx.x == 0) {
-    curand_init(1984, 0, 0, rand_state);
+    curand_init(1984, 3, 17, rand_state);
   }
 }
 
@@ -440,29 +441,8 @@ __device__ hittable *obj_model(hittable **tri_ptr, int tri_sz,
   vec3 vn5(-1, 0, 0);
   vec3 vn6(0, 0, 1);
 
-  // ret[index++] = new triangle(v3, v7, v5, vn1, vn1, vn1,
-  //                             new lambertian(color(.073, .73, .73)));
-  // ret[index++] = new triangle(v1, v3, v5, vn1, vn1, vn1,
-  //                             new lambertian(color(.073, .73, .73)));
-
-  // ret[index++] = new hittable_list(tri_ptr, 1);
-
   ret[index++] = new triangle(v3, v7, v5, vn1, vn1, vn1, green);
   ret[index++] = new triangle(v1, v3, v5, vn1, vn1, vn1, red);
-
-  // ret[index++] = new triangle(v8, v6, v7, vn3, vn3, vn3, light);
-
-  // ret[index++] = new xz_rect(-0.5, 0.5, -0.5, 0.5, 0.5,
-  //                            new lambertian(color(.73, .073, .73)));
-
-  // ret[index++] = new triangle(v8, v6, v7, vn3, vn3, vn3,
-  //                             new lambertian(vec3(.073, .73, .73)));
-
-  // ret[index++] = new triangle(v6, v5, v7, vn3, vn3, vn3,
-  //                             new lambertian(vec3(.073, .73, .73)));
-
-  // ret[index++] = new triangle(v6, v2, v5, vn6, vn6, vn6,
-  //                             new lambertian(vec3(.073, .73, .73)));
 
   ret[index++] = new triangle(v8, v6, v7, vn3, vn3, vn3, green);
 

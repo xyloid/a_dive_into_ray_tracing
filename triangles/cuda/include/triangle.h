@@ -116,7 +116,13 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
     return false;
   }
 
+// we can not use t_min and t_max here since the t has different unit.
+  // if (t < t_min || t > t_max) {
+  //   return false;
+  // }
+
   vec3 p = r.origin() + t * unit_vector(r.direction());
+  // vec3 p = r.at(t);
 
   vec3 C;
 
