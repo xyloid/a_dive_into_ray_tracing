@@ -111,6 +111,12 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
     return false;
   }
 
+  // check if the light shoot from out side, I want to see if there is a lot
+  // bouncing in side the box.
+  if (dot(r.dir, face_normal_unit) < 0) {
+    return false;
+  }
+
   // compute t
   float t =
       -(dot(face_normal_unit, r.origin()) + dist_to_origin) / norm_dot_ray_dir;
@@ -247,10 +253,10 @@ void read_triangles(std::vector<triangle> &triangles) {
         //                              vs.at(indices.at(8)), nullptr));
 
         // std::cout<<vs.at(indices.at(0))<<std::endl;
-        triangles.push_back(triangle(vs.at(indices.at(6)), vs.at(indices.at(3)),
-                                     vs.at(indices.at(0)), vns.at(indices.at(8)),
-                                     vns.at(indices.at(5)), vns.at(indices.at(2)),
-                                     nullptr));
+        triangles.push_back(
+            triangle(vs.at(indices.at(6)), vs.at(indices.at(3)),
+                     vs.at(indices.at(0)), vns.at(indices.at(8)),
+                     vns.at(indices.at(5)), vns.at(indices.at(2)), nullptr));
       }
     }
     infile.close();
