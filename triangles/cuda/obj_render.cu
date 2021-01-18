@@ -705,7 +705,7 @@ int main() {
   const auto aspect_ratio = 1.0; // 3.0 / 2.0;
   int nx = 800 / 2;              // 1200;
   int ny = static_cast<int>(nx / aspect_ratio);
-  int ns = 50; // 500;
+  int ns = 10; // 500;
   //   int ns = 500;
   int tx = 8;
   int ty = 8;
