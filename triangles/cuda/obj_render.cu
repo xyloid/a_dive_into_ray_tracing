@@ -468,9 +468,17 @@ __device__ hittable *obj_model(triangle *tri_data, int tri_sz,
     // printf("%f, %f, %f\n", tri_data[i].v0.x(), tri_data[i].v0.y(),
     //        tri_data[i].v0.z());
 
-    ret[index++] =
-        new triangle(tri_data[i].v0, tri_data[i].v1, tri_data[i].v2,
-                     tri_data[i].vn0, tri_data[i].vn1, tri_data[i].vn2, red);
+    // ret[index++] = new triangle(tri_data[i].v0, tri_data[i].v1,
+    //    tri_data[i].v2, tri_data[i].vn0, tri_data[i].vn1,
+    //                             tri_data[i].vn2, index % 2 == 0 ? red :
+    //                             green);
+
+    ret[index++] = new triangle(
+        vec3(tri_data[i].v0.x(), tri_data[i].v0.y(), tri_data[i].v0.z()),
+        vec3(tri_data[i].v1.x(), tri_data[i].v1.y(), tri_data[i].v1.z()),
+        vec3(tri_data[i].v2.x(), tri_data[i].v2.y(), tri_data[i].v2.z()),
+        tri_data[i].vn0, tri_data[i].vn1,
+        tri_data[i].vn2, index % 2 == 0 ? red : green);
   }
 
   return new bvh_node(ret, 0, index, 0.0, 1.0, local_rand_state);
@@ -657,9 +665,9 @@ int main() {
   dim3 dblocks(dnx / 8 + 1, dny / 8 + 1);
   dim3 dthreads(8, 8);
 
-  set_triangle<<<dblocks, dthreads>>>(tri_data, tri_data_ptr, tri_sz, dnx, dny);
-  checkCudaErrors(cudaGetLastError());
-  checkCudaErrors(cudaDeviceSynchronize());
+  // set_triangle<<<dblocks, dthreads>>>(tri_data, tri_data_ptr, tri_sz, dnx,
+  // dny); checkCudaErrors(cudaGetLastError());
+  // checkCudaErrors(cudaDeviceSynchronize());
 
   /**
    *    read earthmap
