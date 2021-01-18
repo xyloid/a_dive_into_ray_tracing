@@ -11,7 +11,7 @@ dobj:
 	nvcc -G -v -Xptxas -v -lineinfo ${INC} main.cu  -o obj 
 
 tri:
-	nvcc -G obj_render.cu ${INC} -o obj
+	nvcc -G  -Xptxas -v -lineinfo obj_render.cu ${INC} -o obj -arch=sm_75 -gencode=arch=compute_75,code=sm_75
 
 clean:
 	rm ./obj

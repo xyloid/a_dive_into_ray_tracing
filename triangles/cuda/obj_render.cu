@@ -109,6 +109,7 @@ __device__ vec3 get_color(const ray &r, color **background, hittable **world,
   }
 
   return cur_attenuation;
+
   // return **background; // exceeded recursion
   // return vec3(0, 0, 0.73); // exceeded recursion
 }
@@ -140,14 +141,16 @@ __global__ void render(vec3 *fb, int max_x, int max_y, int ns, camera **cam,
   int j = threadIdx.y + blockIdx.y * blockDim.y;
   if ((i >= max_x) || (j >= max_y))
     return;
+  
   int pixel_index = j * max_x + i;
+
   curandState *local_rand_state = &rand_state[pixel_index];
   vec3 col(0, 0, 0);
   for (int s = 0; s < ns; s++) {
     float u = float(i + curand_uniform(local_rand_state)) / float(max_x);
     float v = float(j + curand_uniform(local_rand_state)) / float(max_y);
-    ray r = (*cam)->get_ray(u, v, local_rand_state);
-    col += get_color(r, background, world, local_rand_state);
+    // ray r = (*cam)->get_ray(u, v, local_rand_state);
+    // col += get_color(r, background, world, local_rand_state);
   }
   rand_state[pixel_index] = *local_rand_state;
   col /= float(ns);
@@ -411,7 +414,7 @@ __device__ hittable *simple_triangle(curandState *local_rand_state) {
 
 __device__ hittable *obj_model(triangle *tri_data, int tri_sz,
                                curandState *local_rand_state) {
-  hittable **ret = new hittable *[tri_sz + 6];
+  hittable **ret = new hittable *[tri_sz + 5];
 
   auto red = new lambertian(color(.65, .05, .05));
   auto white = new lambertian(color(.73, .73, .73));
@@ -614,10 +617,10 @@ __global__ void set_triangle(triangle *tri_data, hittable **tri_ptr,
     // printf("%d\n", index);
     tri_data[index].mat_ptr = new lambertian(color(.073, .73, .73));
     // new diffuse_light(color(15, 15, 15));
-    tri_ptr[index] =
-        new triangle(tri_data[index].v0, tri_data[index].v1, tri_data[index].v2,
-                     tri_data[index].vn0, tri_data[index].vn1,
-                     tri_data[index].vn2, new lambertian(color(.73, .73, .73)));
+    // tri_ptr[index] =
+    //     new triangle(tri_data[index].v0, tri_data[index].v1, tri_data[index].v2,
+    //                  tri_data[index].vn0, tri_data[index].vn1,
+    //                  tri_data[index].vn2, new lambertian(color(.73, .73, .73)));
     // tri_ptr[index] =
     //     new triangle(tri_data[index].v0, tri_data[index].v1,
     //     tri_data[index].v2,
@@ -705,7 +708,7 @@ int main() {
   const auto aspect_ratio = 1.0; // 3.0 / 2.0;
   int nx = 800 / 2;              // 1200;
   int ny = static_cast<int>(nx / aspect_ratio);
-  int ns = 10; // 500;
+  int ns = 1; // 500;
   //   int ns = 500;
   int tx = 8;
   int ty = 8;
