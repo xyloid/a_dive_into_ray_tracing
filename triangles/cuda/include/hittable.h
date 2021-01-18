@@ -26,7 +26,7 @@ struct hit_record {
     // effect on dielectrics. normal = front_face ? outward_normal :
     // outward_normal;
     // normal = front_face ? outward_normal : -outward_normal;
-    normal = front_face ? outward_normal : outward_normal;
+    normal = front_face ? outward_normal : -outward_normal;
   }
 };
 

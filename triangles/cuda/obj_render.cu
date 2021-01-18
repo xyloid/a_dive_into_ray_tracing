@@ -411,7 +411,7 @@ __device__ hittable *simple_triangle(curandState *local_rand_state) {
 
 __device__ hittable *obj_model(triangle *tri_data, int tri_sz,
                                curandState *local_rand_state) {
-  hittable **ret = new hittable *[tri_sz + 5];
+  hittable **ret = new hittable *[tri_sz + 6];
 
   auto red = new lambertian(color(.65, .05, .05));
   auto white = new lambertian(color(.73, .73, .73));
@@ -425,10 +425,13 @@ __device__ hittable *obj_model(triangle *tri_data, int tri_sz,
   auto light_3 = new diffuse_light(color(17, 0, 17));
   auto light_4 = new diffuse_light(color(17, 17, 0));
 
-  ret[index++] = new sphere(point3(0, 5, 0), 3, light);
+  // ret[index++] = new sphere(point3(0, 5, 0), 3, light);
 
   ret[index++] = new xy_rect(-3, 3, -3, 3, -3, green);
+
   ret[index++] = new xz_rect(-4, 4, -4, 4, -2, red);
+  ret[index++] = new xz_rect(-4, 4, -4, 4, 2, light);
+
   ret[index++] = new yz_rect(-4, 4, -4, 4, -2, white);
   ret[index++] = new yz_rect(-4, 4, -4, 4, 2, white);
 
@@ -477,8 +480,8 @@ __device__ hittable *obj_model(triangle *tri_data, int tri_sz,
         vec3(tri_data[i].v0.x(), tri_data[i].v0.y(), tri_data[i].v0.z()),
         vec3(tri_data[i].v1.x(), tri_data[i].v1.y(), tri_data[i].v1.z()),
         vec3(tri_data[i].v2.x(), tri_data[i].v2.y(), tri_data[i].v2.z()),
-        tri_data[i].vn0, tri_data[i].vn1,
-        tri_data[i].vn2, index % 2 == 0 ? red : green);
+        tri_data[i].vn0, tri_data[i].vn1, tri_data[i].vn2,
+        index % 2 == 0 ? red : green);
   }
 
   return new bvh_node(ret, 0, index, 0.0, 1.0, local_rand_state);

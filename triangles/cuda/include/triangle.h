@@ -104,16 +104,20 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
   // printf("enter %f, %f, %f,  -  %f, %f, %f\n", r.orig.x(), r.orig.y(),
   //        r.orig.z(), r.dir.x(), r.dir.y(), r.dir.z());
 
-  float norm_dot_ray_dir = dot(face_normal_unit, unit_vector(r.direction()));
-
-  // parallel, return false;
-  if (fabsf(norm_dot_ray_dir) < 0.00001) {
-    return false;
-  }
-
   // check if the light shoot from out side, I want to see if there is a lot
   // bouncing in side the box.
   if (dot(r.dir, face_normal_unit) < 0) {
+    // value > 0, then the face normal and ray has same direction, should not
+    // bouncing then.
+    return false;
+  }
+
+  vec3 ray_dir_unit = unit_vector(r.direction());
+
+  float norm_dot_ray_dir = dot(face_normal_unit, ray_dir_unit);
+
+  // parallel, return false;
+  if (fabsf(norm_dot_ray_dir) < 0.00001) {
     return false;
   }
 
@@ -132,7 +136,7 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
   //   return false;
   // }
 
-  vec3 p = r.origin() + t * unit_vector(r.direction());
+  vec3 p = r.origin() + t * ray_dir_unit;
   // vec3 p = r.at(t);
 
   vec3 dist = p - r.orig;
