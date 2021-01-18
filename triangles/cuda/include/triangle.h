@@ -19,14 +19,15 @@ public:
       : v0(_v0), v1(_v1), v2(_v2), vn0(_vn0), vn1(_vn1), vn2(_vn2),
         mat_ptr(mat) {
 
-    mat_ptr = mat;
+    // mat_ptr = mat;
     // cacluate face normal
-    vec3 average_vn = (vn0 + vn1 + vn2) / 3.0f;
+    // vec3 average_vn = (vn0 + vn1 + vn2) / 3.0f;
 
     // counter clockwise
     AB = v1 - v0;
     AC = v2 - v0;
-    vec3 face_normal_candidate = cross(AB, AC);
+
+    // vec3 face_normal_candidate = cross(AB, AC);
 
     // if (dot(face_normal_candidate, average_vn) < 0.0f) {
     //   v0 = _v2;
@@ -45,8 +46,10 @@ public:
 
     face_normal = cross(AB, AC);
 
+    face_normal_unit = unit_vector(face_normal);
+
     // face normal was calculated on v0
-    dist_to_origin = fabsf(dot(unit_vector(face_normal), v0));
+    dist_to_origin = fabsf(dot(face_normal_unit, v0));
   }
 
   __device__ virtual bool hit(const ray &r, float t_min, float t_max,
@@ -62,6 +65,7 @@ public:
   vec3 vn0, vn1, vn2;
   // https://stackoverflow.com/questions/13689632/converting-vertex-normals-to-face-normals
   vec3 face_normal;
+  vec3 face_normal_unit;
   float dist_to_origin;
   vec3 AB, AC;
   material *mat_ptr;
@@ -100,8 +104,7 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
   // printf("enter %f, %f, %f,  -  %f, %f, %f\n", r.orig.x(), r.orig.y(),
   //        r.orig.z(), r.dir.x(), r.dir.y(), r.dir.z());
 
-  float norm_dot_ray_dir =
-      dot(unit_vector(face_normal), unit_vector(r.direction()));
+  float norm_dot_ray_dir = dot(face_normal_unit, unit_vector(r.direction()));
 
   // parallel, return false;
   if (fabsf(norm_dot_ray_dir) < 0.00001) {
@@ -109,8 +112,8 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
   }
 
   // compute t
-  float t = -(dot(unit_vector(face_normal), r.origin()) + dist_to_origin) /
-            norm_dot_ray_dir;
+  float t =
+      -(dot(face_normal_unit, r.origin()) + dist_to_origin) / norm_dot_ray_dir;
 
   // the triangle is behind the eye
   if (t < 0) {
@@ -128,6 +131,8 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
 
   vec3 dist = p - r.orig;
 
+  // convert t to the comparable value to other shape primitives
+  // t should be used determine which p is at the front.
   float converted_t = dist.length() / r.dir.length();
 
   if (converted_t < t_min || converted_t > t_max) {
@@ -175,7 +180,7 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
   rec.p = p;
   rec.u = u;
   rec.v = v;
-  rec.set_face_normal(r, unit_vector(cross(AB, AC)));
+  rec.set_face_normal(r, face_normal_unit);
   rec.mat_ptr = mat_ptr;
   return true;
 }
@@ -183,9 +188,9 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
 void read_triangles(std::vector<triangle> &triangles) {
   std::vector<vec3> vns;
   std::vector<vec3> vs;
-  std::string filename = "objs/dafault_cube_in_triangles.obj";
+  // std::string filename = "objs/dafault_cube_in_triangles.obj";
   // std::string filename = "objs/bunny.obj";
-  // std::string filename = "objs/ball_in_triangles.obj";
+  std::string filename = "objs/ball_in_triangles.obj";
 
   // std::ifstream infile("objs/test.obj");
   std::ifstream infile(filename);
@@ -243,8 +248,8 @@ void read_triangles(std::vector<triangle> &triangles) {
 
         // std::cout<<vs.at(indices.at(0))<<std::endl;
         triangles.push_back(triangle(vs.at(indices.at(6)), vs.at(indices.at(3)),
-                                     vs.at(indices.at(0)), vs.at(indices.at(8)),
-                                     vs.at(indices.at(5)), vs.at(indices.at(2)),
+                                     vs.at(indices.at(0)), vns.at(indices.at(8)),
+                                     vns.at(indices.at(5)), vns.at(indices.at(2)),
                                      nullptr));
       }
     }

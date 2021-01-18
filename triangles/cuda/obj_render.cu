@@ -108,9 +108,9 @@ __device__ vec3 get_color(const ray &r, color **background, hittable **world,
     cur_attenuation = emitted_rec[i] + cur_attenuation * attenuation_rec[i];
   }
 
-  // return cur_attenuation;
+  return cur_attenuation;
   // return **background; // exceeded recursion
-  return vec3(0, 0, 0.73); // exceeded recursion
+  // return vec3(0, 0, 0.73); // exceeded recursion
 }
 
 __global__ void rand_init(curandState *rand_state) {
@@ -409,9 +409,9 @@ __device__ hittable *simple_triangle(curandState *local_rand_state) {
   return new bvh_node(ret, 0, index, 0, 1, local_rand_state);
 }
 
-__device__ hittable *obj_model(hittable **tri_ptr, int tri_sz,
+__device__ hittable *obj_model(triangle *tri_data, int tri_sz,
                                curandState *local_rand_state) {
-  hittable **ret = new hittable *[tri_sz + 1];
+  hittable **ret = new hittable *[tri_sz + 5];
 
   auto red = new lambertian(color(.65, .05, .05));
   auto white = new lambertian(color(.73, .73, .73));
@@ -448,23 +448,30 @@ __device__ hittable *obj_model(hittable **tri_ptr, int tri_sz,
   vec3 vn5(-1, 0, 0);
   vec3 vn6(0, 0, 1);
 
-  ret[index++] = new triangle(v3, v7, v5, vn1, vn1, vn1, green);
-  ret[index++] = new triangle(v1, v3, v5, vn1, vn1, vn1, red);
+  // ret[index++] = new triangle(v3, v7, v5, vn1, vn1, vn1, green);
+  // ret[index++] = new triangle(v1, v3, v5, vn1, vn1, vn1, red);
 
-  ret[index++] = new triangle(v8, v6, v7, vn3, vn3, vn3, green);
+  // ret[index++] = new triangle(v8, v6, v7, vn3, vn3, vn3, green);
 
-  ret[index++] = new triangle(v6, v5, v7, vn3, vn3, vn3, red);
+  // ret[index++] = new triangle(v6, v5, v7, vn3, vn3, vn3, red);
 
-  ret[index++] = new triangle(v6, v2, v5, vn6, vn6, vn6, red);
+  // ret[index++] = new triangle(v6, v2, v5, vn6, vn6, vn6, red);
 
-  ret[index++] = new triangle(v2, v1, v5, vn6, vn6, vn6, green);
+  // ret[index++] = new triangle(v2, v1, v5, vn6, vn6, vn6, green);
 
   // comment out this line the vertical square disappear
   // the problem seems to be inside bvh algo.
 
-  // for (int i = 0; i < tri_sz; i++) {
-  //   ret[index++] = tri_ptr[i];
-  // }
+  for (int i = 0; i < tri_sz; i++) {
+    // ((triangle *)tri_ptr[i])->mat_ptr = red;
+    // triangle *tri = (triangle *)tri_ptr[i];
+    // printf("%f, %f, %f\n", tri_data[i].v0.x(), tri_data[i].v0.y(),
+    //        tri_data[i].v0.z());
+
+    ret[index++] =
+        new triangle(tri_data[i].v0, tri_data[i].v1, tri_data[i].v2,
+                     tri_data[i].vn0, tri_data[i].vn1, tri_data[i].vn2, red);
+  }
 
   return new bvh_node(ret, 0, index, 0.0, 1.0, local_rand_state);
 }
@@ -473,7 +480,7 @@ __global__ void create_world(hittable **d_list, hittable **d_world,
                              camera **d_camera, int nx, int ny,
                              curandState *rand_state, unsigned char *data,
                              int w, int h, color **background,
-                             hittable **tri_ptr, int tri_sz) {
+                             triangle *tri_data, int tri_sz) {
   if (threadIdx.x == 0 && blockIdx.x == 0) {
 
     curandState *local_rand_state = rand_state;
@@ -557,7 +564,7 @@ __global__ void create_world(hittable **d_list, hittable **d_world,
     case 10:
       // *background = new color(0.70 / 2, 0.80 / 2, 1.00 / 2);
       *background = new color(0.0, 0.0, 0.0);
-      *d_world = obj_model(tri_ptr, tri_sz, local_rand_state);
+      *d_world = obj_model(tri_data, tri_sz, local_rand_state);
       lookfrom = point3(2, 2, 6);
       lookat = point3(0, 0, 0);
       vfov = 50.0;
@@ -596,10 +603,10 @@ __global__ void set_triangle(triangle *tri_data, hittable **tri_ptr,
     // printf("%d\n", index);
     tri_data[index].mat_ptr = new lambertian(color(.073, .73, .73));
     // new diffuse_light(color(15, 15, 15));
-    tri_ptr[index] = new triangle(tri_data[index].v0, tri_data[index].v1,
-                                  tri_data[index].v2, tri_data[index].vn0,
-                                  tri_data[index].vn1, tri_data[index].vn2,
-                                  new lambertian(color(.073, .73, .73)));
+    tri_ptr[index] =
+        new triangle(tri_data[index].v0, tri_data[index].v1, tri_data[index].v2,
+                     tri_data[index].vn0, tri_data[index].vn1,
+                     tri_data[index].vn2, new lambertian(color(.73, .73, .73)));
     // tri_ptr[index] =
     //     new triangle(tri_data[index].v0, tri_data[index].v1,
     //     tri_data[index].v2,
@@ -687,7 +694,7 @@ int main() {
   const auto aspect_ratio = 1.0; // 3.0 / 2.0;
   int nx = 800 / 2;              // 1200;
   int ny = static_cast<int>(nx / aspect_ratio);
-  int ns = 100; // 500;
+  int ns = 50; // 500;
   //   int ns = 500;
   int tx = 8;
   int ty = 8;
@@ -732,8 +739,8 @@ int main() {
   checkCudaErrors(cudaDeviceSynchronize());
 
   create_world<<<1, 1>>>(d_list, d_world, d_camera, nx, ny, d_rand_state2,
-                         device_data, width, height, background_color,
-                         tri_data_ptr, tri_sz);
+                         device_data, width, height, background_color, tri_data,
+                         tri_sz);
   checkCudaErrors(cudaGetLastError());
   checkCudaErrors(cudaDeviceSynchronize());
 
