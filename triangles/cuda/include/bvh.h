@@ -84,7 +84,8 @@ __device__ bool bvh_node::hit(const ray &r, float t_min, float t_max,
 
   const int stack_sz = 4096;
 
-  hittable *stack[stack_sz];
+  // hittable *stack[stack_sz];
+  hittable **stack = new hittable *[stack_sz];
   hittable **stack_ptr = stack;
   *stack_ptr++ = NULL;
 
@@ -130,12 +131,15 @@ __device__ bool bvh_node::hit(const ray &r, float t_min, float t_max,
         node = hit_left ? (bvh_node *)l_child : (bvh_node *)r_child;
         if (hit_left && hit_right && (stack_ptr - stack) < (stack_sz - 1)) {
           *stack_ptr++ = r_child;
+        } else {
+          printf("stack overflow!\n");
         }
       }
     }
 
   } while (node != NULL);
 
+  delete[] stack;
   return is_hit;
 }
 

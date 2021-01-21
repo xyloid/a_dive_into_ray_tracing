@@ -64,7 +64,13 @@ public:
 
   __device__ ray get_ray(float s, float t,
                          curandState *local_rand_state) const {
+    /**
+     * The below line is the difference
+     */
     vec3 rd = lens_radius * random_in_unit_disk(local_rand_state);
+    // vec3 rd = random_in_unit_disk(local_rand_state);
+    // vec3 rd2(lens_radius * rd[0], lens_radius * rd[1], lens_radius * rd[2]);
+
     vec3 offset = u * rd.x() + v * rd.y();
     // printf("offset %f %f %f\n", offset.x(), offset.y(), offset.z());
     // direction pointing to negative direction
@@ -72,6 +78,7 @@ public:
                lower_left_corner + s * horizontal + t * vertical - origin -
                    offset,
                random_float(time0, time1, local_rand_state));
+    // return ray();
   }
 
 private:

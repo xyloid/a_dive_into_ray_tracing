@@ -131,7 +131,7 @@ __global__ void render_init(int max_x, int max_y, curandState *rand_state) {
   // see Issue#2: Each thread gets different seed, same sequence for performance
   // improvement of about 2x!
   // curand_init(1984 + pixel_index, 0, 0, &rand_state[pixel_index]);
-  curand_init(1984 + pixel_index, i, j, &rand_state[pixel_index]);
+  curand_init(1984, 0, 0, &rand_state[pixel_index]);
 }
 
 __global__ void render(vec3 *fb, int max_x, int max_y, int ns, camera **cam,
@@ -141,7 +141,7 @@ __global__ void render(vec3 *fb, int max_x, int max_y, int ns, camera **cam,
   int j = threadIdx.y + blockIdx.y * blockDim.y;
   if ((i >= max_x) || (j >= max_y))
     return;
-  
+
   int pixel_index = j * max_x + i;
 
   curandState *local_rand_state = &rand_state[pixel_index];
@@ -149,8 +149,8 @@ __global__ void render(vec3 *fb, int max_x, int max_y, int ns, camera **cam,
   for (int s = 0; s < ns; s++) {
     float u = float(i + curand_uniform(local_rand_state)) / float(max_x);
     float v = float(j + curand_uniform(local_rand_state)) / float(max_y);
-    // ray r = (*cam)->get_ray(u, v, local_rand_state);
-    // col += get_color(r, background, world, local_rand_state);
+    ray r = (*cam)->get_ray(u, v, local_rand_state);
+    col += get_color(r, background, world, local_rand_state);
   }
   rand_state[pixel_index] = *local_rand_state;
   col /= float(ns);
@@ -618,9 +618,11 @@ __global__ void set_triangle(triangle *tri_data, hittable **tri_ptr,
     tri_data[index].mat_ptr = new lambertian(color(.073, .73, .73));
     // new diffuse_light(color(15, 15, 15));
     // tri_ptr[index] =
-    //     new triangle(tri_data[index].v0, tri_data[index].v1, tri_data[index].v2,
+    //     new triangle(tri_data[index].v0, tri_data[index].v1,
+    //     tri_data[index].v2,
     //                  tri_data[index].vn0, tri_data[index].vn1,
-    //                  tri_data[index].vn2, new lambertian(color(.73, .73, .73)));
+    //                  tri_data[index].vn2, new lambertian(color(.73, .73,
+    //                  .73)));
     // tri_ptr[index] =
     //     new triangle(tri_data[index].v0, tri_data[index].v1,
     //     tri_data[index].v2,
@@ -736,6 +738,13 @@ int main() {
   checkCudaErrors(cudaGetLastError());
   checkCudaErrors(cudaDeviceSynchronize());
 
+  dim3 blocks(nx / tx + 1, ny / ty + 1);
+  dim3 threads(tx, ty);
+
+  render_init<<<blocks, threads>>>(nx, ny, d_rand_state);
+  checkCudaErrors(cudaGetLastError());
+  checkCudaErrors(cudaDeviceSynchronize());
+
   // make our world of hitables & the camera
   hittable **d_list;
   int num_hitables = 22 * 22 + 1 + 3;
@@ -752,22 +761,22 @@ int main() {
   checkCudaErrors(cudaGetLastError());
   checkCudaErrors(cudaDeviceSynchronize());
 
+  std::cerr << "initialize world \n";
+
   create_world<<<1, 1>>>(d_list, d_world, d_camera, nx, ny, d_rand_state2,
                          device_data, width, height, background_color, tri_data,
                          tri_sz);
   checkCudaErrors(cudaGetLastError());
   checkCudaErrors(cudaDeviceSynchronize());
 
+  std::cerr << "start rendering \n";
   clock_t start, stop;
   start = clock();
   // Render our buffer
-  dim3 blocks(nx / tx + 1, ny / ty + 1);
-  dim3 threads(tx, ty);
-
-  render_init<<<blocks, threads>>>(nx, ny, d_rand_state);
 
   checkCudaErrors(cudaGetLastError());
   checkCudaErrors(cudaDeviceSynchronize());
+
   render<<<blocks, threads>>>(fb, nx, ny, ns, d_camera, d_world, d_rand_state,
                               background_color);
   checkCudaErrors(cudaGetLastError());
