@@ -749,6 +749,8 @@ int main() {
   checkCudaErrors(cudaGetLastError());
   checkCudaErrors(cudaDeviceSynchronize());
 
+  std::cerr << "create world\n";
+
   create_world<<<1, 1>>>(d_list, d_world, d_camera, nx, ny, d_rand_state2,
                          device_data, width, height, background_color, tri_data,
                          tri_sz);
@@ -765,6 +767,9 @@ int main() {
 
   checkCudaErrors(cudaGetLastError());
   checkCudaErrors(cudaDeviceSynchronize());
+
+  std::cerr << "start render\n";
+
   render<<<blocks, threads>>>(fb, nx, ny, ns, d_camera, d_world, d_rand_state,
                               background_color);
   checkCudaErrors(cudaGetLastError());

@@ -78,12 +78,29 @@ __device__ bool bvh_node::bounding_box(float time0, float time1,
 __device__ bool bvh_node::hit(const ray &r, float t_min, float t_max,
                               hit_record &rec,
                               curandState *local_rand_state) const {
+  // printf("enter hit\n");
+
   if (!box.hit(r, t_min, t_max)) {
     return false;
   }
 
-  hittable *stack[256];
-  hittable **stack_ptr = stack;
+  const int stack_size = 256;
+
+  // printf("1\n");
+  int malloc_count = 0;
+
+  hittable **stack = NULL;
+  while (stack == NULL) {
+    stack = new hittable *[stack_size];
+    malloc_count++;
+
+    if (malloc_count > 50) {
+      printf("malloc limit reached.\n");
+      return false;
+    }
+  }
+
+  hittable **stack_ptr = &stack[0];
   *stack_ptr++ = NULL;
 
   bvh_node *node = (bvh_node *)this;
@@ -127,13 +144,18 @@ __device__ bool bvh_node::hit(const ray &r, float t_min, float t_max,
       } else {
         node = hit_left ? (bvh_node *)l_child : (bvh_node *)r_child;
         if (hit_left && hit_right) {
-          *stack_ptr++ = r_child;
+          if ((stack_ptr - stack) < stack_size) {
+            *stack_ptr++ = r_child;
+          } else {
+            printf("stack size limit reached\n");
+          }
         }
       }
     }
 
   } while (node != NULL);
 
+  delete[] stack;
   return is_hit;
 }
 
