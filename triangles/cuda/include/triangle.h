@@ -201,7 +201,7 @@ void read_triangles(std::vector<triangle> &triangles) {
   // std::string filename = "objs/dafault_cube_in_triangles.obj";
   // std::string filename = "objs/bunny.obj";
   // std::string filename = "objs/ball_in_triangles.obj";
-  std::string filename = "objs/bunny_s_blender.obj";
+  std::string filename = "objs/bunny_s_blender_20.obj";
 
   // std::ifstream infile("objs/test.obj");
   std::ifstream infile(filename);

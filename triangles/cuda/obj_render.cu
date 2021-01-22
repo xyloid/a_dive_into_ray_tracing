@@ -411,7 +411,7 @@ __device__ hittable *simple_triangle(curandState *local_rand_state) {
 
 __device__ hittable *obj_model(triangle *tri_data, int tri_sz,
                                curandState *local_rand_state) {
-  hittable **ret = new hittable *[tri_sz + 6];
+  hittable **ret = new hittable *[tri_sz + 7];
 
   auto red = new lambertian(color(.65, .05, .05));
   auto white = new lambertian(color(.73, .73, .73));
@@ -419,21 +419,42 @@ __device__ hittable *obj_model(triangle *tri_data, int tri_sz,
 
   int index = 0;
 
+  auto blue_1 = new lambertian(color(0, 129.0f / 256.0, 167.0f / 256.0));
+
+  // 0, 175, 185
+  auto blue_2 = new lambertian(color(0, 175.0f / 256.0, 185.0f / 256.0));
+
+  auto red_1 =
+      new lambertian(color(240.0f / 256.0, 113.0f / 256.0, 103.0f / 256.0));
+
+  // 253, 252, 220
+  auto yellow_1 =
+      new lambertian(color(253.0f / 256.0, 252.0f / 256.0, 220.0f / 256.0));
+
+  // 254, 217, 183
+  auto yellow_2 =
+      new lambertian(color(254.0f / 256.0, 217.0f / 256.0, 183.0f / 256.0));
+
+  auto back_metal = new metal(color(0.8, 0.8, 0.9), 1.0);
+
   auto light = new diffuse_light(color(17, 17, 17));
-  auto light_1 = new diffuse_light(color(0, 17, 10));
-  auto light_2 = new diffuse_light(color(10, 0, 0));
-  auto light_3 = new diffuse_light(color(17, 0, 17));
-  auto light_4 = new diffuse_light(color(17, 17, 0));
 
-  // ret[index++] = new sphere(point3(0, 5, 0), 3, light);
+  ret[index++] = new sphere(point3(-1, 3.89 + 1, 1), 0.1, light);
 
-  ret[index++] = new xy_rect(-3, 3, -3, 3, -3, green);
+  ret[index++] = new sphere(point3(1, 3.89 + 1, -1), 0.1, light);
 
-  ret[index++] = new xz_rect(-4, 4, -4, 4, -2, red);
-  ret[index++] = new xz_rect(-4, 4, -4, 4, 2, light);
+  // back
+  ret[index++] = new xy_rect(-4, 4, -4, 4 + 1, -4, back_metal);
 
-  ret[index++] = new yz_rect(-4, 4, -4, 4, -2, white);
-  ret[index++] = new yz_rect(-4, 4, -4, 4, 2, white);
+  // bottom
+  ret[index++] = new xz_rect(-4, 4, -4, 4, -4, blue_1);
+
+  // top
+  ret[index++] = new xz_rect(-4, 4, -4, 4, 4 + 1, blue_2);
+
+  // left and right
+  ret[index++] = new yz_rect(-4, 4 + 1, -4, 4, -4, red_1);
+  ret[index++] = new yz_rect(-4, 4 + 1, -4, 4, 4, yellow_2);
 
   vec3 v1(-1, 1, 1);
   vec3 v2(-1, -1, 1);
@@ -476,12 +497,17 @@ __device__ hittable *obj_model(triangle *tri_data, int tri_sz,
     //                             tri_data[i].vn2, index % 2 == 0 ? red :
     //                             green);
 
+    // ret[index++] = new triangle(
+    //     vec3(tri_data[i].v0.x(), tri_data[i].v0.y(), tri_data[i].v0.z()),
+    //     vec3(tri_data[i].v1.x(), tri_data[i].v1.y(), tri_data[i].v1.z()),
+    //     vec3(tri_data[i].v2.x(), tri_data[i].v2.y(), tri_data[i].v2.z()),
+    //     tri_data[i].vn0, tri_data[i].vn1, tri_data[i].vn2,
+    //     index % 2 == 0 ? red : green);
     ret[index++] = new triangle(
         vec3(tri_data[i].v0.x(), tri_data[i].v0.y(), tri_data[i].v0.z()),
         vec3(tri_data[i].v1.x(), tri_data[i].v1.y(), tri_data[i].v1.z()),
         vec3(tri_data[i].v2.x(), tri_data[i].v2.y(), tri_data[i].v2.z()),
-        tri_data[i].vn0, tri_data[i].vn1, tri_data[i].vn2,
-        index % 2 == 0 ? red : green);
+        tri_data[i].vn0, tri_data[i].vn1, tri_data[i].vn2, white);
   }
 
   return new bvh_node(ret, 0, index, 0.0, 1.0, local_rand_state);
@@ -576,9 +602,9 @@ __global__ void create_world(hittable **d_list, hittable **d_world,
       // *background = new color(0.70 / 2, 0.80 / 2, 1.00 / 2);
       *background = new color(0.0, 0.0, 0.0);
       *d_world = obj_model(tri_data, tri_sz, local_rand_state);
-      lookfrom = point3(2, 2, 6);
-      lookat = point3(0, 0, 0);
-      vfov = 50.0;
+      lookfrom = point3(1, 3, 7);
+      lookat = point3(0, 2, 0);
+      vfov = 60.0;
       break;
     }
 
@@ -705,7 +731,7 @@ int main() {
   const auto aspect_ratio = 1.0; // 3.0 / 2.0;
   int nx = 800 / 2;              // 1200;
   int ny = static_cast<int>(nx / aspect_ratio);
-  int ns = 50; // 500;
+  int ns = 100; // 500;
   //   int ns = 500;
   int tx = 8;
   int ty = 8;

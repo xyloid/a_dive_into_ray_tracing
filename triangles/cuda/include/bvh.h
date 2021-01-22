@@ -84,7 +84,7 @@ __device__ bool bvh_node::hit(const ray &r, float t_min, float t_max,
     return false;
   }
 
-  const int stack_size = 256;
+  const int stack_size = 64;
 
   // printf("1\n");
   int malloc_count = 0;
