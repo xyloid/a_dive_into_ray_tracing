@@ -38,18 +38,18 @@ class bvh_node : public hittable {
 public:
   __device__ bvh_node();
 
-  //   __device__ bvh_node(const hittable_list &l, float time0, float time1,
+  //   __device__ bvh_node(const hittable_list &l, double time0, double time1,
   //                       curandState *local_rand_state)
   //       : bvh_node(l.list, 0, l.list_size, time0, time1, local_rand_state){};
 
-  __device__ bvh_node(hittable **l, size_t start, size_t end, float time0,
-                      float time1, curandState *local_rand_state);
+  __device__ bvh_node(hittable **l, size_t start, size_t end, double time0,
+                      double time1, curandState *local_rand_state);
 
-  __device__ virtual bool hit(const ray &r, float t_min, float t_max,
+  __device__ virtual bool hit(const ray &r, double t_min, double t_max,
                               hit_record &rec,
                               curandState *local_rand_state) const override;
 
-  __device__ virtual bool bounding_box(float time0, float time1,
+  __device__ virtual bool bounding_box(double time0, double time1,
                                        aabb &output_box) const override;
 
 public:
@@ -58,13 +58,13 @@ public:
   aabb box;
 };
 
-__device__ bool bvh_node::bounding_box(float time0, float time1,
+__device__ bool bvh_node::bounding_box(double time0, double time1,
                                        aabb &output_box) const {
   output_box = box;
   return true;
 }
 
-// __device__ bool bvh_node::hit(const ray &r, float t_min, float t_max,
+// __device__ bool bvh_node::hit(const ray &r, double t_min, double t_max,
 //                               hit_record &rec) const {
 //   if (!box.hit(r, t_min, t_max)) {
 //     return false;
@@ -75,7 +75,7 @@ __device__ bool bvh_node::bounding_box(float time0, float time1,
 //   return hit_left || hit_right;
 // }
 
-__device__ bool bvh_node::hit(const ray &r, float t_min, float t_max,
+__device__ bool bvh_node::hit(const ray &r, double t_min, double t_max,
                               hit_record &rec,
                               curandState *local_rand_state) const {
   // printf("enter hit\n");
@@ -160,7 +160,7 @@ __device__ bool bvh_node::hit(const ray &r, float t_min, float t_max,
 }
 
 __device__ bvh_node::bvh_node(hittable **l, size_t start, size_t end,
-                              float time0, float time1,
+                              double time0, double time1,
                               curandState *local_rand_state) {
   // printf("%lu %lu enter\n", start, end);
   int axis = curand_uniform(local_rand_state) * 3;
@@ -180,6 +180,7 @@ __device__ bvh_node::bvh_node(hittable **l, size_t start, size_t end,
     left->is_leaf = true;
     right->is_leaf = true;
   } else if (object_span == 2) {
+    
     if (comparator(l[start], l[start + 1])) {
       left = l[start];
       right = l[start + 1];
@@ -187,6 +188,7 @@ __device__ bvh_node::bvh_node(hittable **l, size_t start, size_t end,
       left = l[start + 1];
       right = l[start];
     }
+
     left->is_leaf = true;
     right->is_leaf = true;
   } else {

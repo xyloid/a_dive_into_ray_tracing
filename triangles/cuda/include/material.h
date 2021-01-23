@@ -15,13 +15,13 @@ struct hit_record;
 __device__ vec3 random_in_unit_sphere(curandState *local_rand_state) {
   vec3 p;
   do {
-    p = 2.0f * RANDVEC3 - vec3(1, 1, 1);
-  } while (p.length_squared() >= 1.0f);
+    p = 2.0 * RANDVEC3 - vec3(1, 1, 1);
+  } while (p.length_squared() >= 1.0);
   return p;
 }
 
 __device__ vec3 reflect(const vec3 &v, const vec3 &n) {
-  return v - 2.0f * dot(v, n) * n;
+  return v - 2.0 * dot(v, n) * n;
 }
 
 class material {
@@ -31,7 +31,7 @@ public:
                                   curandState *local_rand_state) const = 0;
 
   // by default, the material won't emit any light, which means emitting black.
-  __device__ virtual color emitted(float u, float v, const point3 &p) const {
+  __device__ virtual color emitted(double u, double v, const point3 &p) const {
     return color(0, 0, 0);
   }
 };
@@ -59,14 +59,14 @@ public:
 
 class metal : public material {
 public:
-  __device__ metal(const vec3 &a, float f) : albedo(new solid_color(a)) {
+  __device__ metal(const vec3 &a, double f) : albedo(new solid_color(a)) {
     if (f < 1)
       fuzz = f;
     else
       fuzz = 1;
   }
 
-  __device__ metal(abstract_texture *a, float f) : albedo(a) {
+  __device__ metal(abstract_texture *a, double f) : albedo(a) {
     if (f < 1)
       fuzz = f;
     else
@@ -92,20 +92,20 @@ public:
 public:
   // vec3 albedo;
   abstract_texture *albedo;
-  float fuzz;
+  double fuzz;
 };
 
-__device__ float schlick(float cosine, float ref_idx) {
-  float r0 = (1.0f - ref_idx) / (1.0f + ref_idx);
+__device__ double schlick(double cosine, double ref_idx) {
+  double r0 = (1.0 - ref_idx) / (1.0 + ref_idx);
   r0 = r0 * r0;
-  return r0 + (1.0f - r0) * pow((1.0f - cosine), 5.0f);
+  return r0 + (1.0 - r0) * pow((1.0 - cosine), 5.0);
 }
 
-__device__ bool refract(const vec3 &v, const vec3 &n, float ni_over_nt,
+__device__ bool refract(const vec3 &v, const vec3 &n, double ni_over_nt,
                         vec3 &refracted) {
   vec3 uv = unit_vector(v);
-  float dt = dot(uv, n);
-  float discriminant = 1.0f - ni_over_nt * ni_over_nt * (1 - dt * dt);
+  double dt = dot(uv, n);
+  double discriminant = 1.0 - ni_over_nt * ni_over_nt * (1 - dt * dt);
   if (discriminant > 0.0) {
     refracted = ni_over_nt * (uv - n * dt) - n * sqrt(discriminant);
     return true;
@@ -116,17 +116,17 @@ __device__ bool refract(const vec3 &v, const vec3 &n, float ni_over_nt,
 
 class dielectric : public material {
 public:
-  __device__ dielectric(float ri) : ref_idx(ri) {}
+  __device__ dielectric(double ri) : ref_idx(ri) {}
   __device__ virtual bool scatter(const ray &r_in, const hit_record &rec,
                                   vec3 &attenuation, ray &scattered,
                                   curandState *local_rand_state) const {
     vec3 outward_normal;
     vec3 reflected = reflect(r_in.direction(), rec.normal);
-    float ni_over_nt;
+    double ni_over_nt;
     attenuation = vec3(1.0, 1.0, 1.0);
     vec3 refracted;
-    float reflect_prob;
-    float cosine;
+    double reflect_prob;
+    double cosine;
     // check which side of the surface
     if (dot(r_in.direction(), rec.normal) > 0.0f) {
       outward_normal = -rec.normal;
@@ -152,7 +152,7 @@ public:
   }
 
 public:
-  float ref_idx;
+  double ref_idx;
 };
 
 class diffuse_light : public material {
@@ -167,7 +167,7 @@ public:
     return false;
   }
 
-  __device__ virtual color emitted(float u, float v,
+  __device__ virtual color emitted(double u, double v,
                                    const point3 &p) const override {
     return emit->value(u, v, p);
   }

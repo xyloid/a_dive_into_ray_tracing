@@ -9,19 +9,19 @@
 
 class constant_medium : public hittable {
 public:
-  __device__ constant_medium(hittable *b, float d, abstract_texture *a)
+  __device__ constant_medium(hittable *b, double d, abstract_texture *a)
       : boundary(b), neg_inv_density(-1.0f / d),
         phase_function(new isotropic(a)) {}
 
-  __device__ constant_medium(hittable *b, float d, color c)
+  __device__ constant_medium(hittable *b, double d, color c)
       : boundary(b), neg_inv_density(-1.0f / d),
         phase_function(new isotropic(c)) {}
 
-  __device__ virtual bool hit(const ray &r, float t_min, float t_max,
+  __device__ virtual bool hit(const ray &r, double t_min, double t_max,
                               hit_record &rec,
                               curandState *local_rand_state) const override;
 
-  __device__ virtual bool bounding_box(float time0, float time1,
+  __device__ virtual bool bounding_box(double time0, double time1,
                                        aabb &output_box) const override {
     return boundary->bounding_box(time0, time1, output_box);
   }
@@ -29,17 +29,17 @@ public:
 public:
   hittable *boundary;
   material *phase_function;
-  float neg_inv_density;
+  double neg_inv_density;
 };
 
-__device__ bool constant_medium::hit(const ray &r, float t_min, float t_max,
+__device__ bool constant_medium::hit(const ray &r, double t_min, double t_max,
                                      hit_record &rec,
                                      curandState *local_rand_state) const {
   // Print occaional samples when debugging. To enable, set enableDebug true;
   //   const bool enableDebug = false;
 
   //   const bool debugging =
-  //       enableDebug && random_float(local_rand_state) < 0.00001;
+  //       enableDebug && random_double(local_rand_state) < 0.00001;
 
   hit_record rec1, rec2;
 
@@ -59,11 +59,11 @@ __device__ bool constant_medium::hit(const ray &r, float t_min, float t_max,
   }
 
   // the direction is not normalized
-  const float ray_length = r.direction().length();
-  const float distance_inside_boundary = (rec2.t - rec1.t) * ray_length;
+  const double ray_length = r.direction().length();
+  const double distance_inside_boundary = (rec2.t - rec1.t) * ray_length;
   // eg. -1/0.001 * log(0.01) = 200
-  const float hit_distance =
-      neg_inv_density * log(random_float(local_rand_state));
+  const double hit_distance =
+      neg_inv_density * log(random_double(local_rand_state));
 
   if (hit_distance > distance_inside_boundary) {
     return false;

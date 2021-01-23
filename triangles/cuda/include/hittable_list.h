@@ -13,11 +13,11 @@ public:
     list_size = n;
   }
 
-  __device__ virtual bool hit(const ray &r, float t_min, float t_max,
+  __device__ virtual bool hit(const ray &r, double t_min, double t_max,
                               hit_record &rec,
                               curandState *local_rand_state) const;
 
-  __device__ virtual bool bounding_box(float time0, float time1,
+  __device__ virtual bool bounding_box(double time0, double time1,
                                        aabb &output_box) const;
 
 public:
@@ -25,12 +25,12 @@ public:
   int list_size;
 };
 
-__device__ bool hittable_list::hit(const ray &r, float t_min, float t_max,
+__device__ bool hittable_list::hit(const ray &r, double t_min, double t_max,
                                    hit_record &rec,
                                    curandState *local_rand_state) const {
   hit_record temp_rec;
   bool hit_anything = false;
-  float closest_so_far = t_max;
+  double closest_so_far = t_max;
 
   for (int i = 0; i < list_size; i++) {
     if (list[i]->hit(r, t_min, closest_so_far, temp_rec, local_rand_state)) {
@@ -43,7 +43,7 @@ __device__ bool hittable_list::hit(const ray &r, float t_min, float t_max,
   return hit_anything;
 }
 
-__device__ bool hittable_list::bounding_box(float time0, float time1,
+__device__ bool hittable_list::bounding_box(double time0, double time1,
                                             aabb &output_box) const {
   if (list_size <= 0)
     return false;

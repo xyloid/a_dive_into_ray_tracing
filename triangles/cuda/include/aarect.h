@@ -11,17 +11,17 @@ class xy_rect : public hittable {
 public:
   __device__ xy_rect(){};
 
-  __device__ xy_rect(float _x0, float _x1, float _y0, float _y1, float _k,
+  __device__ xy_rect(double _x0, double _x1, double _y0, double _y1, double _k,
                      material *mat)
       : x0(_x0), x1(_x1), y0(_y0), y1(_y1), k(_k), mp(mat) {}
 
   // __device__ ~xy_rect() { delete mp; }
 
-  __device__ virtual bool hit(const ray &r, float t_min, float t_max,
+  __device__ virtual bool hit(const ray &r, double t_min, double t_max,
                               hit_record &rec,
                               curandState *local_rand_state) const override;
 
-  __device__ virtual bool bounding_box(float time0, float time1,
+  __device__ virtual bool bounding_box(double time0, double time1,
                                        aabb &output_box) const override {
 
     output_box =
@@ -31,10 +31,10 @@ public:
 
 public:
   material *mp;
-  float x0, x1, y0, y1, k;
+  double x0, x1, y0, y1, k;
 };
 
-__device__ bool xy_rect::hit(const ray &r, float t_min, float t_max,
+__device__ bool xy_rect::hit(const ray &r, double t_min, double t_max,
                              hit_record &rec,
                              curandState *local_rand_state) const {
   auto t = (k - r.origin().z()) / r.direction().z();
@@ -67,17 +67,17 @@ class xz_rect : public hittable {
 public:
   __device__ xz_rect();
 
-  __device__ xz_rect(float _x0, float _x1, float _z0, float _z1, float _k,
+  __device__ xz_rect(double _x0, double _x1, double _z0, double _z1, double _k,
                      material *mat)
       : x0(_x0), x1(_x1), z0(_z0), z1(_z1), k(_k), mp(mat) {}
 
   // __device__ ~xz_rect() { delete mp; }
 
-  __device__ virtual bool hit(const ray &r, float t_min, float t_max,
+  __device__ virtual bool hit(const ray &r, double t_min, double t_max,
                               hit_record &rec,
                               curandState *local_rand_state) const override;
 
-  __device__ virtual bool bounding_box(float time0, float time1,
+  __device__ virtual bool bounding_box(double time0, double time1,
                                        aabb &output_box) const override {
     output_box =
         aabb(point3(x0, k - THICKNESS, z0), point3(x1, k + THICKNESS, z1));
@@ -86,10 +86,10 @@ public:
 
 public:
   material *mp;
-  float x0, x1, z0, z1, k;
+  double x0, x1, z0, z1, k;
 };
 
-__device__ bool xz_rect::hit(const ray &r, float t_min, float t_max,
+__device__ bool xz_rect::hit(const ray &r, double t_min, double t_max,
                              hit_record &rec,
                              curandState *local_rand_state) const {
   auto t = (k - r.origin().y()) / (r.direction().y());
@@ -123,17 +123,17 @@ class yz_rect : public hittable {
 public:
   __device__ yz_rect() {}
 
-  __device__ yz_rect(float _y0, float _y1, float _z0, float _z1, float _k,
+  __device__ yz_rect(double _y0, double _y1, double _z0, double _z1, double _k,
                      material *mat)
       : y0(_y0), y1(_y1), z0(_z0), z1(_z1), k(_k), mp(mat) {}
 
   // __device__ ~yz_rect() { delete mp; }
 
-  __device__ virtual bool hit(const ray &r, float t_min, float t_max,
+  __device__ virtual bool hit(const ray &r, double t_min, double t_max,
                               hit_record &rec,
                               curandState *local_rand_state) const override;
 
-  __device__ virtual bool bounding_box(float time0, float time1,
+  __device__ virtual bool bounding_box(double time0, double time1,
                                        aabb &output_box) const override {
     output_box =
         aabb(point3(k - THICKNESS, y0, z0), point3(k + THICKNESS, y1, z1));
@@ -142,10 +142,10 @@ public:
 
 public:
   material *mp;
-  float y0, y1, z0, z1, k;
+  double y0, y1, z0, z1, k;
 };
 
-__device__ bool yz_rect::hit(const ray &r, float t_min, float t_max,
+__device__ bool yz_rect::hit(const ray &r, double t_min, double t_max,
                              hit_record &rec,
                              curandState *local_rand_state) const {
 

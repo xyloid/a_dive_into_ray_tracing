@@ -9,52 +9,52 @@
 class moving_sphere : public sphere {
 public:
   __device__ moving_sphere(){};
-  __device__ moving_sphere(vec3 cen0, vec3 cen1, float _time0, float _time1,
-                           float r, material *m)
+  __device__ moving_sphere(vec3 cen0, vec3 cen1, double _time0, double _time1,
+                           double r, material *m)
       : sphere(cen0, r, m), center0(cen0), center1(cen1), time0(_time0),
         time1(_time1){};
 
-  // __device__ moving_sphere(point3 cen0, point3 cen1, float _time0, float
+  // __device__ moving_sphere(point3 cen0, point3 cen1, double _time0, double
   // _time1,
-  //                          float r, shared_ptr<material> m)
+  //                          double r, shared_ptr<material> m)
   //     : sphere(cen0, r, m), center0(cen0), center1(cen1), time0(_time0),
   //       time1(_time1){};
 
-  __device__ virtual bool hit(const ray &r, float t_min, float t_max,
+  __device__ virtual bool hit(const ray &r, double t_min, double t_max,
                               hit_record &rec,
                               curandState *local_rand_state) const override;
 
-  __device__ virtual bool bounding_box(float _time0, float _time1,
+  __device__ virtual bool bounding_box(double _time0, double _time1,
                                        aabb &output_box) const override;
 
-  __device__ point3 center(float time) const;
+  __device__ point3 center(double time) const;
 
 public:
   point3 center0, center1;
-  float time0, time1;
-  //   float radius;
+  double time0, time1;
+  //   double radius;
   //   material *mat_ptr;
 };
 
-__device__ point3 moving_sphere::center(float time) const {
+__device__ point3 moving_sphere::center(double time) const {
   return center0 + ((time - time0) / (time1 - time0)) * (center1 - center0);
 }
 
-__device__ bool moving_sphere::hit(const ray &r, float t_min, float t_max,
+__device__ bool moving_sphere::hit(const ray &r, double t_min, double t_max,
                                    hit_record &rec,
                                    curandState *local_rand_state) const {
   vec3 oc = r.origin() - center(r.time());
-  float a = r.direction().length_squared();
-  float half_b = dot(oc, r.direction());
-  float c = oc.length_squared() - radius * radius;
+  double a = r.direction().length_squared();
+  double half_b = dot(oc, r.direction());
+  double c = oc.length_squared() - radius * radius;
 
-  float discriminant = half_b * half_b - a * c;
+  double discriminant = half_b * half_b - a * c;
   if (discriminant < 0)
     return false;
 
-  float sqrtd = sqrt(discriminant);
+  double sqrtd = sqrt(discriminant);
 
-  float root = (-half_b - sqrtd) / a;
+  double root = (-half_b - sqrtd) / a;
   if (root < t_min || t_max < root) {
     root = (-half_b + sqrtd) / a;
     if (root < t_min || t_max < root)
@@ -71,7 +71,7 @@ __device__ bool moving_sphere::hit(const ray &r, float t_min, float t_max,
   return true;
 }
 
-__device__ bool moving_sphere::bounding_box(float _time0, float _time1,
+__device__ bool moving_sphere::bounding_box(double _time0, double _time1,
                                             aabb &output_box) const {
 
   vec3 rad(radius, radius, radius);

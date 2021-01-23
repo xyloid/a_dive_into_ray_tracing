@@ -9,13 +9,13 @@
 class material;
 
 struct hit_record {
-  float t;
+  double t;
   vec3 p;
   vec3 normal;
   material *mat_ptr;
   // shared_ptr<material> mat_ptr;
-  float u;
-  float v;
+  double u;
+  double v;
 
   bool front_face;
 
@@ -33,13 +33,13 @@ struct hit_record {
 class hittable {
 public:
   __device__ hittable() : is_leaf(false){};
-  __device__ virtual bool hit(const ray &r, float t_min, float t_max,
+  __device__ virtual bool hit(const ray &r, double t_min, double t_max,
                               hit_record &rec,
                               curandState *local_rand_state) const = 0;
 
   // some object (a plane) can not be bounded, so we need to return true/false
   // to indicate that.
-  __device__ virtual bool bounding_box(float time0, float time1,
+  __device__ virtual bool bounding_box(double time0, double time1,
                                        aabb &output_box) const = 0;
 
 public:
@@ -52,10 +52,10 @@ public:
       : ptr(p), offset(displacement){};
 
   __device__ virtual bool
-  hit(const ray &r, float t_min, float t_max, hit_record &rec,
+  hit(const ray &r, double t_min, double t_max, hit_record &rec,
       curandState *local_rand_state = NULL) const override;
 
-  __device__ virtual bool bounding_box(float time0, float time1,
+  __device__ virtual bool bounding_box(double time0, double time1,
                                        aabb &output_box) const override;
 
 public:
@@ -63,7 +63,7 @@ public:
   vec3 offset;
 };
 
-__device__ bool translate::hit(const ray &r, float t_min, float t_max,
+__device__ bool translate::hit(const ray &r, double t_min, double t_max,
                                hit_record &rec,
                                curandState *local_rand_state) const {
   // offset the ray, compare this with the code that offsets the bounding box,
@@ -78,7 +78,7 @@ __device__ bool translate::hit(const ray &r, float t_min, float t_max,
   return true;
 }
 
-__device__ bool translate::bounding_box(float time0, float time1,
+__device__ bool translate::bounding_box(double time0, double time1,
                                         aabb &output_box) const {
   if (!ptr->bounding_box(time0, time1, output_box)) {
     return false;
@@ -92,13 +92,13 @@ __device__ bool translate::bounding_box(float time0, float time1,
 
 class rotate_y : public hittable {
 public:
-  __device__ rotate_y(hittable *p, float angle);
+  __device__ rotate_y(hittable *p, double angle);
 
-  __device__ virtual bool hit(const ray &r, float t_min, float t_max,
+  __device__ virtual bool hit(const ray &r, double t_min, double t_max,
                               hit_record &rec,
                               curandState *local_rand_state) const override;
 
-  __device__ virtual bool bounding_box(float time0, float time1,
+  __device__ virtual bool bounding_box(double time0, double time1,
                                        aabb &output_box) const override {
     output_box = bbox;
     return hasbox;
@@ -106,14 +106,14 @@ public:
 
 public:
   hittable *ptr;
-  float sin_theta;
-  float cos_theta;
+  double sin_theta;
+  double cos_theta;
   bool hasbox;
   aabb bbox;
 };
 
-__device__ rotate_y::rotate_y(hittable *p, float angle) : ptr(p) {
-  float radians = degrees_to_radians(angle);
+__device__ rotate_y::rotate_y(hittable *p, double angle) : ptr(p) {
+  double radians = degrees_to_radians(angle);
 
   sin_theta = sinf(radians);
   cos_theta = cosf(radians);
@@ -133,12 +133,12 @@ __device__ rotate_y::rotate_y(hittable *p, float angle) : ptr(p) {
         // this loop generate 8 vertices' coordinates
         // and then rotate the vector and find the max and min values
 
-        float x = i * bbox.max().x() + (1 - i) * bbox.min().x();
-        float y = j * bbox.max().y() + (1 - j) * bbox.min().y();
-        float z = k * bbox.max().z() + (1 - k) * bbox.min().z();
+        double x = i * bbox.max().x() + (1 - i) * bbox.min().x();
+        double y = j * bbox.max().y() + (1 - j) * bbox.min().y();
+        double z = k * bbox.max().z() + (1 - k) * bbox.min().z();
 
-        float newx = cos_theta * x + sin_theta * z;
-        float newz = -sin_theta * x + cos_theta * z;
+        double newx = cos_theta * x + sin_theta * z;
+        double newz = -sin_theta * x + cos_theta * z;
 
         vec3 tester(newx, y, newz);
 
@@ -153,7 +153,7 @@ __device__ rotate_y::rotate_y(hittable *p, float angle) : ptr(p) {
   bbox = aabb(min, max);
 }
 
-__device__ bool rotate_y::hit(const ray &r, float t_min, float t_max,
+__device__ bool rotate_y::hit(const ray &r, double t_min, double t_max,
                               hit_record &rec,
                               curandState *local_rand_state) const {
   // offset the ray

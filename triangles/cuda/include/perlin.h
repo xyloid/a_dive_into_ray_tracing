@@ -7,7 +7,7 @@ class perlin {
 
 public:
   __device__ perlin(curandState *local_rand_state) {
-    // ranfloat = new float[point_count];
+    // randouble = new double[point_count];
     ranvec = new vec3[point_count];
 
     for (int i = 0; i < point_count; ++i) {
@@ -20,23 +20,23 @@ public:
   }
 
   __device__ ~perlin() {
-    // delete[] ranfloat;
+    // delete[] randouble;
     delete[] ranvec;
     delete[] perm_x;
     delete[] perm_y;
     delete[] perm_z;
   }
 
-  __device__ float noise(const point3 &p) const {
+  __device__ double noise(const point3 &p) const {
 
     // auto i = ((int)(4.0f * p.x())) & 255;
     // auto j = ((int)(4.0f * p.y())) & 255;
     // auto k = ((int)(4.0f * p.z())) & 255;
 
-    // return ranfloat[perm_x[i] ^ perm_y[j] ^ perm_z[k]];
-    float u = p.x() - floorf(p.x());
-    float v = p.y() - floorf(p.y());
-    float w = p.z() - floorf(p.z());
+    // return randouble[perm_x[i] ^ perm_y[j] ^ perm_z[k]];
+    double u = p.x() - floorf(p.x());
+    double v = p.y() - floorf(p.y());
+    double w = p.z() - floorf(p.z());
 
     u = u * u * (3.0f - 2.0f * u);
     v = v * v * (3.0f - 2.0f * v);
@@ -46,7 +46,7 @@ public:
     int j = (int)floorf(p.y());
     int k = (int)floorf(p.z());
 
-    // float c[2][2][2];
+    // double c[2][2][2];
     vec3 c[2][2][2];
 
     for (int di = 0; di < 2; di++) {
@@ -62,10 +62,10 @@ public:
     return trilinear_interp(c, u, v, w);
   }
 
-  __device__ float turb(const point3 &p, int depth = 7) const {
-    float accum = 0.0;
+  __device__ double turb(const point3 &p, int depth = 7) const {
+    double accum = 0.0;
     auto temp_p = p;
-    float weight = 1.0;
+    double weight = 1.0;
 
     for (int i = 0; i < depth; i++) {
       accum += weight * noise(temp_p);
@@ -78,7 +78,7 @@ public:
 
 private:
   static const int point_count = 256;
-  // float *ranfloat;
+  // double *randouble;
   vec3 *ranvec;
   int *perm_x;
   int *perm_y;
@@ -106,10 +106,10 @@ private:
     }
   }
 
-  __device__ static float trilinear_interp(vec3 c[2][2][2], float u, float v,
-                                           float w) {
+  __device__ static double trilinear_interp(vec3 c[2][2][2], double u, double v,
+                                           double w) {
 
-    float accum = 0.0;
+    double accum = 0.0;
     for (int i = 0; i < 2; i++) {
       for (int j = 0; j < 2; j++) {
         for (int k = 0; k < 2; k++) {

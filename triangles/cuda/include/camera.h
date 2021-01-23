@@ -8,27 +8,27 @@
 __device__ vec3 random_in_unit_disk(curandState *local_rand_state) {
   vec3 p;
   do {
-    p = 2.0f * vec3(curand_uniform(local_rand_state),
+    p = 2.0 * vec3(curand_uniform(local_rand_state),
                     curand_uniform(local_rand_state), 0) -
         vec3(1, 1, 0);
-  } while (dot(p, p) >= 1.0f);
+  } while (dot(p, p) >= 1.0);
   return p;
 }
 
-// __device__ float random_float(float min, float max,
+// __device__ double random_double(double min, double max,
 //                               curandState *local_rand_state) {
 //   return curand_uniform(local_rand_state) * (max - min) + min;
 // }
 
 class camera {
 public:
-  __device__ camera(vec3 lookfrom, vec3 lookat, vec3 vup, float vfov,
-                    float aspect, float aperture, float focal_dist,
-                    float _time0 = 0.0, float _time1 = 0.0) {
-    // float aspect_ratio = 16.0 / 9.0;
-    // float viewport_height = 2.0;
-    // float viewport_width = aspect_ratio * viewport_height;
-    // float focal_length = 1.0;
+  __device__ camera(vec3 lookfrom, vec3 lookat, vec3 vup, double vfov,
+                    double aspect, double aperture, double focal_dist,
+                    double _time0 = 0.0, double _time1 = 0.0) {
+    // double aspect_ratio = 16.0 / 9.0;
+    // double viewport_height = 2.0;
+    // double viewport_width = aspect_ratio * viewport_height;
+    // double focal_length = 1.0;
 
     // origin = point3(0, 0, 0);
     // horizontal = vec3(viewport_width, 0.0, 0.0);
@@ -38,9 +38,9 @@ public:
 
     // vfov is top to bottom in degrees.
 
-    float theta = vfov * M_PI / 180;
-    float half_height = tan(theta / 2);
-    float half_width = aspect * half_height;
+    double theta = vfov * M_PI / 180;
+    double half_height = tan(theta / 2);
+    double half_width = aspect * half_height;
     origin = lookfrom;
 
     w = unit_vector(lookfrom - lookat);
@@ -51,18 +51,18 @@ public:
     // lower_left_corner = origin - half_width * u - half_height * v - w;
     // horizontal = 2 * half_width * u;
     // vertical = 2 * half_height * v;
-    horizontal = focal_dist * 2.0f * half_width * u;
-    vertical = focal_dist * 2.0f * half_height * v;
+    horizontal = focal_dist * 2.0 * half_width * u;
+    vertical = focal_dist * 2.0 * half_height * v;
     lower_left_corner =
-        origin - horizontal / 2.0f - vertical / 2.0f - focal_dist * w;
+        origin - horizontal / 2.0 - vertical / 2.0 - focal_dist * w;
 
-    lens_radius = aperture / 2.0f;
+    lens_radius = aperture / 2.0;
 
     time0 = _time0;
     time1 = _time1;
   }
 
-  __device__ ray get_ray(float s, float t,
+  __device__ ray get_ray(double s, double t,
                          curandState *local_rand_state) const {
     vec3 rd = lens_radius * random_in_unit_disk(local_rand_state);
     vec3 offset = u * rd.x() + v * rd.y();
@@ -71,7 +71,7 @@ public:
     return ray(origin + offset,
                lower_left_corner + s * horizontal + t * vertical - origin -
                    offset,
-               random_float(time0, time1, local_rand_state));
+               random_double(time0, time1, local_rand_state));
   }
 
 private:
@@ -80,8 +80,8 @@ private:
   vec3 horizontal;
   vec3 vertical;
   vec3 u, v, w;
-  float lens_radius;
-  float time0;
-  float time1; // shutter open/close time
+  double lens_radius;
+  double time0;
+  double time1; // shutter open/close time
 };
 #endif

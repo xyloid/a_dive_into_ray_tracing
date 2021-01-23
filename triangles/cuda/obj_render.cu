@@ -29,7 +29,7 @@ __device__ vec3 get_color(const ray &r, color **background, hittable **world,
   int i = 0;
   for (i = 0; i < depth; i++) {
     hit_record rec;
-    if ((*world)->hit(cur_ray, 0.00001f, FLT_MAX, rec, local_rand_state)) {
+    if ((*world)->hit(cur_ray, 0.00001f, DBL_MAX, rec, local_rand_state)) {
 
       ray scattered;
       vec3 attenuation;
@@ -115,13 +115,13 @@ __global__ void render(vec3 *fb, int max_x, int max_y, int ns, camera **cam,
   curandState *local_rand_state = &rand_state[pixel_index];
   vec3 col(0, 0, 0);
   for (int s = 0; s < ns; s++) {
-    float u = float(i + curand_uniform(local_rand_state)) / float(max_x);
-    float v = float(j + curand_uniform(local_rand_state)) / float(max_y);
+    double u = double(i + curand_uniform(local_rand_state)) / double(max_x);
+    double v = double(j + curand_uniform(local_rand_state)) / double(max_y);
     ray r = (*cam)->get_ray(u, v, local_rand_state);
     col += get_color(r, background, world, local_rand_state);
   }
   rand_state[pixel_index] = *local_rand_state;
-  col /= float(ns);
+  col /= double(ns);
   col[0] = sqrt(col[0]);
   col[1] = sqrt(col[1]);
   col[2] = sqrt(col[2]);
@@ -143,7 +143,7 @@ __device__ hittable *random_scene(hittable **d_list,
   int i = 1;
   for (int a = -11; a < 11; a++) {
     for (int b = -11; b < 11; b++) {
-      float choose_mat = RND;
+      double choose_mat = RND;
       vec3 center(a + RND, 0.2, b + RND);
       if (choose_mat < 0.8f) {
 
@@ -302,13 +302,13 @@ __device__ hittable *rt_next_week_final_scene(unsigned char *data, int w, int h,
   int index = 0;
   for (int i = 0; i < boxes_per_side; i++) {
     for (int j = 0; j < boxes_per_side; j++) {
-      float w = 100.0;
-      float x0 = -1000.0f + i * w;
-      float z0 = -1000.0f + j * w;
-      float y0 = 0.0;
-      float x1 = x0 + w;
-      float y1 = random_float(1, 101, local_rand_state);
-      float z1 = z0 + w;
+      double w = 100.0;
+      double x0 = -1000.0f + i * w;
+      double z0 = -1000.0f + j * w;
+      double y0 = 0.0;
+      double x1 = x0 + w;
+      double y1 = random_double(1, 101, local_rand_state);
+      double z1 = z0 + w;
       ret[index++] = new box(point3(x0, y0, z0), point3(x1, y1, z1), ground);
     }
   }
@@ -540,7 +540,7 @@ __device__ hittable *obj_model_large(triangle *tri_data, int tri_sz,
 
   auto light = new diffuse_light(color(20, 20, 20));
 
-  float scale = 1000.0;
+  double scale = 1000.0;
 
   ret[index++] = new sphere(point3(-1 * scale, 4.69 * scale, -2.5 * scale),
                             0.3 * scale, light);
@@ -626,9 +626,9 @@ __global__ void create_world(hittable **d_list, hittable **d_world,
 
     vec3 lookfrom(13, 2, 3);
     vec3 lookat(0, 0, 0);
-    // float dist_to_focus = (lookfrom - lookat).length();
-    float aperture = 0.00;
-    float vfov = 40.0;
+    // double dist_to_focus = (lookfrom - lookat).length();
+    double aperture = 0.00;
+    double vfov = 40.0;
     vec3 vup(0, 1, 0);
     // background = new color(0, 0, 0);
 
@@ -720,8 +720,8 @@ __global__ void create_world(hittable **d_list, hittable **d_world,
       break;
     }
 
-    float dist_to_focus = (lookfrom - lookat).length();
-    *d_camera = new camera(lookfrom, lookat, vup, vfov, float(nx) / float(ny),
+    double dist_to_focus = (lookfrom - lookat).length();
+    *d_camera = new camera(lookfrom, lookat, vup, vfov, double(nx) / double(ny),
                            aperture, dist_to_focus, 0.0f, 1.0f);
     rand_state = local_rand_state;
   }

@@ -21,7 +21,7 @@ public:
 
     // mat_ptr = mat;
     // cacluate face normal
-    vec3 average_vn = -(vn0 + vn1 + vn2) / 3.0f;
+    vec3 average_vn = -(vn0 + vn1 + vn2) / 3.0;
 
     // counter clockwise
     AB = v1 - v0;
@@ -39,7 +39,7 @@ public:
     // AB = v1 - v0;
     // AC = v2 - v0;
 
-    face_normal = dot(face_normal_candidate, average_vn) > 0.0f
+    face_normal = dot(face_normal_candidate, average_vn) > 0.0
                       ? face_normal_candidate
                       : -face_normal_candidate;
     // face_normal = (vn0 + vn1 + vn2) / 3.0f;
@@ -52,11 +52,11 @@ public:
     dist_to_origin = fabsf(dot(face_normal_unit, v0));
   }
 
-  __device__ virtual bool hit(const ray &r, float t_min, float t_max,
+  __device__ virtual bool hit(const ray &r, double t_min, double t_max,
                               hit_record &rec,
                               curandState *local_rand_state) const override;
 
-  __device__ virtual bool bounding_box(float time0, float time1,
+  __device__ virtual bool bounding_box(double time0, double time1,
                                        aabb &output_box) const override;
 
 public:
@@ -66,19 +66,19 @@ public:
   // https://stackoverflow.com/questions/13689632/converting-vertex-normals-to-face-normals
   vec3 face_normal;
   vec3 face_normal_unit;
-  float dist_to_origin;
+  double dist_to_origin;
   vec3 AB, AC;
   material *mat_ptr;
 };
 
-__device__ bool triangle::bounding_box(float time0, float time1,
+__device__ bool triangle::bounding_box(double time0, double time1,
                                        aabb &output_box) const {
-  point3 min(fminf(fminf(v0.x(), v1.x()), v2.x()),
-             fminf(fminf(v0.y(), v1.y()), v2.y()),
-             fminf(fminf(v0.z(), v1.z()), v2.z()));
-  point3 max(fmaxf(fmaxf(v0.x(), v1.x()), v2.x()),
-             fmaxf(fmaxf(v0.y(), v1.y()), v2.y()),
-             fmaxf(fmaxf(v0.z(), v1.z()), v2.z()));
+  point3 min(fmin(fmin(v0.x(), v1.x()), v2.x()),
+             fmin(fmin(v0.y(), v1.y()), v2.y()),
+             fmin(fmin(v0.z(), v1.z()), v2.z()));
+  point3 max(fmax(fmax(v0.x(), v1.x()), v2.x()),
+             fmax(fmax(v0.y(), v1.y()), v2.y()),
+             fmax(fmax(v0.z(), v1.z()), v2.z()));
 
   // if (fabsf(min.x() - max.x()) < THICKNESS) {
   //   min.e[0] = min.x() - THICKNESS;
@@ -99,7 +99,7 @@ __device__ bool triangle::bounding_box(float time0, float time1,
   return true;
 }
 
-__device__ bool triangle::hit(const ray &r, float t_min, float t_max,
+__device__ bool triangle::hit(const ray &r, double t_min, double t_max,
                               hit_record &rec,
                               curandState *local_rand_state) const {
 
@@ -118,15 +118,15 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
 
   vec3 ray_dir_unit = unit_vector(r.direction());
 
-  float norm_dot_ray_dir = dot(face_normal_unit, ray_dir_unit);
+  double norm_dot_ray_dir = dot(face_normal_unit, ray_dir_unit);
 
   // parallel, return false;
-  if (fabsf(norm_dot_ray_dir) < 0.0000001) {
+  if (fabs(norm_dot_ray_dir) < 0.0000001) {
     return false;
   }
 
   // compute t
-  float t =
+  double t =
       -(dot(face_normal_unit, r.origin()) + dist_to_origin) / norm_dot_ray_dir;
 
   // the triangle is behind the eye
@@ -147,7 +147,7 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
 
   // convert t to the comparable value to other shape primitives
   // t should be used determine which p is at the front.
-  float converted_t = dist.length() / r.dir.length();
+  double converted_t = dist.length() / r.dir.length();
 
   if (converted_t < t_min || converted_t > t_max) {
     return false;
@@ -156,7 +156,7 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
   vec3 C;
 
   // strange missing triangles
-  const float threshold = 0;
+  const double threshold = 0;
 
   // edge 0
   // AB = v1 - v0
@@ -175,7 +175,7 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
   vec3 edge1 = v2 - v1;
   vec3 v1p = p - v1;
   C = cross(edge1, v1p);
-  float u = dot(face_normal_unit, C);
+  double u = dot(face_normal_unit, C);
   if (u < threshold) {
     // printf("return 2\n");
     return false;
@@ -186,7 +186,7 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
   vec3 edge2 = v0 - v2;
   vec3 v2p = p - v2;
   C = cross(edge2, v2p);
-  float v = dot(face_normal_unit, C);
+  double v = dot(face_normal_unit, C);
   if (v < threshold) {
     // printf("return 3\n");
     return false;
@@ -224,7 +224,7 @@ void read_triangles(std::vector<triangle> &triangles) {
 
   if (infile.is_open()) {
     std::string line;
-    float x, y, z;
+    double x, y, z;
     while (std::getline(infile, line)) {
 
       std::istringstream in(line);
@@ -259,7 +259,7 @@ void read_triangles(std::vector<triangle> &triangles) {
             if (num.length() == 0) {
               indices.push_back(-1);
             } else {
-              float n = std::stof(num) - 1;
+              double n = std::stod(num) - 1;
               // std::cout << num << "\t" << n << std::endl;
               indices.push_back(n);
             }

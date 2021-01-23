@@ -13,12 +13,12 @@ using std::sqrt;
 
 // Constants
 
-const float infinity = std::numeric_limits<float>::infinity();
-const float pi = 3.1415926535897932385f;
+const double infinity = std::numeric_limits<double>::infinity();
+const double pi = 3.1415926535897932385f;
 
 // Utility Functions
 
-__device__ inline float degrees_to_radians(float degrees) {
+__device__ inline double degrees_to_radians(double degrees) {
   return degrees * pi / 180.0f;
 }
 
@@ -30,29 +30,29 @@ __device__ inline float degrees_to_radians(float degrees) {
 #include <curand_kernel.h>
 
 __device__ inline int random_int(int n, curandState *local_rand_state) {
-  float val = ((float)n) - 0.000001;
-  float ret = curand_uniform(local_rand_state) * val;
+  double val = ((double)n) - 0.000001;
+  double ret = curand_uniform_double(local_rand_state) * val;
   return (int)ret;
 }
 
-__device__ inline float random_float(curandState *local_rand_state) {
-  return curand_uniform(local_rand_state);
+__device__ inline double random_double(curandState *local_rand_state) {
+  return curand_uniform_double(local_rand_state);
 }
 
-__device__ inline float random_float(float min, float max,
+__device__ inline double random_double(double min, double max,
                                      curandState *local_rand_state) {
   return curand_uniform(local_rand_state) * (max - min) + min;
 }
 
-__device__ inline vec3 random_vec3(float min, float max,
+__device__ inline vec3 random_vec3(double min, double max,
                                    curandState *local_rand_state) {
-  return vec3(random_float(min, max, local_rand_state),
-              random_float(min, max, local_rand_state),
-              random_float(min, max, local_rand_state));
+  return vec3(random_double(min, max, local_rand_state),
+              random_double(min, max, local_rand_state),
+              random_double(min, max, local_rand_state));
 }
 
-__device__ inline float clamp(const float &v, const float &lo,
-                              const float &hi) {
+__device__ inline double clamp(const double &v, const double &lo,
+                              const double &hi) {
   return (v < lo) ? lo : (hi < v) ? hi : v;
 }
 

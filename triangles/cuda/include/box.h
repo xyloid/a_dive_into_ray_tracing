@@ -21,11 +21,11 @@ public:
     delete sides;
   }
 
-  __device__ virtual bool hit(const ray &r, float t_min, float t_max,
+  __device__ virtual bool hit(const ray &r, double t_min, double t_max,
                               hit_record &rec,
                               curandState *local_rand_state) const override;
 
-  __device__ virtual bool bounding_box(float time0, float time1,
+  __device__ virtual bool bounding_box(double time0, double time1,
                                        aabb &output_box) const override {
     // diagnal of the box
     output_box = aabb(box_min, box_max);
@@ -57,7 +57,7 @@ __device__ box::box(const point3 &p0, const point3 &p1, material *ptr) {
   sides = new hittable_list(objects, 6);
 }
 
-__device__ bool box::hit(const ray &r, float t_min, float t_max,
+__device__ bool box::hit(const ray &r, double t_min, double t_max,
                          hit_record &rec, curandState *local_rand_state) const {
   return sides->hit(r, t_min, t_max, rec, local_rand_state);
 }
