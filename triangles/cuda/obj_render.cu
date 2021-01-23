@@ -590,16 +590,26 @@ __device__ hittable *obj_model_large(triangle *tri_data, int tri_sz,
 
   for (int i = 0; i < tri_sz; i++) {
 
-    ret[index++] = new rotate_y(
-        new triangle(
-            vec3(tri_data[i].v0.x(), tri_data[i].v0.y(), tri_data[i].v0.z()),
-            vec3(tri_data[i].v1.x(), tri_data[i].v1.y(), tri_data[i].v1.z()),
-            vec3(tri_data[i].v2.x(), tri_data[i].v2.y(), tri_data[i].v2.z()),
-            vec3(tri_data[i].vn0.x(), tri_data[i].vn0.y(), tri_data[i].vn0.z()),
-            vec3(tri_data[i].vn1.x(), tri_data[i].vn1.y(), tri_data[i].vn1.z()),
-            vec3(tri_data[i].vn2.x(), tri_data[i].vn2.y(), tri_data[i].vn2.z()),
-            white),
-        30);
+    // ret[index++] = new rotate_y(
+    //     new triangle(
+    //         vec3(tri_data[i].v0.x(), tri_data[i].v0.y(), tri_data[i].v0.z()),
+    //         vec3(tri_data[i].v1.x(), tri_data[i].v1.y(), tri_data[i].v1.z()),
+    //         vec3(tri_data[i].v2.x(), tri_data[i].v2.y(), tri_data[i].v2.z()),
+    //         vec3(tri_data[i].vn0.x(), tri_data[i].vn0.y(),
+    //         tri_data[i].vn0.z()), vec3(tri_data[i].vn1.x(),
+    //         tri_data[i].vn1.y(), tri_data[i].vn1.z()),
+    //         vec3(tri_data[i].vn2.x(), tri_data[i].vn2.y(),
+    //         tri_data[i].vn2.z()), white),
+    //     30);
+
+    ret[index++] = new triangle(
+        vec3(tri_data[i].v0.x(), tri_data[i].v0.y(), tri_data[i].v0.z()),
+        vec3(tri_data[i].v1.x(), tri_data[i].v1.y(), tri_data[i].v1.z()),
+        vec3(tri_data[i].v2.x(), tri_data[i].v2.y(), tri_data[i].v2.z()),
+        vec3(tri_data[i].vn0.x(), tri_data[i].vn0.y(), tri_data[i].vn0.z()),
+        vec3(tri_data[i].vn1.x(), tri_data[i].vn1.y(), tri_data[i].vn1.z()),
+        vec3(tri_data[i].vn2.x(), tri_data[i].vn2.y(), tri_data[i].vn2.z()),
+        white);
   }
 
   return new bvh_node(ret, 0, index, 0.0, 1.0, local_rand_state);
