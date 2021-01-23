@@ -592,21 +592,12 @@ __device__ hittable *obj_model_large(triangle *tri_data, int tri_sz,
 
     ret[index++] = new rotate_y(
         new triangle(
-            vec3(tri_data[i].v0.x(), tri_data[i].v0.y(), tri_data[i].v0.z()) *
-                20.0,
-            vec3(tri_data[i].v1.x(), tri_data[i].v1.y(), tri_data[i].v1.z()) *
-                20.0,
-            vec3(tri_data[i].v2.x(), tri_data[i].v2.y(), tri_data[i].v2.z()) *
-                20.0,
-            vec3(tri_data[i].vn0.x(), tri_data[i].vn0.y(),
-                 tri_data[i].vn0.z()) *
-                20.0,
-            vec3(tri_data[i].vn1.x(), tri_data[i].vn1.y(),
-                 tri_data[i].vn1.z()) *
-                20.0,
-            vec3(tri_data[i].vn2.x(), tri_data[i].vn2.y(),
-                 tri_data[i].vn2.z()) *
-                20.0,
+            vec3(tri_data[i].v0.x(), tri_data[i].v0.y(), tri_data[i].v0.z()),
+            vec3(tri_data[i].v1.x(), tri_data[i].v1.y(), tri_data[i].v1.z()),
+            vec3(tri_data[i].v2.x(), tri_data[i].v2.y(), tri_data[i].v2.z()),
+            vec3(tri_data[i].vn0.x(), tri_data[i].vn0.y(), tri_data[i].vn0.z()),
+            vec3(tri_data[i].vn1.x(), tri_data[i].vn1.y(), tri_data[i].vn1.z()),
+            vec3(tri_data[i].vn2.x(), tri_data[i].vn2.y(), tri_data[i].vn2.z()),
             white),
         30);
   }
@@ -847,10 +838,10 @@ int main() {
    */
 
   const auto aspect_ratio = 1.0; // 3.0 / 2.0;
-  int nx = 800/2;                  // 1200;
+  int nx = 800 / 2;              // 1200;
   int ny = static_cast<int>(nx / aspect_ratio);
   // int ns = 10000; // 500*4; // 500;
-  int ns = 500;
+  int ns = 50;
   int tx = 8;
   int ty = 8;
 

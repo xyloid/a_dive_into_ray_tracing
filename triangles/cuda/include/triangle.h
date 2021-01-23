@@ -41,7 +41,7 @@ public:
 
     face_normal = dot(face_normal_candidate, average_vn) > 0.0f
                       ? face_normal_candidate
-                      : face_normal_candidate;
+                      : -face_normal_candidate;
     // face_normal = (vn0 + vn1 + vn2) / 3.0f;
 
     // face_normal = cross(AB, AC);
@@ -90,8 +90,8 @@ __device__ bool triangle::bounding_box(float time0, float time1,
     //   min.e[i] = min.e[i] - THICKNESS;
     //   max.e[i] = max.e[i] + THICKNESS;
     // }
-    min.e[i] = min.e[i] - 5 * THICKNESS;
-    max.e[i] = max.e[i] + 5 * THICKNESS;
+    min.e[i] = min.e[i] - THICKNESS;
+    max.e[i] = max.e[i] + THICKNESS;
   }
 
   output_box = aabb(min, max);
@@ -208,7 +208,8 @@ void read_triangles(std::vector<triangle> &triangles) {
   // std::string filename = "objs/bunny_s_blender_10.obj";
   // std::string filename = "objs/bunny_blender.obj";
   // std::string filename = "objs/bunny_s_blender_20.obj";
-  std::string filename = "objs/bunny_s_blender_1000.obj";
+  std::string filename = "objs/bunny_s_blender_20000.obj";
+  // std::string filename = "objs/bunny_s_blender_1000.obj";
   // std::string filename = "objs/bunny_s.obj";
   // std::ifstream infile("objs/test.obj");
   //  std::string filename = "objs/blender_monkey.obj";
