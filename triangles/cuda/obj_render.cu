@@ -11,40 +11,11 @@
 #include "sphere.h"
 #include "triangle.h"
 #include "vec3.h"
+#include <cuda.h>
 #include <curand_kernel.h>
 #include <float.h>
 #include <iostream>
 #include <time.h>
-
-// Matching the C++ code would recurse enough into color() calls that
-// it was blowing up the stack, so we have to turn this into a
-// limited-depth loop instead.  Later code in the book limits to a max
-// depth of 50, so we adapt this a few chapters early on the GPU.
-// __device__ vec3 get_color(const ray &r, hittable **world,
-//                           curandState *local_rand_state) {
-//   ray cur_ray = r;
-//   vec3 cur_attenuation(1.0f, 1.0f, 1.0f);
-//   for (int i = 0; i < 50; i++) {
-//     hit_record rec;
-//     if ((*world)->hit(cur_ray, 0.001f, FLT_MAX, rec, local_rand_state)) {
-//       ray scattered;
-//       vec3 attenuation;
-//       if (rec.mat_ptr->scatter(cur_ray, rec, attenuation, scattered,
-//                                local_rand_state)) {
-//         cur_attenuation *= attenuation;
-//         cur_ray = scattered;
-//       } else {
-//         return vec3(0.0, 0.0, 0.0);
-//       }
-//     } else {
-//       vec3 unit_direction = unit_vector(cur_ray.direction());
-//       float t = 0.5f * (unit_direction.y() + 1.0f);
-//       vec3 c = (1.0f - t) * vec3(1.0, 1.0, 1.0) + t * vec3(0.5, 0.7, 1.0);
-//       return cur_attenuation * c;
-//     }
-//   }
-//   return vec3(0.0, 0.0, 0.0); // exceeded recursion
-// }
 
 __device__ vec3 get_color(const ray &r, color **background, hittable **world,
                           curandState *local_rand_state) {
@@ -411,7 +382,7 @@ __device__ hittable *simple_triangle(curandState *local_rand_state) {
 
 __device__ hittable *obj_model(triangle *tri_data, int tri_sz,
                                curandState *local_rand_state) {
-  hittable **ret = new hittable *[tri_sz + 9];
+  hittable **ret = new hittable *[tri_sz + 13];
 
   auto red = new lambertian(color(.65, .05, .05));
   auto white = new lambertian(color(.73, .73, .73));
@@ -439,28 +410,38 @@ __device__ hittable *obj_model(triangle *tri_data, int tri_sz,
 
   auto light = new diffuse_light(color(20, 20, 20));
 
-  ret[index++] = new sphere(point3(-1, 3.69 + 1, 2), 0.3, light);
+  ret[index++] = new sphere(point3(-1, 3.69 + 1, -2.5), 0.3, light);
 
-  ret[index++] = new sphere(point3(1, 3.69 + 1, 2.5), 0.3, new diffuse_light(color(20, 20, 10)));
+  ret[index++] = new sphere(point3(1, 3.69 + 1, -2.5), 0.3,
+                            new diffuse_light(color(20, 20, 10)));
+
+  ret[index++] = new xz_rect(-4, 4, 1, 2, 4 + 1 - 0.01, light);
+
+  // fog
+  auto fog = new sphere(point3(0, 0, 0), 10, new dielectric(1.5));
+  ret[index++] = new constant_medium(fog, 0.0001, color(1, 1, 1));
 
   // glass
   ret[index++] = new sphere(point3(2, 2, 1.5), 0.75, new dielectric(1.5));
-  ret[index++] = new sphere(point3(0, 0, 2), 0.75, new dielectric(1.5));
+  ret[index++] = new sphere(point3(0, 0, 2), 0.75,
+                            new metal(color(0.8, 0.8, 0.9), 0.0001));
 
   // back
   ret[index++] = new xy_rect(-4, 4, -4, 4 + 1, -4, back_metal);
 
   // bottom
-  ret[index++] = new xz_rect(-4, 4, -4, 4, -4, red_1);
+  ret[index++] = new xz_rect(-40, 40, -40, 40, -4, red_1);
 
   // top
-  ret[index++] = new xz_rect(-4, 4, -4, 4, 4 + 1, blue_1);
+  ret[index++] = new xz_rect(-40, 40, -40, 40, 4 + 1, blue_1);
 
   // left and right
-  // ret[index++] = new yz_rect(-4, 4 + 1, -4, 4, -4, red_1);
-  // ret[index++] = new yz_rect(-4, 4 + 1, -4, 4, 4, yellow_2);
-  ret[index++] = new yz_rect(-4, 4 + 1, -4, 4, -4,  new metal(color(0.8, 0.8, 0.9), 0.1));
-  ret[index++] = new yz_rect(-4, 4 + 1, -4, 4, 4,  new metal(color(0.8, 0.8, 0.9), 0.5));
+  ret[index++] = new yz_rect(-4, 4 + 1, -4, 4, -4, yellow_2);
+  ret[index++] = new yz_rect(-4, 4 + 1, -4, 4, 4, yellow_2);
+  ret[index++] =
+      new yz_rect(-1, 3 + 1, -4, 4, -4, new metal(color(0.8, 0.8, 0.9), 0.01));
+  ret[index++] = new yz_rect(-1, 3 + 1 - 0.001, -4, 4, 3.999,
+                             new metal(color(0.8, 0.8, 0.9), 0.01));
 
   vec3 v1(-1, 1, 1);
   vec3 v2(-1, -1, 1);
@@ -663,6 +644,13 @@ __global__ void set_triangle(triangle *tri_data, hittable **tri_ptr,
 int main() {
   cudaDeviceSetLimit(cudaLimitStackSize, 32768ULL);
 
+  size_t p;
+  cuCtxGetLimit(&p, CU_LIMIT_MALLOC_HEAP_SIZE);
+  std::cerr << p << std::endl;
+
+  cudaDeviceSetLimit(cudaLimitMallocHeapSize, 512ULL * 1024ULL * 1024ULL);
+  cuCtxGetLimit(&p, CU_LIMIT_MALLOC_HEAP_SIZE);
+  std::cerr << p << std::endl;
   /**
    *    read obj file
    */
@@ -735,7 +723,7 @@ int main() {
    */
 
   const auto aspect_ratio = 1.0; // 3.0 / 2.0;
-  int nx = 800;              // 1200;
+  int nx = 800;                  // 1200;
   int ny = static_cast<int>(nx / aspect_ratio);
   // int ns = 10000; // 500*4; // 500;
   int ns = 50;
@@ -782,14 +770,19 @@ int main() {
   checkCudaErrors(cudaDeviceSynchronize());
 
   std::cerr << "create world\n";
+  clock_t start, stop;
+  start = clock();
 
   create_world<<<1, 1>>>(d_list, d_world, d_camera, nx, ny, d_rand_state2,
                          device_data, width, height, background_color, tri_data,
                          tri_sz);
   checkCudaErrors(cudaGetLastError());
   checkCudaErrors(cudaDeviceSynchronize());
+  
+  stop = clock();
+  double timer_seconds = ((double)(stop - start)) / CLOCKS_PER_SEC;
+  std::cerr << "took " << timer_seconds << " seconds.\n";
 
-  clock_t start, stop;
   start = clock();
   // Render our buffer
   dim3 blocks(nx / tx + 1, ny / ty + 1);
@@ -808,7 +801,7 @@ int main() {
   checkCudaErrors(cudaDeviceSynchronize());
 
   stop = clock();
-  double timer_seconds = ((double)(stop - start)) / CLOCKS_PER_SEC;
+  timer_seconds = ((double)(stop - start)) / CLOCKS_PER_SEC;
   std::cerr << "took " << timer_seconds << " seconds.\n";
 
   // Output FB as Image
