@@ -21,13 +21,13 @@ public:
 
     // mat_ptr = mat;
     // cacluate face normal
-    // vec3 average_vn = (vn0 + vn1 + vn2) / 3.0f;
+    vec3 average_vn = -(vn0 + vn1 + vn2) / 3.0f;
 
     // counter clockwise
     AB = v1 - v0;
     AC = v2 - v0;
 
-    // vec3 face_normal_candidate = cross(AB, AC);
+    vec3 face_normal_candidate = cross(AB, AC);
 
     // if (dot(face_normal_candidate, average_vn) < 0.0f) {
     //   v0 = _v2;
@@ -39,12 +39,12 @@ public:
     // AB = v1 - v0;
     // AC = v2 - v0;
 
-    // face_normal = dot(face_normal_candidate, average_vn) > 0.0f
-    //                   ? face_normal_candidate
-    //                   : -face_normal_candidate;
+    face_normal = dot(face_normal_candidate, average_vn) > 0.0f
+                      ? face_normal_candidate
+                      : -face_normal_candidate;
     // face_normal = (vn0 + vn1 + vn2) / 3.0f;
 
-    face_normal = cross(AB, AC);
+    // face_normal = cross(AB, AC);
 
     face_normal_unit = unit_vector(face_normal);
 
@@ -86,10 +86,12 @@ __device__ bool triangle::bounding_box(float time0, float time1,
   // }
 
   for (int i = 0; i < 3; i++) {
-    if (fabsf(min.e[i] - max.e[i]) < THICKNESS) {
-      min.e[i] = min.e[i] - THICKNESS;
-      max.e[i] = max.e[i] + THICKNESS;
-    }
+    // if (fabsf(min.e[i] - max.e[i]) < THICKNESS) {
+    //   min.e[i] = min.e[i] - THICKNESS;
+    //   max.e[i] = max.e[i] + THICKNESS;
+    // }
+    min.e[i] = min.e[i] - 5 * THICKNESS;
+    max.e[i] = max.e[i] + 5 * THICKNESS;
   }
 
   output_box = aabb(min, max);
@@ -106,7 +108,7 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
 
   // check if the light shoot from out side, I want to see if there is a lot
   // bouncing in side the box.
-  if (dot(r.dir, face_normal_unit) < 0) {
+  if (dot(r.dir, face_normal_unit) < -0.01) {
     // value > 0, then the face normal and ray has same direction, should not
     // bouncing then.
     return false;
@@ -117,7 +119,7 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
   float norm_dot_ray_dir = dot(face_normal_unit, ray_dir_unit);
 
   // parallel, return false;
-  if (fabsf(norm_dot_ray_dir) < 0.00001) {
+  if (fabsf(norm_dot_ray_dir) < 0.0000001) {
     return false;
   }
 
@@ -201,10 +203,12 @@ void read_triangles(std::vector<triangle> &triangles) {
   // std::string filename = "objs/dafault_cube_in_triangles.obj";
   // std::string filename = "objs/bunny.obj";
   // std::string filename = "objs/ball_in_triangles.obj";
-  // std::string filename = "objs/bunny_s_blender_20.obj";
-  std::string filename = "objs/bunny_blender.obj";
-
+  // std::string filename = "objs/bunny_s_blender_10.obj";
+  // std::string filename = "objs/bunny_blender.obj";
+  std::string filename = "objs/bunny_s_blender_20.obj";
+  // std::string filename = "objs/bunny_s.obj";
   // std::ifstream infile("objs/test.obj");
+  //  std::string filename = "objs/blender_monkey.obj";
   std::ifstream infile(filename);
 
   if (infile.is_open()) {

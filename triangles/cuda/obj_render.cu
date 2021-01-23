@@ -29,7 +29,7 @@ __device__ vec3 get_color(const ray &r, color **background, hittable **world,
   int i = 0;
   for (i = 0; i < depth; i++) {
     hit_record rec;
-    if ((*world)->hit(cur_ray, 0.001f, FLT_MAX, rec, local_rand_state)) {
+    if ((*world)->hit(cur_ray, 0.00001f, FLT_MAX, rec, local_rand_state)) {
 
       ray scattered;
       vec3 attenuation;
@@ -416,18 +416,19 @@ __device__ hittable *obj_model(triangle *tri_data, int tri_sz,
                             new diffuse_light(color(20, 20, 10)));
 
   ret[index++] = new xz_rect(-4, 4, 1, 2, 4 + 1 - 0.01, light);
+  ret[index++] = new xz_rect(-4, 4, 1, 2, -4 + 0.01, light);
 
   // fog
-  auto fog = new sphere(point3(0, 0, 0), 10, new dielectric(1.5));
-  ret[index++] = new constant_medium(fog, 0.0001, color(1, 1, 1));
+  // auto fog = new sphere(point3(0, 0, 0), 10, new dielectric(1.5));
+  // ret[index++] = new constant_medium(fog, 0.0001, color(1, 1, 1));
 
   // glass
-  ret[index++] = new sphere(point3(2, 2, 1.5), 0.75, new dielectric(1.5));
-  ret[index++] = new sphere(point3(0, 0, 2), 0.75,
-                            new metal(color(0.8, 0.8, 0.9), 0.0001));
+  // ret[index++] = new sphere(point3(2, 2, 1.5), 0.75, new dielectric(1.5));
+  // ret[index++] = new sphere(point3(0, 0, 2), 0.5,
+  //                           new metal(color(0.8, 0.8, 0.9), 0.0001));
 
   // back
-  ret[index++] = new xy_rect(-4, 4, -4, 4 + 1, -4, back_metal);
+  ret[index++] = new xy_rect(-4, 4, -4, 4 + 1, -4, blue_2);
 
   // bottom
   ret[index++] = new xz_rect(-40, 40, -40, 40, -4, red_1);
@@ -490,11 +491,20 @@ __device__ hittable *obj_model(triangle *tri_data, int tri_sz,
     //     vec3(tri_data[i].v2.x(), tri_data[i].v2.y(), tri_data[i].v2.z()),
     //     tri_data[i].vn0, tri_data[i].vn1, tri_data[i].vn2,
     //     index % 2 == 0 ? red : green);
-    ret[index++] = new triangle(
-        vec3(tri_data[i].v0.x(), tri_data[i].v0.y(), tri_data[i].v0.z()),
-        vec3(tri_data[i].v1.x(), tri_data[i].v1.y(), tri_data[i].v1.z()),
-        vec3(tri_data[i].v2.x(), tri_data[i].v2.y(), tri_data[i].v2.z()),
-        tri_data[i].vn0, tri_data[i].vn1, tri_data[i].vn2, white);
+
+    // ret[index++] = new triangle(
+    //     vec3(tri_data[i].v0.x(), tri_data[i].v0.y(), tri_data[i].v0.z()),
+    //     vec3(tri_data[i].v1.x(), tri_data[i].v1.y(), tri_data[i].v1.z()),
+    //     vec3(tri_data[i].v2.x(), tri_data[i].v2.y(), tri_data[i].v2.z()),
+    //     tri_data[i].vn0, tri_data[i].vn1, tri_data[i].vn2, white);
+
+    ret[index++] = new rotate_y(
+        new triangle(
+            vec3(tri_data[i].v0.x(), tri_data[i].v0.y(), tri_data[i].v0.z()),
+            vec3(tri_data[i].v1.x(), tri_data[i].v1.y(), tri_data[i].v1.z()),
+            vec3(tri_data[i].v2.x(), tri_data[i].v2.y(), tri_data[i].v2.z()),
+            tri_data[i].vn0, tri_data[i].vn1, tri_data[i].vn2, white),
+        30);
   }
 
   return new bvh_node(ret, 0, index, 0.0, 1.0, local_rand_state);
@@ -778,7 +788,7 @@ int main() {
                          tri_sz);
   checkCudaErrors(cudaGetLastError());
   checkCudaErrors(cudaDeviceSynchronize());
-  
+
   stop = clock();
   double timer_seconds = ((double)(stop - start)) / CLOCKS_PER_SEC;
   std::cerr << "took " << timer_seconds << " seconds.\n";

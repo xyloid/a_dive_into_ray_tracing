@@ -7,7 +7,7 @@
 #include "material.h"
 
 // for the bounding box of the rectangle
-#define THICKNESS 0.01
+#define THICKNESS 0.1
 class xy_rect : public hittable {
 public:
   __device__ xy_rect(){};
