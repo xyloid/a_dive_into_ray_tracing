@@ -510,6 +510,110 @@ __device__ hittable *obj_model(triangle *tri_data, int tri_sz,
   return new bvh_node(ret, 0, index, 0.0, 1.0, local_rand_state);
 }
 
+__device__ hittable *obj_model_large(triangle *tri_data, int tri_sz,
+                                     curandState *local_rand_state) {
+  hittable **ret = new hittable *[tri_sz + 13];
+
+  auto red = new lambertian(color(.65, .05, .05));
+  auto white = new lambertian(color(.73, .73, .73));
+  auto green = new lambertian(color(.12, .45, .15));
+
+  int index = 0;
+
+  auto blue_1 = new lambertian(color(0, 129.0f / 256.0, 167.0f / 256.0));
+
+  // 0, 175, 185
+  auto blue_2 = new lambertian(color(0, 175.0f / 256.0, 185.0f / 256.0));
+
+  auto red_1 =
+      new lambertian(color(240.0f / 256.0, 113.0f / 256.0, 103.0f / 256.0));
+
+  // 253, 252, 220
+  auto yellow_1 =
+      new lambertian(color(253.0f / 256.0, 252.0f / 256.0, 220.0f / 256.0));
+
+  // 254, 217, 183
+  auto yellow_2 =
+      new lambertian(color(254.0f / 256.0, 217.0f / 256.0, 183.0f / 256.0));
+
+  auto back_metal = new metal(color(0.8, 0.8, 0.9), 0.01);
+
+  auto light = new diffuse_light(color(20, 20, 20));
+
+  float scale = 1000.0;
+
+  ret[index++] = new sphere(point3(-1 * scale, 4.69 * scale, -2.5 * scale),
+                            0.3 * scale, light);
+
+  ret[index++] = new sphere(point3(1 * scale, 4.69 * scale, -2.5 * scale),
+                            0.3 * scale, new diffuse_light(color(20, 20, 10)));
+
+  ret[index++] = new xz_rect(-4 * scale, 4 * scale, 1 * scale, 2 * scale,
+                             (4 + 1 - 0.01) * scale, light);
+  ret[index++] = new xz_rect(-4 * scale, 4 * scale, 1 * scale, 2 * scale,
+                             (-4 + 0.01) * scale, light);
+
+  // fog
+  // auto fog = new sphere(point3(0, 0, 0), 10, new dielectric(1.5));
+  // ret[index++] = new constant_medium(fog, 0.0001, color(1, 1, 1));
+
+  // glass
+  // ret[index++] = new sphere(point3(2, 2, 1.5), 0.75, new dielectric(1.5));
+  // ret[index++] = new sphere(point3(0, 0, 2), 0.5,
+  //                           new metal(color(0.8, 0.8, 0.9), 0.0001));
+
+  // back
+  ret[index++] = new xy_rect(-4 * scale, 4 * scale, -4 * scale, 5 * scale,
+                             -4 * scale, blue_2);
+
+  // bottom
+  ret[index++] = new xz_rect(-40 * scale, 40 * scale, -40 * scale, 40 * scale,
+                             -4 * scale, red_1);
+
+  // top
+  ret[index++] = new xz_rect(-40 * scale, 40 * scale, -40 * scale, 40 * scale,
+                             5 * scale, blue_1);
+
+  // left and right
+  ret[index++] = new yz_rect(-4 * scale, 5 * scale, -4 * scale, 4 * scale,
+                             -4 * scale, yellow_2);
+  ret[index++] = new yz_rect(-4 * scale, 5 * scale, -4 * scale, 4 * scale,
+                             4 * scale, yellow_2);
+  ret[index++] = new yz_rect(-1 * scale, 4 * scale, -4 * scale, 4 * scale,
+                             -4 * scale, new metal(color(0.8, 0.8, 0.9), 0.01));
+  ret[index++] =
+      new yz_rect(-1 * scale, (3 + 1 - 0.001) * scale, -4 * scale, 4 * scale,
+                  3.999 * scale, new metal(color(0.8, 0.8, 0.9), 0.01));
+
+  // comment out this line the vertical square disappear
+  // the problem seems to be inside bvh algo.
+
+  for (int i = 0; i < tri_sz; i++) {
+
+    ret[index++] = new rotate_y(
+        new triangle(
+            vec3(tri_data[i].v0.x(), tri_data[i].v0.y(), tri_data[i].v0.z()) *
+                20.0,
+            vec3(tri_data[i].v1.x(), tri_data[i].v1.y(), tri_data[i].v1.z()) *
+                20.0,
+            vec3(tri_data[i].v2.x(), tri_data[i].v2.y(), tri_data[i].v2.z()) *
+                20.0,
+            vec3(tri_data[i].vn0.x(), tri_data[i].vn0.y(),
+                 tri_data[i].vn0.z()) *
+                20.0,
+            vec3(tri_data[i].vn1.x(), tri_data[i].vn1.y(),
+                 tri_data[i].vn1.z()) *
+                20.0,
+            vec3(tri_data[i].vn2.x(), tri_data[i].vn2.y(),
+                 tri_data[i].vn2.z()) *
+                20.0,
+            white),
+        30);
+  }
+
+  return new bvh_node(ret, 0, index, 0.0, 1.0, local_rand_state);
+}
+
 __global__ void create_world(hittable **d_list, hittable **d_world,
                              camera **d_camera, int nx, int ny,
                              curandState *rand_state, unsigned char *data,
@@ -594,13 +698,23 @@ __global__ void create_world(hittable **d_list, hittable **d_world,
       lookat = point3(278, 278, 0);
       vfov = 50.0;
       break;
-    default:
+
     case 10:
       // *background = new color(0.70 / 2, 0.80 / 2, 1.00 / 2);
       *background = new color(0.0, 0.0, 0.0);
       *d_world = obj_model(tri_data, tri_sz, local_rand_state);
       lookfrom = point3(1, 3, 7);
       lookat = point3(0, 2, 0);
+      vfov = 60.0;
+      break;
+
+    default:
+    case 11:
+      // *background = new color(0.70 / 2, 0.80 / 2, 1.00 / 2);
+      *background = new color(0.0, 0.0, 0.0);
+      *d_world = obj_model_large(tri_data, tri_sz, local_rand_state);
+      lookfrom = point3(1 * 1000, 3 * 1000, 7 * 1000);
+      lookat = point3(0, 2 * 1000, 0);
       vfov = 60.0;
       break;
     }
@@ -733,10 +847,10 @@ int main() {
    */
 
   const auto aspect_ratio = 1.0; // 3.0 / 2.0;
-  int nx = 800;                  // 1200;
+  int nx = 800/2;                  // 1200;
   int ny = static_cast<int>(nx / aspect_ratio);
   // int ns = 10000; // 500*4; // 500;
-  int ns = 50;
+  int ns = 500;
   int tx = 8;
   int ty = 8;
 

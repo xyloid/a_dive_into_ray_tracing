@@ -41,7 +41,7 @@ public:
 
     face_normal = dot(face_normal_candidate, average_vn) > 0.0f
                       ? face_normal_candidate
-                      : -face_normal_candidate;
+                      : face_normal_candidate;
     // face_normal = (vn0 + vn1 + vn2) / 3.0f;
 
     // face_normal = cross(AB, AC);
@@ -108,11 +108,13 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
 
   // check if the light shoot from out side, I want to see if there is a lot
   // bouncing in side the box.
-  if (dot(r.dir, face_normal_unit) < -0.01) {
-    // value > 0, then the face normal and ray has same direction, should not
-    // bouncing then.
-    return false;
-  }
+
+  // comment out and missing triangle reduced
+  // if (dot(r.dir, face_normal_unit) < 0.0) {
+  //   // value > 0, then the face normal and ray has same direction, should not
+  //   // bouncing then.
+  //   return false;
+  // }
 
   vec3 ray_dir_unit = unit_vector(r.direction());
 
@@ -205,7 +207,8 @@ void read_triangles(std::vector<triangle> &triangles) {
   // std::string filename = "objs/ball_in_triangles.obj";
   // std::string filename = "objs/bunny_s_blender_10.obj";
   // std::string filename = "objs/bunny_blender.obj";
-  std::string filename = "objs/bunny_s_blender_20.obj";
+  // std::string filename = "objs/bunny_s_blender_20.obj";
+  std::string filename = "objs/bunny_s_blender_1000.obj";
   // std::string filename = "objs/bunny_s.obj";
   // std::ifstream infile("objs/test.obj");
   //  std::string filename = "objs/blender_monkey.obj";
