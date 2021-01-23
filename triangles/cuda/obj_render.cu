@@ -851,7 +851,7 @@ int main() {
   int nx = 800 / 2;              // 1200;
   int ny = static_cast<int>(nx / aspect_ratio);
   // int ns = 10000; // 500*4; // 500;
-  int ns = 50;
+  int ns = 100;
   int tx = 8;
   int ty = 8;
 

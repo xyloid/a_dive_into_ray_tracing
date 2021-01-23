@@ -31,7 +31,7 @@ public:
 
     // if (dot(face_normal_candidate, average_vn) < 0.0f) {
     //   v0 = _v2;
-    //   v2 = _v1;
+    //   v2 = _v0;
     //   vn0 = _vn2;
     //   vn2 = _vn0;
     // }
@@ -155,13 +155,17 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
 
   vec3 C;
 
+  // strange missing triangles
+  const float threshold = 0;
+
   // edge 0
   // AB = v1 - v0
   vec3 v0p = p - v0;
   C = cross(v1 - v0, v0p);
-  if (dot(face_normal, C) < 0) {
+  if (dot(face_normal_unit, C) < threshold) {
     // P is on the right side of AB
     // printf("return 1\n");
+    
     return false;
   }
 
@@ -171,8 +175,8 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
   vec3 edge1 = v2 - v1;
   vec3 v1p = p - v1;
   C = cross(edge1, v1p);
-  float u = dot(face_normal, C);
-  if (u < 0) {
+  float u = dot(face_normal_unit, C);
+  if (u < threshold) {
     // printf("return 2\n");
     return false;
   }
@@ -182,8 +186,8 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
   vec3 edge2 = v0 - v2;
   vec3 v2p = p - v2;
   C = cross(edge2, v2p);
-  float v = dot(face_normal, C);
-  if (v < 0) {
+  float v = dot(face_normal_unit, C);
+  if (v < threshold) {
     // printf("return 3\n");
     return false;
   }
@@ -208,11 +212,14 @@ void read_triangles(std::vector<triangle> &triangles) {
   // std::string filename = "objs/bunny_s_blender_10.obj";
   // std::string filename = "objs/bunny_blender.obj";
   // std::string filename = "objs/bunny_s_blender_20.obj";
-  std::string filename = "objs/bunny_s_blender_20000.obj";
+  // std::string filename = "objs/bunny_s_blender_20000.obj";
   // std::string filename = "objs/bunny_s_blender_1000.obj";
   // std::string filename = "objs/bunny_s.obj";
   // std::ifstream infile("objs/test.obj");
   //  std::string filename = "objs/blender_monkey.obj";
+
+  std::string filename = "objs/bunny_large.obj";
+
   std::ifstream infile(filename);
 
   if (infile.is_open()) {
