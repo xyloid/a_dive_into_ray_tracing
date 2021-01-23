@@ -411,7 +411,7 @@ __device__ hittable *simple_triangle(curandState *local_rand_state) {
 
 __device__ hittable *obj_model(triangle *tri_data, int tri_sz,
                                curandState *local_rand_state) {
-  hittable **ret = new hittable *[tri_sz + 7];
+  hittable **ret = new hittable *[tri_sz + 9];
 
   auto red = new lambertian(color(.65, .05, .05));
   auto white = new lambertian(color(.73, .73, .73));
@@ -435,26 +435,32 @@ __device__ hittable *obj_model(triangle *tri_data, int tri_sz,
   auto yellow_2 =
       new lambertian(color(254.0f / 256.0, 217.0f / 256.0, 183.0f / 256.0));
 
-  auto back_metal = new metal(color(0.8, 0.8, 0.9), 1.0);
+  auto back_metal = new metal(color(0.8, 0.8, 0.9), 0.01);
 
-  auto light = new diffuse_light(color(17, 17, 17));
+  auto light = new diffuse_light(color(20, 20, 20));
 
-  ret[index++] = new sphere(point3(-1, 3.89 + 1, 1), 0.1, light);
+  ret[index++] = new sphere(point3(-1, 3.69 + 1, 2), 0.3, light);
 
-  ret[index++] = new sphere(point3(1, 3.89 + 1, -1), 0.1, light);
+  ret[index++] = new sphere(point3(1, 3.69 + 1, 2.5), 0.3, new diffuse_light(color(20, 20, 10)));
+
+  // glass
+  ret[index++] = new sphere(point3(2, 2, 1.5), 0.75, new dielectric(1.5));
+  ret[index++] = new sphere(point3(0, 0, 2), 0.75, new dielectric(1.5));
 
   // back
   ret[index++] = new xy_rect(-4, 4, -4, 4 + 1, -4, back_metal);
 
   // bottom
-  ret[index++] = new xz_rect(-4, 4, -4, 4, -4, blue_1);
+  ret[index++] = new xz_rect(-4, 4, -4, 4, -4, red_1);
 
   // top
-  ret[index++] = new xz_rect(-4, 4, -4, 4, 4 + 1, blue_2);
+  ret[index++] = new xz_rect(-4, 4, -4, 4, 4 + 1, blue_1);
 
   // left and right
-  ret[index++] = new yz_rect(-4, 4 + 1, -4, 4, -4, red_1);
-  ret[index++] = new yz_rect(-4, 4 + 1, -4, 4, 4, yellow_2);
+  // ret[index++] = new yz_rect(-4, 4 + 1, -4, 4, -4, red_1);
+  // ret[index++] = new yz_rect(-4, 4 + 1, -4, 4, 4, yellow_2);
+  ret[index++] = new yz_rect(-4, 4 + 1, -4, 4, -4,  new metal(color(0.8, 0.8, 0.9), 0.1));
+  ret[index++] = new yz_rect(-4, 4 + 1, -4, 4, 4,  new metal(color(0.8, 0.8, 0.9), 0.5));
 
   vec3 v1(-1, 1, 1);
   vec3 v2(-1, -1, 1);
@@ -729,10 +735,10 @@ int main() {
    */
 
   const auto aspect_ratio = 1.0; // 3.0 / 2.0;
-  int nx = 800 / 2;              // 1200;
+  int nx = 800;              // 1200;
   int ny = static_cast<int>(nx / aspect_ratio);
-  int ns = 100; // 500;
-  //   int ns = 500;
+  // int ns = 10000; // 500*4; // 500;
+  int ns = 50;
   int tx = 8;
   int ty = 8;
 
