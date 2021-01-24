@@ -18,3 +18,12 @@ subgoals below.
 - Custom model with triangles incorrectly rendered
 - Triangle could have zero width bounding box
     - adding thickness do help the triangle shows up
+
+- Make sure the obj file has the same coordinate system as the ray tracer's definition.
+    - -Z or +Z ?
+    - CW or CCW ?
+    - left handed or right handed ?
+
+- Make sure the line expression (**p0** + `t` * **direction**) has the same form in different intersection computation. This could cause errors:
+    - wrong intersection point **P**
+    - wrong `t_max` after one hit as the `t` has different unit in that hit function.
