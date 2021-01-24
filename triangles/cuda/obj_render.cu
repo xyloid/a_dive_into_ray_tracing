@@ -407,22 +407,26 @@ __device__ hittable *obj_model(triangle *tri_data, int tri_sz,
   auto yellow_2 =
       new lambertian(color(254.0f / 256.0, 217.0f / 256.0, 183.0f / 256.0));
 
+  //  	rgb(255,215,0)
+  auto gold =
+      new metal(color(255.0f / 256.0, 215.0f / 256.0, 0.0f / 256.0), 0.5);
+
   auto back_metal = new metal(color(0.8, 0.8, 0.9), 0.01);
 
   auto light = new diffuse_light(color(20, 20, 20) * 0.25);
   auto light_low = new diffuse_light(color(20, 20, 20) / 100);
 
   // 255,59,148   pinkish
-  ret[index++] = new sphere(
-      point3(-1, 3.69 + 1, -2.5), 0.3,
-      new diffuse_light(color(255.0f / 256.0, 59.0f / 256.0, 148.0f / 256.0) *
-                        2));
+  ret[index++] =
+      new sphere(point3(-1, 3.69 + 1, -2.5), 0.3,
+                 new diffuse_light(
+                     color(255.0f / 256.0, 59.0f / 256.0, 148.0f / 256.0) * 2));
 
   //(166,253,41) greenish
-  ret[index++] = new sphere(
-      point3(1, 3.69 + 1, -2.5), 0.3,
-      new diffuse_light(color(166.0f / 256.0, 253.0f / 256.0, 41.0f / 256.0) *
-                        2));
+  ret[index++] =
+      new sphere(point3(1, 3.69 + 1, -2.5), 0.3,
+                 new diffuse_light(
+                     color(166.0f / 256.0, 253.0f / 256.0, 41.0f / 256.0) * 2));
 
   ret[index++] = new xz_rect(-4, 4, 3, 4, 4 + 1 - 0.01, light);
   ret[index++] = new xz_rect(-4, 4, 2, 3, -4 + 0.01, light);
@@ -438,17 +442,18 @@ __device__ hittable *obj_model(triangle *tri_data, int tri_sz,
 
   // back
   ret[index++] = new xy_rect(-4, 4, -4, 4 + 1, -4, yellow_1);
-  ret[index++] = new xy_rect(-3, 3, -4, 4 + 1, -3.999, new metal(color(0.8, 0.8, 0.9), 0.0));
+  ret[index++] = new xy_rect(-3, 3, -4, 4 + 1, -3.999,
+                             new metal(color(0.8, 0.8, 0.9), 0.0));
 
   // bottom
   ret[index++] = new xz_rect(-40, 40, -40, 40, -4, red_1);
 
   // top
-  ret[index++] = new xz_rect(-40, 40, -40, 40, 4 + 1, blue_1);
+  ret[index++] = new xz_rect(-40, 40, -40, 40, 4 + 1, red_1);
 
   // left and right
   ret[index++] = new yz_rect(-4, 4 + 1, -4, 4, -4, blue_1);
-  ret[index++] = new yz_rect(-4, 4 + 1, -4, 4, 4, yellow_2);
+  ret[index++] = new yz_rect(-4, 4 + 1, -4, 4, 4, blue_1);
   ret[index++] = new yz_rect(-1, 3 + 1, -4, 4, -3.999,
                              new metal(color(0.8, 0.8, 0.9), 0.0));
   ret[index++] = new yz_rect(-1, 3 + 1 - 0.001, -4, 4, 3.999,
@@ -501,7 +506,7 @@ __device__ hittable *obj_model(triangle *tri_data, int tri_sz,
                                        tri_data[i].v2.z()) *
                                       scale,
                                   tri_data[i].vn0, tri_data[i].vn1,
-                                  tri_data[i].vn2, white),
+                                  tri_data[i].vn2, gold),
                      30),
         vec3(0, 1.5, 0));
 
@@ -859,7 +864,7 @@ int main() {
   int nx = 800;                  // 1200;
   int ny = static_cast<int>(nx / aspect_ratio);
   // int ns = 10000; // 500*4; // 500;
-  int ns = 500;
+  int ns = 1500;
   int tx = 8;
   int ty = 8;
 
