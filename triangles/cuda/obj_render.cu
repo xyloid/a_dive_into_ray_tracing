@@ -408,7 +408,8 @@ __device__ hittable *obj_model(triangle *tri_data, int tri_sz,
 
   auto back_metal = new metal(color(0.8, 0.8, 0.9), 0.01);
 
-  auto light = new diffuse_light(color(20, 20, 20));
+  auto light = new diffuse_light(color(20, 20, 20) * 0.75);
+  auto light_low = new diffuse_light(color(20, 20, 20) / 100);
 
   ret[index++] = new sphere(point3(-1, 3.69 + 1, -2.5), 0.3, light);
 
@@ -437,7 +438,7 @@ __device__ hittable *obj_model(triangle *tri_data, int tri_sz,
   ret[index++] = new xz_rect(-40, 40, -40, 40, 4 + 1, blue_1);
 
   // left and right
-  ret[index++] = new yz_rect(-4, 4 + 1, -4, 4, -4, yellow_2);
+  ret[index++] = new yz_rect(-4, 4 + 1, -4, 4, -4, blue_1);
   ret[index++] = new yz_rect(-4, 4 + 1, -4, 4, 4, yellow_2);
   ret[index++] =
       new yz_rect(-1, 3 + 1, -4, 4, -4, new metal(color(0.8, 0.8, 0.9), 0.01));
@@ -474,6 +475,7 @@ __device__ hittable *obj_model(triangle *tri_data, int tri_sz,
   // comment out this line the vertical square disappear
   // the problem seems to be inside bvh algo.
 
+  float scale = 2.5;
   for (int i = 0; i < tri_sz; i++) {
     // ((triangle *)tri_ptr[i])->mat_ptr = red;
     // triangle *tri = (triangle *)tri_ptr[i];
@@ -498,13 +500,40 @@ __device__ hittable *obj_model(triangle *tri_data, int tri_sz,
     //     vec3(tri_data[i].v2.x(), tri_data[i].v2.y(), tri_data[i].v2.z()),
     //     tri_data[i].vn0, tri_data[i].vn1, tri_data[i].vn2, white);
 
-    ret[index++] = new rotate_y(
-        new triangle(
-            vec3(tri_data[i].v0.x(), tri_data[i].v0.y(), tri_data[i].v0.z()),
-            vec3(tri_data[i].v1.x(), tri_data[i].v1.y(), tri_data[i].v1.z()),
-            vec3(tri_data[i].v2.x(), tri_data[i].v2.y(), tri_data[i].v2.z()),
-            tri_data[i].vn0, tri_data[i].vn1, tri_data[i].vn2, white),
-        30);
+    // ret[index++] = new rotate_y(
+    //     new triangle(
+    //         vec3(tri_data[i].v0.x(), tri_data[i].v0.y(), tri_data[i].v0.z()),
+    //         vec3(tri_data[i].v1.x(), tri_data[i].v1.y(), tri_data[i].v1.z()),
+    //         vec3(tri_data[i].v2.x(), tri_data[i].v2.y(), tri_data[i].v2.z()),
+    //         tri_data[i].vn0, tri_data[i].vn1, tri_data[i].vn2, white),
+    //     30);
+
+    // ret[index++] = new translate(
+    //     new rotate_y(new triangle(vec3(tri_data[i].v0.x(),
+    //     tri_data[i].v0.y(),
+    //                                    tri_data[i].v0.z()) *
+    //                                   scale,
+    //                               vec3(tri_data[i].v1.x(),
+    //                               tri_data[i].v1.y(),
+    //                                    tri_data[i].v1.z()) *
+    //                                   scale,
+    //                               vec3(tri_data[i].v2.x(),
+    //                               tri_data[i].v2.y(),
+    //                                    tri_data[i].v2.z()) *
+    //                                   scale,
+    //                               tri_data[i].vn0, tri_data[i].vn1,
+    //                               tri_data[i].vn2, white),
+    //                  -15*7),
+    //     vec3(0, 1.5, 0));
+
+    ret[index++] = new triangle(
+        vec3(tri_data[i].v0.x(), tri_data[i].v0.y(), tri_data[i].v0.z()) *
+            scale,
+        vec3(tri_data[i].v1.x(), tri_data[i].v1.y(), tri_data[i].v1.z()) *
+            scale,
+        vec3(tri_data[i].v2.x(), tri_data[i].v2.y(), tri_data[i].v2.z()) *
+            scale,
+        tri_data[i].vn0, tri_data[i].vn1, tri_data[i].vn2, white);
   }
 
   return new bvh_node(ret, 0, index, 0.0, 1.0, local_rand_state);
@@ -700,6 +729,7 @@ __global__ void create_world(hittable **d_list, hittable **d_world,
       vfov = 50.0;
       break;
 
+    default:
     case 10:
       // *background = new color(0.70 / 2, 0.80 / 2, 1.00 / 2);
       *background = new color(0.0, 0.0, 0.0);
@@ -709,7 +739,6 @@ __global__ void create_world(hittable **d_list, hittable **d_world,
       vfov = 60.0;
       break;
 
-    default:
     case 11:
       // *background = new color(0.70 / 2, 0.80 / 2, 1.00 / 2);
       *background = new color(0.0, 0.0, 0.0);
@@ -848,7 +877,7 @@ int main() {
    */
 
   const auto aspect_ratio = 1.0; // 3.0 / 2.0;
-  int nx = 800 / 2;              // 1200;
+  int nx = 800;                  // 1200;
   int ny = static_cast<int>(nx / aspect_ratio);
   // int ns = 10000; // 500*4; // 500;
   int ns = 100;

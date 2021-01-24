@@ -86,12 +86,12 @@ __device__ bool triangle::bounding_box(float time0, float time1,
   // }
 
   for (int i = 0; i < 3; i++) {
-    // if (fabsf(min.e[i] - max.e[i]) < THICKNESS) {
-    //   min.e[i] = min.e[i] - THICKNESS;
-    //   max.e[i] = max.e[i] + THICKNESS;
-    // }
-    min.e[i] = min.e[i] - THICKNESS;
-    max.e[i] = max.e[i] + THICKNESS;
+    if (fabsf(min.e[i] - max.e[i]) < THICKNESS) {
+      min.e[i] = min.e[i] - THICKNESS;
+      max.e[i] = max.e[i] + THICKNESS;
+    }
+    // min.e[i] = min.e[i] - THICKNESS;
+    // max.e[i] = max.e[i] + THICKNESS;
   }
 
   output_box = aabb(min, max);
@@ -121,7 +121,7 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
   float norm_dot_ray_dir = dot(face_normal_unit, ray_dir_unit);
 
   // parallel, return false;
-  if (fabsf(norm_dot_ray_dir) < 0.0000001) {
+  if (fabsf(norm_dot_ray_dir) < 0.001) {
     return false;
   }
 
@@ -143,11 +143,11 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
   vec3 p = r.origin() + t * ray_dir_unit;
   // vec3 p = r.at(t);
 
-  vec3 dist = p - r.orig;
+  vec3 dist = p - r.origin();
 
   // convert t to the comparable value to other shape primitives
   // t should be used determine which p is at the front.
-  float converted_t = dist.length() / r.dir.length();
+  float converted_t = dist.length() / r.direction().length();
 
   if (converted_t < t_min || converted_t > t_max) {
     return false;
@@ -165,7 +165,7 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
   if (dot(face_normal_unit, C) < threshold) {
     // P is on the right side of AB
     // printf("return 1\n");
-    
+
     return false;
   }
 
@@ -199,6 +199,7 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
   rec.u = u;
   rec.v = v;
   rec.set_face_normal(r, face_normal_unit);
+  // rec.set_face_normal(r, face_normal);
   rec.mat_ptr = mat_ptr;
   return true;
 }
@@ -216,15 +217,15 @@ void read_triangles(std::vector<triangle> &triangles) {
   // std::string filename = "objs/bunny_s_blender_1000.obj";
   // std::string filename = "objs/bunny_s.obj";
   // std::ifstream infile("objs/test.obj");
-  //  std::string filename = "objs/blender_monkey.obj";
+  std::string filename = "objs/blender_monkey.obj";
 
-  std::string filename = "objs/bunny_large.obj";
+  // std::string filename = "objs/bunny_large.obj";
 
   std::ifstream infile(filename);
 
   if (infile.is_open()) {
     std::string line;
-    float x, y, z;
+    double x, y, z;
     while (std::getline(infile, line)) {
 
       std::istringstream in(line);
@@ -259,7 +260,8 @@ void read_triangles(std::vector<triangle> &triangles) {
             if (num.length() == 0) {
               indices.push_back(-1);
             } else {
-              float n = std::stof(num) - 1;
+              // this is an integer
+              int n = std::stoi(num) - 1;
               // std::cout << num << "\t" << n << std::endl;
               indices.push_back(n);
             }

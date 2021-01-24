@@ -84,7 +84,7 @@ __device__ bool bvh_node::hit(const ray &r, float t_min, float t_max,
     return false;
   }
 
-  const int stack_size = 128;
+  const int stack_size = 256;
 
   // printf("1\n");
   int malloc_count = 0;
@@ -116,17 +116,23 @@ __device__ bool bvh_node::hit(const ray &r, float t_min, float t_max,
     // no bounding box on leaf, not bvh_node
     if (l_child->is_leaf || r_child->is_leaf) {
 
-      aabb l_box, r_box;
-      l_child->bounding_box(t_min, t_max, l_box);
-      r_child->bounding_box(t_min, t_max, r_box);
+      // aabb l_box, r_box;
+      // l_child->bounding_box(t_min, t_max, l_box);
+      // r_child->bounding_box(t_min, t_max, r_box);
 
       // must hit one of them
       bool hit_left = l_child->hit(r, t_min, t_max, rec, local_rand_state);
       t_max = hit_left ? rec.t : t_max;
       // bool hit_right = r_child->hit(r, t_min, hit_left ? rec.t : t_max, rec,
       //                               local_rand_state);
-      bool hit_right = r_child->hit(r, t_min, t_max, rec, local_rand_state);
-      t_max = hit_right ? rec.t : t_max;
+
+      bool hit_right = false;
+      
+      // prevent double computation of same leaf
+      if (l_child != r_child) {
+        hit_right = r_child->hit(r, t_min, t_max, rec, local_rand_state);
+        t_max = hit_right ? rec.t : t_max;
+      }
 
       node = (bvh_node *)*--stack_ptr;
 
