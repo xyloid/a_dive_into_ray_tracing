@@ -22,7 +22,8 @@ __device__ vec3 get_color(const ray &r, color **background, hittable **world,
   ray cur_ray = r;
   vec3 cur_attenuation(1.0f, 1.0f, 1.0f);
 
-  const int depth = 50;
+  // const int depth = 50;
+  const int depth = 1;
 
   vec3 emitted_rec[depth];
   vec3 attenuation_rec[depth];
@@ -533,7 +534,7 @@ __device__ hittable *obj_model(triangle *tri_data, int tri_sz,
             scale,
         vec3(tri_data[i].v2.x(), tri_data[i].v2.y(), tri_data[i].v2.z()) *
             scale,
-        tri_data[i].vn0, tri_data[i].vn1, tri_data[i].vn2, white);
+        tri_data[i].vn0, tri_data[i].vn1, tri_data[i].vn2, light_low);
   }
 
   return new bvh_node(ret, 0, index, 0.0, 1.0, local_rand_state);
