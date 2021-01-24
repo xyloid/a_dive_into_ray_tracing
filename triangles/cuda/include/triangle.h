@@ -118,16 +118,21 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
 
   vec3 ray_dir_unit = unit_vector(r.direction());
 
-  float norm_dot_ray_dir = dot(face_normal_unit, ray_dir_unit);
+  // float norm_dot_ray_dir = dot(face_normal_unit, ray_dir_unit);
+
+  float norm_dot_ray_dir = dot(face_normal, r.direction());
 
   // parallel, return false;
-  if (fabsf(norm_dot_ray_dir) < 0.001) {
+  if (fabsf(norm_dot_ray_dir) < 0.01) {
     return false;
   }
 
   // compute t
-  float t =
-      -(dot(face_normal_unit, r.origin()) + dist_to_origin) / norm_dot_ray_dir;
+  // float t =
+  //     -(dot(face_normal_unit, r.origin()) + dist_to_origin) /
+  //     norm_dot_ray_dir;
+
+  float t = dot(v0 - r.origin(), face_normal) / norm_dot_ray_dir;
 
   // the triangle is behind the eye
   if (t < 0) {
@@ -140,8 +145,8 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
   //   return false;
   // }
 
-  vec3 p = r.origin() + t * ray_dir_unit;
-  // vec3 p = r.at(t);
+  // vec3 p = r.origin() + t * ray_dir_unit;
+  vec3 p = r.at(t);
 
   vec3 dist = p - r.origin();
 
