@@ -27,3 +27,6 @@ subgoals below.
 - Make sure the line expression (**p0** + `t` * **direction**) has the same form in different intersection computation. This could cause errors:
     - wrong intersection point **P**
     - wrong `t_max` after one hit as the `t` has different unit in that hit function.
+
+- Some wired errors are connected to stack size and heap size of the device code.
+    - tweak the size using cuda API.
