@@ -22,8 +22,8 @@ __device__ vec3 get_color(const ray &r, color **background, hittable **world,
   ray cur_ray = r;
   vec3 cur_attenuation(1.0f, 1.0f, 1.0f);
 
-  // const int depth = 50;
-  const int depth = 1;
+  const int depth = 50;
+  // const int depth = 1;
 
   vec3 emitted_rec[depth];
   vec3 attenuation_rec[depth];
@@ -409,16 +409,23 @@ __device__ hittable *obj_model(triangle *tri_data, int tri_sz,
 
   auto back_metal = new metal(color(0.8, 0.8, 0.9), 0.01);
 
-  auto light = new diffuse_light(color(20, 20, 20) * 0.75);
+  auto light = new diffuse_light(color(20, 20, 20) * 0.25);
   auto light_low = new diffuse_light(color(20, 20, 20) / 100);
 
-  ret[index++] = new sphere(point3(-1, 3.69 + 1, -2.5), 0.3, light);
+  // 255,59,148   pinkish
+  ret[index++] = new sphere(
+      point3(-1, 3.69 + 1, -2.5), 0.3,
+      new diffuse_light(color(255.0f / 256.0, 59.0f / 256.0, 148.0f / 256.0) *
+                        2));
 
-  ret[index++] = new sphere(point3(1, 3.69 + 1, -2.5), 0.3,
-                            new diffuse_light(color(20, 20, 10)));
+  //(166,253,41) greenish
+  ret[index++] = new sphere(
+      point3(1, 3.69 + 1, -2.5), 0.3,
+      new diffuse_light(color(166.0f / 256.0, 253.0f / 256.0, 41.0f / 256.0) *
+                        2));
 
-  ret[index++] = new xz_rect(-4, 4, 1, 2, 4 + 1 - 0.01, light);
-  ret[index++] = new xz_rect(-4, 4, 1, 2, -4 + 0.01, light);
+  ret[index++] = new xz_rect(-4, 4, 3, 4, 4 + 1 - 0.01, light);
+  ret[index++] = new xz_rect(-4, 4, 2, 3, -4 + 0.01, light);
 
   // fog
   // auto fog = new sphere(point3(0, 0, 0), 10, new dielectric(1.5));
@@ -430,7 +437,8 @@ __device__ hittable *obj_model(triangle *tri_data, int tri_sz,
   //                           new metal(color(0.8, 0.8, 0.9), 0.0001));
 
   // back
-  ret[index++] = new xy_rect(-4, 4, -4, 4 + 1, -4, blue_2);
+  ret[index++] = new xy_rect(-4, 4, -4, 4 + 1, -4, yellow_1);
+  ret[index++] = new xy_rect(-3, 3, -4, 4 + 1, -3.999, new metal(color(0.8, 0.8, 0.9), 0.0));
 
   // bottom
   ret[index++] = new xz_rect(-40, 40, -40, 40, -4, red_1);
@@ -441,37 +449,10 @@ __device__ hittable *obj_model(triangle *tri_data, int tri_sz,
   // left and right
   ret[index++] = new yz_rect(-4, 4 + 1, -4, 4, -4, blue_1);
   ret[index++] = new yz_rect(-4, 4 + 1, -4, 4, 4, yellow_2);
-  ret[index++] =
-      new yz_rect(-1, 3 + 1, -4, 4, -4, new metal(color(0.8, 0.8, 0.9), 0.01));
+  ret[index++] = new yz_rect(-1, 3 + 1, -4, 4, -3.999,
+                             new metal(color(0.8, 0.8, 0.9), 0.0));
   ret[index++] = new yz_rect(-1, 3 + 1 - 0.001, -4, 4, 3.999,
-                             new metal(color(0.8, 0.8, 0.9), 0.01));
-
-  vec3 v1(-1, 1, 1);
-  vec3 v2(-1, -1, 1);
-  vec3 v3(-1, 1, -1);
-  vec3 v4(-1, -1, -1);
-  vec3 v5(1, 1, 1);
-  vec3 v6(1, -1, 1);
-  vec3 v7(1, 1, -1);
-  vec3 v8(1, -1, -1);
-
-  vec3 vn1(0, 1, 0);
-  vec3 vn2(0, 0, -1);
-  vec3 vn3(1, 0, 0);
-  vec3 vn4(0, -1, 0);
-  vec3 vn5(-1, 0, 0);
-  vec3 vn6(0, 0, 1);
-
-  // ret[index++] = new triangle(v3, v7, v5, vn1, vn1, vn1, green);
-  // ret[index++] = new triangle(v1, v3, v5, vn1, vn1, vn1, red);
-
-  // ret[index++] = new triangle(v8, v6, v7, vn3, vn3, vn3, green);
-
-  // ret[index++] = new triangle(v6, v5, v7, vn3, vn3, vn3, red);
-
-  // ret[index++] = new triangle(v6, v2, v5, vn6, vn6, vn6, red);
-
-  // ret[index++] = new triangle(v2, v1, v5, vn6, vn6, vn6, green);
+                             new metal(color(0.8, 0.8, 0.9), 0.0));
 
   // comment out this line the vertical square disappear
   // the problem seems to be inside bvh algo.
@@ -509,32 +490,29 @@ __device__ hittable *obj_model(triangle *tri_data, int tri_sz,
     //         tri_data[i].vn0, tri_data[i].vn1, tri_data[i].vn2, white),
     //     30);
 
-    // ret[index++] = new translate(
-    //     new rotate_y(new triangle(vec3(tri_data[i].v0.x(),
-    //     tri_data[i].v0.y(),
-    //                                    tri_data[i].v0.z()) *
-    //                                   scale,
-    //                               vec3(tri_data[i].v1.x(),
-    //                               tri_data[i].v1.y(),
-    //                                    tri_data[i].v1.z()) *
-    //                                   scale,
-    //                               vec3(tri_data[i].v2.x(),
-    //                               tri_data[i].v2.y(),
-    //                                    tri_data[i].v2.z()) *
-    //                                   scale,
-    //                               tri_data[i].vn0, tri_data[i].vn1,
-    //                               tri_data[i].vn2, white),
-    //                  -15*7),
-    //     vec3(0, 1.5, 0));
+    ret[index++] = new translate(
+        new rotate_y(new triangle(vec3(tri_data[i].v0.x(), tri_data[i].v0.y(),
+                                       tri_data[i].v0.z()) *
+                                      scale,
+                                  vec3(tri_data[i].v1.x(), tri_data[i].v1.y(),
+                                       tri_data[i].v1.z()) *
+                                      scale,
+                                  vec3(tri_data[i].v2.x(), tri_data[i].v2.y(),
+                                       tri_data[i].v2.z()) *
+                                      scale,
+                                  tri_data[i].vn0, tri_data[i].vn1,
+                                  tri_data[i].vn2, white),
+                     30),
+        vec3(0, 1.5, 0));
 
-    ret[index++] = new triangle(
-        vec3(tri_data[i].v0.x(), tri_data[i].v0.y(), tri_data[i].v0.z()) *
-            scale,
-        vec3(tri_data[i].v1.x(), tri_data[i].v1.y(), tri_data[i].v1.z()) *
-            scale,
-        vec3(tri_data[i].v2.x(), tri_data[i].v2.y(), tri_data[i].v2.z()) *
-            scale,
-        tri_data[i].vn0, tri_data[i].vn1, tri_data[i].vn2, light_low);
+    // ret[index++] = new triangle(
+    //     vec3(tri_data[i].v0.x(), tri_data[i].v0.y(), tri_data[i].v0.z()) *
+    //         scale,
+    //     vec3(tri_data[i].v1.x(), tri_data[i].v1.y(), tri_data[i].v1.z()) *
+    //         scale,
+    //     vec3(tri_data[i].v2.x(), tri_data[i].v2.y(), tri_data[i].v2.z()) *
+    //         scale,
+    //     tri_data[i].vn0, tri_data[i].vn1, tri_data[i].vn2, white);
   }
 
   return new bvh_node(ret, 0, index, 0.0, 1.0, local_rand_state);
@@ -881,7 +859,7 @@ int main() {
   int nx = 800;                  // 1200;
   int ny = static_cast<int>(nx / aspect_ratio);
   // int ns = 10000; // 500*4; // 500;
-  int ns = 100;
+  int ns = 500;
   int tx = 8;
   int ty = 8;
 

@@ -148,13 +148,17 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
   // vec3 p = r.origin() + t * ray_dir_unit;
   vec3 p = r.at(t);
 
-  vec3 dist = p - r.origin();
+  // vec3 dist = p - r.origin();
 
-  // convert t to the comparable value to other shape primitives
-  // t should be used determine which p is at the front.
-  float converted_t = dist.length() / r.direction().length();
+  // // convert t to the comparable value to other shape primitives
+  // // t should be used determine which p is at the front.
+  // float converted_t = dist.length() / r.direction().length();
 
-  if (converted_t < t_min || converted_t > t_max) {
+  // if (converted_t < t_min || converted_t > t_max) {
+  //   return false;
+  // }
+
+    if (t < t_min || t > t_max) {
     return false;
   }
 
@@ -199,7 +203,8 @@ __device__ bool triangle::hit(const ray &r, float t_min, float t_max,
 
   // printf("hit %f %f %f\n", rec.p.x(), rec.p.y(), rec.p.z());
   // this t is used in bvh traversal
-  rec.t = converted_t;
+  // rec.t = converted_t;
+   rec.t = t;
   rec.p = p;
   rec.u = u;
   rec.v = v;
